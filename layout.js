@@ -139,8 +139,14 @@ function setUpTable() {
 
   // Function to handle button clicks in inputContainer
   function handleInputButtonClick(event) {
-    if (gameMode) {
-      const clickedButton = event.target;
+    const clickedButton = event.target;
+
+    if (!gameMode) {
+      const buttonValue = parseInt(clickedButton.value);
+      if (buttonValue === 3 || buttonValue === 7) {
+        selectGameMode(buttonValue);
+      }
+    } else {
       const buttonClone = clickedButton.cloneNode(true);
 
       // Get the current target slot
@@ -166,41 +172,9 @@ function setUpTable() {
     button.addEventListener("click", handleInputButtonClick);
   });
 
-  // Create the "Game mode=3" button
-  const gameMode3Button = document.createElement("button");
-  gameMode3Button.textContent = "Game mode=3";
-  rightDivision.appendChild(gameMode3Button);
-
-  // Create the "Game mode=7" button
-  const gameMode7Button = document.createElement("button");
-  gameMode7Button.textContent = "Game mode=7";
-  rightDivision.appendChild(gameMode7Button);
-
   // Create the Enter button
   enterButton.textContent = `Remaining`;
-
-  // Function for Game mode buttons
-  function selectGameMode(game_Mode) {
-    rightDivision.removeChild(gameMode3Button);
-    rightDivision.removeChild(gameMode7Button);
-    rightDivision.appendChild(enterButton);
-
-    // Remove buttons from slots
-    Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
-      (button) => button.remove()
-    );
-    gameMode = game_Mode; // Set the game mode
-    updateSlotBorders();
-    startLevel();
-  }
-
-  // Event listener for "Game mode=3" and "Game mode=7" buttons
-  gameMode3Button.addEventListener("click", function () {
-    selectGameMode(3);
-  });
-  gameMode7Button.addEventListener("click", function () {
-    selectGameMode(7);
-  });
+  rightDivision.appendChild(enterButton);
 
   // Insert the line break as HTML
   enterButton.insertAdjacentHTML("beforeend", "<br>");
@@ -265,37 +239,18 @@ function setUpTable() {
       buttonsInSlots.forEach((button) => button.remove());
 
       // Update the text content of the enterButton
-      enterButton.textContent = `Remaining ${chanceRemaining} chance(s)`;
-
+      enterButton.textContent = `Remaining`;
+      // Insert the line break as HTML
+      enterButton.insertAdjacentHTML("beforeend", "<br>");
+      enterButton.insertAdjacentText(
+        "beforeend",
+        `${chanceRemaining} chance(s)`
+      );
       // Reset the currentIndex and update slot borders
       currentIndex = 0;
       updateSlotBorders();
     }
   });
-
-  // Function to handle button clicks in left division (to remove buttons)
-  function handleLeftDivisionButtonClick(event) {
-    const clickedSlot = event.target.closest(".slot");
-
-    if (clickedSlot) {
-      const clickedButton = clickedSlot.querySelector("button");
-
-      // Remove the button from the clicked slot
-      if (clickedButton) {
-        clickedButton.remove();
-      }
-
-      // Get the index of the clicked slot and set it as the current target slot
-      const clickedSlotIndex = Array.from(
-        leftDivision.querySelectorAll(".slot")
-      ).indexOf(clickedSlot);
-
-      currentIndex = clickedSlotIndex;
-
-      // Update slot borders based on currentIndex
-      updateSlotBorders();
-    }
-  }
 
   // Attach click event listener to the left division (using event delegation)
   leftDivision.addEventListener("click", function (event) {
@@ -313,18 +268,61 @@ function setUpTable() {
       updateSlotBorders();
     }
   });
-
-  // Function to update slot borders
-  function updateSlotBorders() {
-    const allSlots = leftDivision.querySelectorAll(".slot");
-    allSlots.forEach((slot, index) => {
-      if (index === currentIndex) {
-        slot.classList.add("current");
-      } else {
-        slot.classList.remove("current");
-      }
-    });
+  // Function for Game mode buttons
+  function selectGameMode(game_Mode) {
+    // Remove buttons from slots
+    Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
+      (button) => button.remove()
+    );
+    gameMode = game_Mode; // Set the game mode
+    // Create a new row in the output table
+    const outputTable = document.querySelector("main.output table");
+    const firstRow = document.createElement("tr");
+    // Insert cells in the first column of the output table
+    const instructionCell = document.createElement("td");
+    instructionCell.textContent = `Level 0 => 1`;
+    instructionCell.colSpan = 2; // Span two columns
+    firstRow.appendChild(instructionCell);
+    // Append the new row to the output table
+    outputTable.appendChild(firstRow);
+    updateSlotBorders();
+    startLevel();
   }
+}
+
+// Function to handle button clicks in left division (to remove buttons)
+function handleLeftDivisionButtonClick(event) {
+  const clickedSlot = event.target.closest(".slot");
+
+  if (clickedSlot) {
+    const clickedButton = clickedSlot.querySelector("button");
+
+    // Remove the button from the clicked slot
+    if (clickedButton) {
+      clickedButton.remove();
+    }
+
+    // Get the index of the clicked slot and set it as the current target slot
+    const clickedSlotIndex = Array.from(
+      leftDivision.querySelectorAll(".slot")
+    ).indexOf(clickedSlot);
+
+    currentIndex = clickedSlotIndex;
+
+    // Update slot borders based on currentIndex
+    updateSlotBorders();
+  }
+}
+// Function to update slot borders
+function updateSlotBorders() {
+  const allSlots = leftDivision.querySelectorAll(".slot");
+  allSlots.forEach((slot, index) => {
+    if (index === currentIndex) {
+      slot.classList.add("current");
+    } else {
+      slot.classList.remove("current");
+    }
+  });
 }
 function turnCount(randomAnswer, guess) {
   let rights = 0;
