@@ -379,14 +379,16 @@ function levelWon() {
   chanceRemaining += gameMode; // Increase chanceRemaining
   lOfUncertainty += 1;
   level += 1;
-
-  // Create a list of direction buttons
-  const directionButtons = [
-    '<button value="<" type="button" class="numberButton white"><</button>',
-    '<button value=">" type="button" class="numberButton white">></button>',
-    '<button value="^" type="button" class="numberButton white">^</button>',
-  ];
-
+  // Create a new row in the output table
+  const outputTable = document.querySelector("main.output table");
+  const firstRow = document.createElement("tr");
+  // Insert cells in the first column of the output table
+  const instructionCell = document.createElement("td");
+  instructionCell.textContent = `Any direction to next level`;
+  instructionCell.colSpan = 2; // Span two columns
+  firstRow.appendChild(instructionCell);
+  // Append the new row to the output table
+  outputTable.appendChild(firstRow);
   // Append direction buttons to the first 3 slots in left temp div
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
   for (let i = 0; i < 3; i++) {
@@ -399,18 +401,15 @@ function levelWon() {
         slot.innerHTML = ""; // Clear the content of the slot
       });
 
-      // Create a new row in the output table
-      const outputTable = document.querySelector("main.output table");
-      const newRow = document.createElement("tr");
-
       // Insert cells in the first column of the output table
+      const secondRow = document.createElement("tr");
       const levelInfoCell = document.createElement("td");
       levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
       levelInfoCell.colSpan = 2; // Span two columns
-      newRow.appendChild(levelInfoCell);
+      secondRow.appendChild(levelInfoCell);
 
       // Append the new row to the output table
-      outputTable.appendChild(newRow);
+      outputTable.appendChild(secondRow);
 
       // Call the startLevel() function to set up the next level
       startLevel();
