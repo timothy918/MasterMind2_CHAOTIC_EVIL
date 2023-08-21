@@ -81,12 +81,10 @@ main.output {
   overflow-y: scroll;
   display: flex;
   flex-direction: column; /* Align items from top to bottom */
-  width: 100%;
-  max-width: 800px;
 }
 td {
   border: 1px dashed black;
-  font-size: 50px;
+  font-size: 30px;
 }
 th {
   border: 1px dashed black;

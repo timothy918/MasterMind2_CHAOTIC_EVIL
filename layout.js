@@ -12,8 +12,8 @@ const numberButtons = [
 ];
 const directionButtons = [
   '<button value="<" type="button" class="numberButton white"><</button>',
-  '<button value=">" type="button" class="numberButton white">></button>',
   '<button value="^" type="button" class="numberButton white">^</button>',
+  '<button value=">" type="button" class="numberButton white">></button>',
 ];
 const hints = [
   "Ⓐ",
@@ -49,10 +49,8 @@ let lOfUncertainty = 0;
 let currentIndex = 0;
 let chanceRemaining = 16;
 let level = 1;
-let gameMode;
-let randomAnswer;
-let randomRight;
-let randomWrong; // Declare these variables in a higher scope
+let inputEnable = 1;
+let gameMode, randomAnswer, randomRight, randomWrong;
 const feedback = [[], []];
 
 const inputContainer = document.getElementById("inputContainer");
@@ -63,37 +61,7 @@ const header = document.querySelector(".header");
 document.addEventListener("DOMContentLoaded", setUpTable);
 
 function setUpTable() {
-  // Update the title based on lOfUncertainty
-  let titleText = "";
-  for (let i = 0; i <= lOfUncertainty; i++) {
-    titleText += fullName[i];
-    if (i < lOfUncertainty) {
-      titleText += " ";
-    }
-  }
-  document.title = titleText; // Update the document's title
-  // Load the content of the banners.txt file
-  fetch("banners.txt")
-    .then((response) => response.text())
-    .then((data) => {
-      const lines = data.split("\n");
-      let selectedLines = [];
-
-      if (lOfUncertainty === 0) {
-        selectedLines = lines.slice(1, 7); // Lines 2 to 7
-      } else if (lOfUncertainty === 1) {
-        selectedLines = lines.slice(8, 21); // Lines 9 to 21
-      } else if (lOfUncertainty === 2) {
-        selectedLines = lines.slice(22, 38); // Lines 23 to 38
-      }
-      const header = document.querySelector(".header");
-      header.innerHTML = selectedLines
-        .map((line) => `<pre>${line}</pre>`)
-        .join("");
-    })
-    .catch((error) => {
-      console.error("Error fetching or parsing banners.txt:", error);
-    });
+  updateHeaderTitle();
   // Create the slots dynamically based on nOfSlots
   for (let i = 1; i <= nOfSlots; i++) {
     const slotElement = document.createElement("div");
@@ -146,7 +114,7 @@ function setUpTable() {
       if (buttonValue === 3 || buttonValue === 7) {
         selectGameMode(buttonValue);
       }
-    } else {
+    } else if (inputEnable) {
       const buttonClone = clickedButton.cloneNode(true);
 
       // Get the current target slot
@@ -279,10 +247,10 @@ function setUpTable() {
     const outputTable = document.querySelector("main.output table");
     const firstRow = document.createElement("tr");
     // Insert cells in the first column of the output table
-    const instructionCell = document.createElement("td");
-    instructionCell.textContent = `Level 0 => 1`;
-    instructionCell.colSpan = 2; // Span two columns
-    firstRow.appendChild(instructionCell);
+    const levelInfoCell = document.createElement("td");
+    levelInfoCell.textContent = `Level 0 => 1`;
+    levelInfoCell.colSpan = 2; // Span two columns
+    firstRow.appendChild(levelInfoCell);
     // Append the new row to the output table
     outputTable.appendChild(firstRow);
     updateSlotBorders();
@@ -374,6 +342,7 @@ function displayFeedback(
 }
 
 function levelWon() {
+  inputEnable = null;
   chanceRemaining += gameMode; // Increase chanceRemaining
   lOfUncertainty += 1;
   level += 1;
@@ -391,9 +360,10 @@ function levelWon() {
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
   for (let i = 0; i < 3; i++) {
     slotsInLeftTemp[i].innerHTML = directionButtons[i];
+    const directionButton = slotsInLeftTemp[i].querySelector("button");
 
     // Add event listener to direction buttons
-    slotsInLeftTemp[i].addEventListener("click", function () {
+    directionButton.addEventListener("click", function () {
       // Remove all buttons from slots
       slotsInLeftTemp.forEach((slot) => {
         slot.innerHTML = ""; // Clear the content of the slot
@@ -403,8 +373,12 @@ function levelWon() {
       const secondRow = document.createElement("tr");
       const levelInfoCell = document.createElement("td");
       levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
-      levelInfoCell.colSpan = 2; // Span two columns
       secondRow.appendChild(levelInfoCell);
+      const difficultyInfoCell = document.createElement("td");
+      difficultyInfoCell.textContent = `Level of Uncertainty ${
+        lOfUncertainty - 1
+      } => ${lOfUncertainty}`;
+      secondRow.appendChild(difficultyInfoCell);
 
       // Append the new row to the output table
       outputTable.appendChild(secondRow);
@@ -416,6 +390,8 @@ function levelWon() {
 }
 
 function startLevel() {
+  inputEnable = 1;
+  updateHeaderTitle();
   currentIndex = 0;
   // Generate random answer
   const minNumber = Math.pow(nOfChoices, nOfSlots);
@@ -437,4 +413,37 @@ function startLevel() {
     const randomRight = 1;
     const randomWrong = 0;
   }
+}
+function updateHeaderTitle() {
+  // Update the title based on lOfUncertainty
+  let titleText = "";
+  for (let i = 0; i <= lOfUncertainty; i++) {
+    titleText += fullName[i];
+    if (i < lOfUncertainty) {
+      titleText += " ";
+    }
+  }
+  document.title = titleText; // Update the document's title
+  // Load the content of the banners.txt file
+  fetch("banners.txt")
+    .then((response) => response.text())
+    .then((data) => {
+      const lines = data.split("\n");
+      let selectedLines = [];
+
+      if (lOfUncertainty === 0) {
+        selectedLines = lines.slice(1, 7); // Lines 2 to 7
+      } else if (lOfUncertainty === 1) {
+        selectedLines = lines.slice(8, 21); // Lines 9 to 21
+      } else if (lOfUncertainty === 2) {
+        selectedLines = lines.slice(22, 38); // Lines 23 to 38
+      }
+      const header = document.querySelector(".header");
+      header.innerHTML = selectedLines
+        .map((line) => `<pre>${line}</pre>`)
+        .join("");
+    })
+    .catch((error) => {
+      console.error("Error fetching or parsing banners.txt:", error);
+    });
 }
