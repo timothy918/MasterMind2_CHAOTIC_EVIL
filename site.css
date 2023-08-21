@@ -7,6 +7,9 @@ body {
   align-items: center; /* Center content horizontally */
   justify-content: flex-end; /* Align content to the bottom */
 }
+.rightHint {
+  color: lightgreen;
+}
 .numberButton {
   color: white;
   text-align: center;

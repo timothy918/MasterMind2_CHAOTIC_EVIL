@@ -274,6 +274,9 @@ function setUpTable() {
   function selectGameMode(game_Mode) {
     level = 2;
     chanceRemaining = 16;
+    nOfSlots = 4;
+    nOfChoices = 6;
+    lOfUncertainty = 1;
 
     enterButton.textContent = `Remaining`;
     enterButton.insertAdjacentHTML("beforeend", "<br>");
@@ -367,15 +370,15 @@ function displayFeedback(
 ) {
   const secondColumnCell = document.createElement("td");
   if (lOfUncertainty === 0) {
-    secondColumnCell.textContent = `Ⓦ*${wrongs} Ⓡ*${rights}`;
+    secondColumnCell.innerHTML = `Ⓦ*${wrongs} <span class="rightHint">Ⓡ</span>*${rights}`;
   } else {
     // Handle the case where lOfUncertainty is not 0
     const rightHint = hints[randomRight];
     const wrongHint = hints[randomWrong];
     if (randomRight < randomWrong) {
-      secondColumnCell.textContent = `${rightHint}*${rights} ${wrongHint}*${wrongs}`;
+      secondColumnCell.innerHTML = `<span>${rightHint}</span>*${rights} ${wrongHint}*${wrongs}`;
     } else {
-      secondColumnCell.textContent = `${wrongHint}*${wrongs} ${rightHint}*${rights}`;
+      secondColumnCell.innerHTML = `${wrongHint}*${wrongs} <span>${rightHint}</span>*${rights}`;
     }
   }
   return secondColumnCell;
@@ -384,7 +387,6 @@ function displayFeedback(
 function gameEnd(ifWin) {
   // Add additional rows
   let rowsToAdd;
-
   if (ifWin) {
     rowsToAdd = [
       [
@@ -393,6 +395,13 @@ function gameEnd(ifWin) {
       ],
     ];
   } else {
+    // Select all <span> elements within the output table rows
+    const spanElements = outputTable.querySelectorAll("tr span");
+
+    // Loop through the <span> elements and add the rightHint class
+    spanElements.forEach((spanElement) => {
+      spanElement.classList.add("rightHint");
+    });
     rowsToAdd = [["You lose!", ""]];
   }
   rowsToAdd.push(
@@ -416,6 +425,14 @@ function gameEnd(ifWin) {
 
 function levelWon() {
   inputEnable = null; // Disable number buttons in input section
+
+  // Select all <span> elements within the output table rows
+  const spanElements = outputTable.querySelectorAll("tr span");
+
+  // Loop through the <span> elements and add the rightHint class
+  spanElements.forEach((spanElement) => {
+    spanElement.classList.add("rightHint");
+  });
   // Append direction buttons to the first 3 slots in left temp div
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
   for (let i = 0; i < 3; i++) {
