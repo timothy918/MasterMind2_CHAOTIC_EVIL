@@ -85,10 +85,10 @@ main.output {
 td {
   border: 1px dashed black;
   font-size: 30px;
+  vertical-align: top;
 }
-th {
-  border: 1px dashed black;
-  font-size: 25px;
+td:first-child {
+  text-align: center;
 }
 table {
   border-collapse: collapse;

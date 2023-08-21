@@ -48,7 +48,7 @@ let nOfChoices = 6;
 let lOfUncertainty = 0;
 let currentIndex = 0;
 let chanceRemaining = 16;
-let level = 3;
+let level;
 let inputEnable = 1;
 let gameMode, randomAnswer, randomRight, randomWrong;
 const feedback = [[], []];
@@ -57,6 +57,7 @@ const inputContainer = document.getElementById("inputContainer");
 const leftDivision = document.querySelector(".left_temp");
 const rightDivision = document.querySelector(".right_temp");
 const header = document.querySelector(".header");
+const outputTable = document.querySelector("main.output table");
 
 document.addEventListener("DOMContentLoaded", setUpTable);
 
@@ -141,12 +142,8 @@ function setUpTable() {
   });
 
   // Create the Enter button
-  enterButton.textContent = `Remaining`;
+  enterButton.textContent = `Remaining chance(s)`;
   rightDivision.appendChild(enterButton);
-
-  // Insert the line break as HTML
-  enterButton.insertAdjacentHTML("beforeend", "<br>");
-  enterButton.insertAdjacentText("beforeend", `${chanceRemaining} chance(s)`);
 
   // Event listener for the Enter button
   enterButton.addEventListener("click", function () {
@@ -157,7 +154,6 @@ function setUpTable() {
     if (slotsFilled) {
       chanceRemaining--;
       // Create a new row in the output table
-      const outputTable = document.querySelector("main.output table");
       const newRow = document.createElement("tr");
 
       // Get the values of buttons in the slots as the guess
@@ -165,7 +161,20 @@ function setUpTable() {
         leftDivision.querySelectorAll(".slot button")
       );
       const guess = buttonsInSlots.map((button) => button.value);
+      // Remove buttons from slots and update chanceRemaining
+      buttonsInSlots.forEach((button) => button.remove());
 
+      // Update the text content of the enterButton
+      enterButton.textContent = `Remaining`;
+      // Insert the line break as HTML
+      enterButton.insertAdjacentHTML("beforeend", "<br>");
+      enterButton.insertAdjacentText(
+        "beforeend",
+        `${chanceRemaining} chance(s)`
+      );
+      // Reset the currentIndex and update slot borders
+      currentIndex = 0;
+      updateSlotBorders();
       // Call the turnCount function with randomAnswer and guess
       const [wrongs, rights] = turnCount(randomAnswer, guess);
       feedback.push([wrongs, rights]);
@@ -202,21 +211,12 @@ function setUpTable() {
         newRow.appendChild(secondColumnCell);
         // Append the new row to the output table
         outputTable.appendChild(newRow);
+        // Check if remaining chances are zero and display "You lose"
+        if (chanceRemaining === 0) {
+          gameEnd(0);
+          return;
+        }
       }
-      // Remove buttons from slots and update chanceRemaining
-      buttonsInSlots.forEach((button) => button.remove());
-
-      // Update the text content of the enterButton
-      enterButton.textContent = `Remaining`;
-      // Insert the line break as HTML
-      enterButton.insertAdjacentHTML("beforeend", "<br>");
-      enterButton.insertAdjacentText(
-        "beforeend",
-        `${chanceRemaining} chance(s)`
-      );
-      // Reset the currentIndex and update slot borders
-      currentIndex = 0;
-      updateSlotBorders();
     }
   });
 
@@ -238,21 +238,26 @@ function setUpTable() {
   });
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
-    level = 3;
+    level = 2;
     chanceRemaining = 16;
+
+    enterButton.textContent = `Remaining`;
+    enterButton.insertAdjacentHTML("beforeend", "<br>");
+    enterButton.insertAdjacentText("beforeend", `${chanceRemaining} chance(s)`);
+
     // Remove buttons from slots
     Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
       (button) => button.remove()
     );
     gameMode = game_Mode; // Set the game mode
     // Create a new row in the output table
-    const outputTable = document.querySelector("main.output table");
     const firstRow = document.createElement("tr");
     // Insert cells in the first column of the output table
     const levelInfoCell = document.createElement("td");
     levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
-    levelInfoCell.colSpan = 2; // Span two columns
     firstRow.appendChild(levelInfoCell);
+    const emptyCell = document.createElement("td");
+    firstRow.appendChild(emptyCell);
     // Append the new row to the output table
     outputTable.appendChild(firstRow);
     updateSlotBorders();
@@ -343,44 +348,48 @@ function displayFeedback(
   return secondColumnCell;
 }
 
+function gameEnd(ifWin) {
+  // Add additional rows
+  let rowsToAdd;
+
+  if (ifWin) {
+    rowsToAdd = [
+      [
+        `Congratulations!`,
+        `You completed ${gameMode} levels<br />with ${chanceRemaining} chance(s) remaining.`,
+      ],
+    ];
+  } else {
+    rowsToAdd = [["You lose!", ""]];
+  }
+  rowsToAdd.push(
+    ["<(fake)", "share to social media"],
+    ["^(fake)", "view personal statistics"],
+    [">(fake)", "view population statistics"],
+    ["③", "3 levels; or,"],
+    ["⑦", "2 mandatory levels +<br />5 out of 25 choosable levels"]
+  );
+  rowsToAdd.forEach((rowContent) => {
+    const newRow = document.createElement("tr");
+    rowContent.forEach((cellContent) => {
+      const cell = document.createElement("td");
+      cell.innerHTML = cellContent;
+      newRow.appendChild(cell);
+    });
+    outputTable.appendChild(newRow);
+  });
+  gameMode = null;
+}
+
 function levelWon() {
   inputEnable = null; // Disable number buttons in input section
-  const outputTable = document.querySelector("main.output table");
   // Append direction buttons to the first 3 slots in left temp div
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
   for (let i = 0; i < 3; i++) {
     slotsInLeftTemp[i].innerHTML = directionButtons[i];
   }
   if (level === gameMode) {
-    // Add additional rows
-    const rowsToAdd = [
-      [
-        `Congratulations!`,
-        `You completed ${gameMode} levels<br />with ${chanceRemaining} chance(s) remaining.`,
-      ],
-      ["<", "share to social media"],
-      ["^", "view personal statistics"],
-      [">", "view population statistics"],
-      ["3", "3 levels; or,"],
-      ["7", "2 mandatory levels +<br />5 out of 25 choosable levels"],
-    ];
-
-    rowsToAdd.forEach((rowContent) => {
-      const newRow = document.createElement("tr");
-
-      rowContent.forEach((cellContent) => {
-        const cell = document.createElement("td");
-        cell.innerHTML = cellContent;
-        newRow.appendChild(cell);
-      });
-      outputTable.appendChild(newRow);
-    });
-    gameMode = null;
-    // outputTable.appendChild(newRow);
-    // for (let i = 0; i < 3; i++) {
-    //   // Add event listener to direction buttons
-    //   directionButton.addEventListener("click", function () {});
-    // }
+    gameEnd(1);
   } else {
     // Create a new row in the output table for the instruction
     const instructionRow = document.createElement("tr");
