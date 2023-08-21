@@ -11,9 +11,9 @@ const numberButtons = [
   '<button value="9" type="button" class="numberButton fuchsia">⑨</button>',
 ];
 const directionButtons = [
-  '<button value="<" type="button" class="numberButton white"><</button>',
-  '<button value="^" type="button" class="numberButton white">^</button>',
-  '<button value=">" type="button" class="numberButton white">></button>',
+  '<button value="188" type="button" class="numberButton white"><</button>',
+  '<button value="38" type="button" class="numberButton white">^</button>',
+  '<button value="190" type="button" class="numberButton white">></button>',
 ];
 const hints = [
   "Ⓐ",
@@ -74,6 +74,7 @@ function setUpTable() {
   document.addEventListener("keydown", function (event) {
     // Get the pressed key code
     const keyCode = event.keyCode || event.which;
+
     // Check if the game mode is set
     if (!gameMode) {
       if (keyCode === 51) {
@@ -94,13 +95,41 @@ function setUpTable() {
       if (numberButton && event.target === document.body) {
         numberButton.click();
       }
+    } else if (keyCode === 188 || keyCode === 38 || keyCode === 190) {
+      // Comma (<), Caret (^), or Period (>)
+      // Find the direction button with the corresponding value in leftDivision
+      const directionButton = leftDivision.querySelector(
+        `.numberButton[value="${keyCode}"]`
+      );
+
+      // Trigger the click event on the direction button
+      if (directionButton && event.target === document.body) {
+        directionButton.click();
+      }
     }
+
     // Check if the pressed key is the Return key (Enter)
     if (keyCode === 13) {
       // Trigger the click event on the Start or Enter button
       if (enterButton && event.target === document.body) {
         enterButton.click();
       }
+    }
+    // Check if the pressed key is the Backspace key
+    if (keyCode === 8) {
+      // Move currentIndex back by 1
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+      } else {
+        currentIndex = nOfSlots - 1;
+      }
+      // Remove the button from the targeted slot
+      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
+      const buttonInSlot = currentSlot.querySelector("button");
+      if (buttonInSlot) {
+        buttonInSlot.remove();
+      }
+      updateSlotBorders();
     }
   });
   // Add the number buttons to the inputContainer
