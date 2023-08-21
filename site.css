@@ -12,19 +12,22 @@ body {
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 50px;
+  font-size: 45px;
   height: 50px;
   width: 50px;
   margin: 2px 5px;
   padding: 0;
-  border: 0;
+  border: 3px;
+  border-style: solid;
   border-radius: 50%;
+  border-color: white;
   background-color: silver;
   font-weight: bold;
-  vertical-align: top;
+  vertical-align: middle;
 }
 .green {
   color: green;
+  border-color: green;
 }
 .red {
   background-color: red;
@@ -57,8 +60,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border: 1px solid black;
 }
 .temp {

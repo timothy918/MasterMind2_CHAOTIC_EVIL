@@ -1,15 +1,16 @@
 const numberButtons = [
-  '<button value="0" type="button" class="numberButton white">⓪</button>',
-  '<button value="1" type="button" class="numberButton green">①</button>',
-  '<button value="2" type="button" class="numberButton yellow">②</button>',
-  '<button value="3" type="button" class="numberButton red">③</button>',
-  '<button value="4" type="button" class="numberButton blue">④</button>',
-  '<button value="5" type="button" class="numberButton black">⑤</button>',
-  '<button value="6" type="button" class="numberButton purple">⑥</button>',
-  '<button value="7" type="button" class="numberButton lime">⑦</button>',
-  '<button value="8" type="button" class="numberButton aqua">⑧</button>',
-  '<button value="9" type="button" class="numberButton fuchsia">⑨</button>',
+  '<button value="⓪" type="button" class="numberButton white">0</button>',
+  '<button value="①" type="button" class="numberButton green">1</button>',
+  '<button value="②" type="button" class="numberButton yellow">2</button>',
+  '<button value="③" type="button" class="numberButton red">3</button>',
+  '<button value="④" type="button" class="numberButton blue">4</button>',
+  '<button value="⑤" type="button" class="numberButton black">5</button>',
+  '<button value="⑥" type="button" class="numberButton purple">6</button>',
+  '<button value="⑦" type="button" class="numberButton lime">7</button>',
+  '<button value="⑧" type="button" class="numberButton aqua">8</button>',
+  '<button value="⑨" type="button" class="numberButton fuchsia">9</button>',
 ];
+
 const directionButtons = [
   '<button value="188" type="button" class="numberButton white"><</button>',
   '<button value="38" type="button" class="numberButton white">^</button>',
@@ -87,13 +88,17 @@ function setUpTable() {
     } else if (keyCode >= 48 && keyCode <= 57) {
       // Number keys 0-9
       const number = keyCode - 48; // Convert key code to number
-      const numberButton = inputContainer.querySelector(
-        `.numberButton[value="${number}"]`
-      );
 
-      // Trigger the click event on the corresponding number button
-      if (numberButton && event.target === document.body) {
-        numberButton.click();
+      // Loop through the number buttons to find the matching button by textContent
+      const numberButtons = inputContainer.querySelectorAll(".numberButton");
+      for (const button of numberButtons) {
+        if (button.textContent === String(number)) {
+          // Trigger the click event on the corresponding number button
+          if (event.target === document.body) {
+            button.click();
+          }
+          break; // Exit the loop once the button is found
+        }
       }
     } else if (keyCode === 188 || keyCode === 38 || keyCode === 190) {
       // Comma (<), Caret (^), or Period (>)
@@ -189,7 +194,7 @@ function setUpTable() {
       const buttonsInSlots = Array.from(
         leftDivision.querySelectorAll(".slot button")
       );
-      const guess = buttonsInSlots.map((button) => button.value);
+      const guess = buttonsInSlots.map((button) => button.textContent);
       // Remove buttons from slots and update chanceRemaining
       buttonsInSlots.forEach((button) => button.remove());
 
@@ -210,7 +215,7 @@ function setUpTable() {
       // Append the guess to the first column
       const firstColumnCell = document.createElement("td");
       firstColumnCell.textContent = buttonsInSlots
-        .map((button) => button.textContent)
+        .map((button) => button.value)
         .join("");
       newRow.appendChild(firstColumnCell);
 
@@ -289,7 +294,6 @@ function setUpTable() {
     firstRow.appendChild(emptyCell);
     // Append the new row to the output table
     outputTable.appendChild(firstRow);
-    updateSlotBorders();
     startLevel();
   }
 }
@@ -468,6 +472,7 @@ function startLevel() {
   inputEnable = 1;
   updateHeaderTitle();
   currentIndex = 0;
+  updateSlotBorders();
   // Generate random answer
   const minNumber = Math.pow(nOfChoices, nOfSlots);
   const maxNumber = 2 * minNumber - 1;
