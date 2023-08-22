@@ -36,6 +36,7 @@ const hints = [
   "Ⓠ",
   "Ⓢ",
   "Ⓣ",
+  "Ⓤ",
   "Ⓥ",
   "Ⓧ",
   "Ⓨ",
@@ -44,15 +45,19 @@ const hints = [
 const enterButton = document.createElement("button");
 const fullName = ["MasterMind", "II: CHAOTIC", "EVIL"];
 // Declare the variables
-let nOfSlots = 4;
-let nOfChoices = 10;
-let lOfUncertainty = 0;
-let currentIndex = 0;
-let chanceRemaining = 16;
-let level;
 let inputEnable = 1;
-let gameMode, randomAnswer, randomRight, randomWrong;
+let lOfUncertainty = 0;
 const feedback = [[], []];
+
+let nOfSlots,
+  nOfChoices,
+  currentIndex,
+  chanceRemaining,
+  level,
+  gameMode,
+  randomAnswer,
+  randomRight,
+  randomWrong;
 
 const inputContainer = document.getElementById("inputContainer");
 const leftDivision = document.querySelector(".left_temp");
@@ -137,38 +142,17 @@ function setUpTable() {
       updateSlotBorders();
     }
   });
-  // Add the number buttons to the inputContainer
-  inputContainer.innerHTML = numberButtons.slice(0, nOfChoices).join("");
+  // Add all number buttons to the inputContainer
+  inputContainer.innerHTML = numberButtons.join("");
 
   // Function to handle button clicks in inputContainer
   function handleInputButtonClick(event) {
     const clickedButton = event.target;
-
-    if (!gameMode) {
-      const buttonValue = parseInt(clickedButton.value);
-      if (buttonValue === 3 || buttonValue === 7) {
-        selectGameMode(buttonValue);
-      }
-    } else if (inputEnable) {
-      const buttonClone = clickedButton.cloneNode(true);
-
-      // Get the current target slot
-      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
-
-      // If the slot is empty, append the button clone; otherwise, replace the existing button
-      if (currentSlot.children.length === 0) {
-        currentSlot.appendChild(buttonClone);
-      } else {
-        currentSlot.removeChild(currentSlot.firstChild);
-        currentSlot.appendChild(buttonClone);
-      }
-      // Increment the currentIndex and loop back to the first slot
-      currentIndex = (currentIndex + 1) % nOfSlots;
-      // Update slot borders based on currentIndex
-      updateSlotBorders();
+    const buttonContent = parseInt(clickedButton.textContent);
+    if (buttonContent === 3 || buttonContent === 7) {
+      selectGameMode(buttonContent);
     }
   }
-
   // Attach click event listeners to the buttons in inputContainer
   const inputButtons = inputContainer.querySelectorAll("button");
   inputButtons.forEach((button) => {
@@ -544,6 +528,37 @@ function startLevel() {
   }
   currentIndex = 0;
   updateSlotBorders();
+  // Add the number buttons to the inputContainer
+  inputContainer.innerHTML = "";
+  inputContainer.innerHTML = numberButtons.slice(0, nOfChoices).join("");
+  // Function to handle button clicks in inputContainer
+  function handleInputButtonClick(event) {
+    const clickedButton = event.target;
+    if (inputEnable) {
+      const buttonClone = clickedButton.cloneNode(true);
+
+      // Get the current target slot
+      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
+
+      // If the slot is empty, append the button clone; otherwise, replace the existing button
+      if (currentSlot.children.length === 0) {
+        currentSlot.appendChild(buttonClone);
+      } else {
+        currentSlot.removeChild(currentSlot.firstChild);
+        currentSlot.appendChild(buttonClone);
+      }
+      // Increment the currentIndex and loop back to the first slot
+      currentIndex = (currentIndex + 1) % nOfSlots;
+      // Update slot borders based on currentIndex
+      updateSlotBorders();
+    }
+  }
+  // Attach click event listeners to the buttons in inputContainer
+  const inputButtons = inputContainer.querySelectorAll("button");
+  inputButtons.forEach((button) => {
+    button.addEventListener("click", handleInputButtonClick);
+  });
+
   // Generate random answer
   const minNumber = Math.pow(nOfChoices, nOfSlots);
   const maxNumber = 2 * minNumber - 1;
