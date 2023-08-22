@@ -8,7 +8,7 @@ body {
   justify-content: flex-end; /* Align content to the bottom */
 }
 .rightHint {
-  color: lightgreen;
+  color: green;
 }
 .numberButton {
   color: white;
@@ -83,8 +83,8 @@ body {
   border: 1px solid red;
 }
 main.output {
-  flex: 1;
-  overflow-y: scroll;
+  overflow-y: auto; /* Use 'auto' to display scrollbar only when needed */
+  flex: 1; /* Occupy available space within the output section */
   display: flex;
   flex-direction: column; /* Align items from top to bottom */
 }

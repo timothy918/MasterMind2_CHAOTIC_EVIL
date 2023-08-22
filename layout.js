@@ -45,7 +45,7 @@ const enterButton = document.createElement("button");
 const fullName = ["MasterMind", "II: CHAOTIC", "EVIL"];
 // Declare the variables
 let nOfSlots = 4;
-let nOfChoices = 6;
+let nOfChoices = 10;
 let lOfUncertainty = 0;
 let currentIndex = 0;
 let chanceRemaining = 16;
@@ -64,18 +64,10 @@ document.addEventListener("DOMContentLoaded", setUpTable);
 
 function setUpTable() {
   updateHeaderTitle();
-  // Create the slots dynamically based on nOfSlots
-  for (let i = 1; i <= nOfSlots; i++) {
-    const slotElement = document.createElement("div");
-    slotElement.classList.add("slot");
-    slotElement.id = `slot${i}`;
-    leftDivision.appendChild(slotElement);
-  }
   // Event listener for keydown events
   document.addEventListener("keydown", function (event) {
     // Get the pressed key code
     const keyCode = event.keyCode || event.which;
-
     // Check if the game mode is set
     if (!gameMode) {
       if (keyCode === 51) {
@@ -112,7 +104,6 @@ function setUpTable() {
         directionButton.click();
       }
     }
-
     // Check if the pressed key is the Return key (Enter)
     if (keyCode === 13) {
       // Trigger the click event on the Start or Enter button
@@ -121,19 +112,28 @@ function setUpTable() {
       }
     }
     // Check if the pressed key is the Backspace key
-    if (keyCode === 8) {
-      // Move currentIndex back by 1
-      if (currentIndex > 0) {
-        currentIndex -= 1;
-      } else {
-        currentIndex = nOfSlots - 1;
-      }
+    else if (keyCode === 8) {
+      // Move currentIndex back by 1, wrapping around if necessary
+      currentIndex = (currentIndex + nOfSlots - 1) % nOfSlots;
+
       // Remove the button from the targeted slot
       const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
       const buttonInSlot = currentSlot.querySelector("button");
       if (buttonInSlot) {
         buttonInSlot.remove();
       }
+      updateSlotBorders();
+    }
+    // Check if the pressed key is the Left arrow key
+    else if (keyCode === 37) {
+      // Move currentIndex left by 1, wrapping around if necessary
+      currentIndex = (currentIndex + nOfSlots - 1) % nOfSlots;
+      updateSlotBorders();
+    }
+    // Check if the pressed key is the Right arrow key
+    else if (keyCode === 39) {
+      // Move currentIndex right by 1, wrapping around if necessary
+      currentIndex = (currentIndex + 1) % nOfSlots;
       updateSlotBorders();
     }
   });
@@ -181,74 +181,76 @@ function setUpTable() {
 
   // Event listener for the Enter button
   enterButton.addEventListener("click", function () {
-    const slotsFilled = Array.from(
-      leftDivision.querySelectorAll(".slot")
-    ).every((slot) => slot.children.length > 0);
+    if (gameMode) {
+      const slotsFilled = Array.from(
+        leftDivision.querySelectorAll(".slot")
+      ).every((slot) => slot.children.length > 0);
 
-    if (slotsFilled) {
-      chanceRemaining--;
-      // Create a new row in the output table
-      const newRow = document.createElement("tr");
+      if (slotsFilled) {
+        chanceRemaining--;
+        // Create a new row in the output table
+        const newRow = document.createElement("tr");
 
-      // Get the values of buttons in the slots as the guess
-      const buttonsInSlots = Array.from(
-        leftDivision.querySelectorAll(".slot button")
-      );
-      const guess = buttonsInSlots.map((button) => button.textContent);
-      // Remove buttons from slots and update chanceRemaining
-      buttonsInSlots.forEach((button) => button.remove());
-
-      // Update the text content of the enterButton
-      enterButton.textContent = `Remaining`;
-      // Insert the line break as HTML
-      enterButton.insertAdjacentHTML("beforeend", "<br>");
-      enterButton.insertAdjacentText(
-        "beforeend",
-        `${chanceRemaining} chance(s)`
-      );
-      // Reset the currentIndex and update slot borders
-      currentIndex = 0;
-      updateSlotBorders();
-      // Call the turnCount function with randomAnswer and guess
-      const [wrongs, rights] = turnCount(randomAnswer, guess);
-      feedback.push([wrongs, rights]);
-      // Append the guess to the first column
-      const firstColumnCell = document.createElement("td");
-      firstColumnCell.textContent = buttonsInSlots
-        .map((button) => button.value)
-        .join("");
-      newRow.appendChild(firstColumnCell);
-
-      // Generate randomRight and randomWrong based on lOfUncertainty
-      if (lOfUncertainty === 2) {
-        randomRight = Math.floor(Math.random() * hints.length);
-        do {
-          randomWrong = Math.floor(Math.random() * hints.length);
-        } while (randomWrong === randomRight);
-      }
-      // Check if the answer is correct
-      if (rights === nOfSlots) {
-        const secondColumnCell = document.createElement("td");
-        secondColumnCell.textContent = "Answer correct";
-        newRow.appendChild(secondColumnCell);
-        outputTable.appendChild(newRow);
-        levelWon();
-      } else {
-        // Append the wrongs and rights values to the second column
-        let secondColumnCell = displayFeedback(
-          wrongs,
-          rights,
-          lOfUncertainty,
-          randomWrong,
-          randomRight
+        // Get the values of buttons in the slots as the guess
+        const buttonsInSlots = Array.from(
+          leftDivision.querySelectorAll(".slot button")
         );
-        newRow.appendChild(secondColumnCell);
-        // Append the new row to the output table
-        outputTable.appendChild(newRow);
-        // Check if remaining chances are zero and display "You lose"
-        if (chanceRemaining === 0) {
-          gameEnd(0);
-          return;
+        const guess = buttonsInSlots.map((button) => button.textContent);
+        // Remove buttons from slots and update chanceRemaining
+        buttonsInSlots.forEach((button) => button.remove());
+
+        // Update the text content of the enterButton
+        enterButton.textContent = `Remaining`;
+        // Insert the line break as HTML
+        enterButton.insertAdjacentHTML("beforeend", "<br>");
+        enterButton.insertAdjacentText(
+          "beforeend",
+          `${chanceRemaining} chance(s)`
+        );
+        // Reset the currentIndex and update slot borders
+        currentIndex = 0;
+        updateSlotBorders();
+        // Call the turnCount function with randomAnswer and guess
+        const [wrongs, rights] = turnCount(randomAnswer, guess);
+        feedback.push([wrongs, rights]);
+        // Append the guess to the first column
+        const firstColumnCell = document.createElement("td");
+        firstColumnCell.textContent = buttonsInSlots
+          .map((button) => button.value)
+          .join("");
+        newRow.appendChild(firstColumnCell);
+
+        // Generate randomRight and randomWrong based on lOfUncertainty
+        if (lOfUncertainty === 2) {
+          randomRight = Math.floor(Math.random() * hints.length);
+          do {
+            randomWrong = Math.floor(Math.random() * hints.length);
+          } while (randomWrong === randomRight);
+        }
+        // Check if the answer is correct
+        if (rights === nOfSlots) {
+          const secondColumnCell = document.createElement("td");
+          secondColumnCell.textContent = "Answer correct";
+          newRow.appendChild(secondColumnCell);
+          outputTable.appendChild(newRow);
+          levelWon();
+        } else {
+          // Append the wrongs and rights values to the second column
+          let secondColumnCell = displayFeedback(
+            wrongs,
+            rights,
+            lOfUncertainty,
+            randomWrong,
+            randomRight
+          );
+          newRow.appendChild(secondColumnCell);
+          // Append the new row to the output table
+          outputTable.appendChild(newRow);
+          // Check if remaining chances are zero and display "You lose"
+          if (chanceRemaining === 0) {
+            gameEnd(0);
+            return;
+          }
         }
       }
     }
@@ -272,11 +274,11 @@ function setUpTable() {
   });
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
-    level = 2;
+    level = 1;
     chanceRemaining = 16;
     nOfSlots = 4;
     nOfChoices = 6;
-    lOfUncertainty = 1;
+    lOfUncertainty = 0;
 
     enterButton.textContent = `Remaining`;
     enterButton.insertAdjacentHTML("beforeend", "<br>");
@@ -428,11 +430,11 @@ function levelWon() {
 
   // Select all <span> elements within the output table rows
   const spanElements = outputTable.querySelectorAll("tr span");
-
   // Loop through the <span> elements and add the rightHint class
   spanElements.forEach((spanElement) => {
     spanElement.classList.add("rightHint");
   });
+
   // Append direction buttons to the first 3 slots in left temp div
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
   for (let i = 0; i < 3; i++) {
@@ -441,45 +443,89 @@ function levelWon() {
   if (level === gameMode) {
     gameEnd(1);
   } else {
-    // Create a new row in the output table for the instruction
-    const instructionRow = document.createElement("tr");
-    const instructionCell = document.createElement("td");
-    instructionCell.textContent = `Any direction to next level`;
-    instructionCell.colSpan = 2; // Span two columns
-    instructionRow.appendChild(instructionCell);
-    outputTable.appendChild(instructionRow);
+    if (gameMode === 3) {
+      // Create a new row in the output table for the instruction
+      const instructionRow = document.createElement("tr");
+      const instructionCell = document.createElement("td");
+      instructionCell.textContent = `Any direction to next level`;
+      instructionCell.colSpan = 2; // Span two columns
+      instructionRow.appendChild(instructionCell);
+      outputTable.appendChild(instructionRow);
+    } else {
+      // Loop through the <span> elements and add the rightHint class
+      spanElements.forEach((spanElement) => {
+        spanElement.classList.add("rightHint");
+      });
+      rowsToAdd = [
+        ["<", "number of choices +2 (max 10)"],
+        ["^", "Level of uncertainty +1 (max 2)"],
+        [">", "number of slot +1 (max 6)"],
+      ];
+      rowsToAdd.forEach((rowContent) => {
+        const newRow = document.createElement("tr");
+        rowContent.forEach((cellContent) => {
+          const cell = document.createElement("td");
+          cell.innerHTML = cellContent;
+          newRow.appendChild(cell);
+        });
+        outputTable.appendChild(newRow);
+      });
+    }
 
     // Append direction buttons to the first 3 slots in left temp div
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
     for (let i = 0; i < 3; i++) {
       const directionButton = slotsInLeftTemp[i].querySelector("button");
+
+      // Add event listener to direction buttons
       directionButton.addEventListener("click", function () {
-        // Remove all buttons from slots
-        slotsInLeftTemp.forEach((slot) => {
-          slot.innerHTML = ""; // Clear the content of the slot
-        });
-
-        // Increment chanceRemaining, lOfUncertainty, and level
-        chanceRemaining += gameMode;
-        lOfUncertainty += 1;
-        level += 1;
-
-        // Insert cells in the first column of the output table for level info
-        const firstRow = document.createElement("tr");
-        const levelInfoCell = document.createElement("td");
-        levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
-        firstRow.appendChild(levelInfoCell);
         const difficultyInfoCell = document.createElement("td");
-        difficultyInfoCell.textContent = `Level of Uncertainty ${
-          lOfUncertainty - 1
-        } => ${lOfUncertainty}`;
-        firstRow.appendChild(difficultyInfoCell);
+        // Determine the next level based on the direction button clicked
+        if (directionButton.textContent === "^" || gameMode === 3) {
+          if (lOfUncertainty < 2) {
+            lOfUncertainty += 1;
+            difficultyInfoCell.textContent = `Level of uncertainty ${
+              lOfUncertainty - 1
+            } => ${lOfUncertainty}`;
+            vaildDirectionButtonClick();
+          }
+        } else if (directionButton.textContent === "<") {
+          if (nOfChoices < 10) {
+            nOfChoices += 2;
+            difficultyInfoCell.textContent = `number of colours ${
+              nOfChoices - 2
+            } => ${nOfChoices}`;
+            vaildDirectionButtonClick();
+          }
+        } else if (directionButton.textContent === ">") {
+          if (nOfSlots < 6) {
+            nOfSlots += 1;
+            difficultyInfoCell.textContent = `number of slots ${
+              nOfSlots - 1
+            } => ${nOfSlots}`;
+            vaildDirectionButtonClick();
+          }
+        }
 
-        // Append the new row to the output table
-        outputTable.appendChild(firstRow);
-
-        // Call the startLevel() function to set up the next level
-        startLevel();
+        function vaildDirectionButtonClick() {
+          // Remove all buttons from slots
+          slotsInLeftTemp.forEach((slot) => {
+            slot.innerHTML = ""; // Clear the content of the slot
+          });
+          // Increment chanceRemaining, lOfUncertainty, and level
+          chanceRemaining += gameMode;
+          level += 1;
+          // Insert cells in the first column of the output table for level info
+          const firstRow = document.createElement("tr");
+          const levelInfoCell = document.createElement("td");
+          levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
+          firstRow.appendChild(levelInfoCell);
+          firstRow.appendChild(difficultyInfoCell);
+          // Append the new row to the output table
+          outputTable.appendChild(firstRow);
+          // Call the startLevel() function to set up the next level
+          startLevel();
+        }
       });
     }
   }
@@ -488,6 +534,14 @@ function levelWon() {
 function startLevel() {
   inputEnable = 1;
   updateHeaderTitle();
+  // Create the slots dynamically based on nOfSlots
+  leftDivision.innerHTML = "";
+  for (let i = 1; i <= nOfSlots; i++) {
+    const slotElement = document.createElement("div");
+    slotElement.classList.add("slot");
+    slotElement.id = `slot${i}`;
+    leftDivision.appendChild(slotElement);
+  }
   currentIndex = 0;
   updateSlotBorders();
   // Generate random answer
