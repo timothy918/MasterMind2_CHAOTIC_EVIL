@@ -389,6 +389,11 @@ function gameEnd(ifWin) {
       spanElement.classList.add("rightHint");
     });
     rowsToAdd = [["You lose!", ""]];
+    // Append direction buttons to the first 3 slots in left temp div
+    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
+    for (let i = 0; i < 3; i++) {
+      slotsInLeftTemp[i].innerHTML = directionButtons[i];
+    }
   }
   rowsToAdd.push(
     ["<(fake)", "share to social media"],
