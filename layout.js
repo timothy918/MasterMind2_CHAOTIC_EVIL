@@ -46,11 +46,12 @@ const enterButton = document.createElement("button");
 const fullName = ["MasterMind", "II: CHAOTIC", "EVIL"];
 // Declare the variables
 let inputEnable = 1;
-let lOfUncertainty = 0;
+let l_Uncertainty = 0;
 const feedback = [[], []];
-
-let nOfSlots,
-  nOfChoices,
+let elapsedTimeList = []; // List to store elapsed times
+let startTime; // Variable to store the start time of the level
+let n_Slots,
+  n_Choices,
   currentIndex,
   chanceRemaining,
   level,
@@ -119,7 +120,7 @@ function setUpTable() {
     // Check if the pressed key is the Backspace key
     else if (keyCode === 8) {
       // Move currentIndex back by 1, wrapping around if necessary
-      currentIndex = (currentIndex + nOfSlots - 1) % nOfSlots;
+      currentIndex = (currentIndex + n_Slots - 1) % n_Slots;
 
       // Remove the button from the targeted slot
       const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
@@ -132,13 +133,13 @@ function setUpTable() {
     // Check if the pressed key is the Left arrow key
     else if (keyCode === 37) {
       // Move currentIndex left by 1, wrapping around if necessary
-      currentIndex = (currentIndex + nOfSlots - 1) % nOfSlots;
+      currentIndex = (currentIndex + n_Slots - 1) % n_Slots;
       updateSlotBorders();
     }
     // Check if the pressed key is the Right arrow key
     else if (keyCode === 39) {
       // Move currentIndex right by 1, wrapping around if necessary
-      currentIndex = (currentIndex + 1) % nOfSlots;
+      currentIndex = (currentIndex + 1) % n_Slots;
       updateSlotBorders();
     }
   });
@@ -204,15 +205,15 @@ function setUpTable() {
           .join("");
         newRow.appendChild(firstColumnCell);
 
-        // Generate randomRight and randomWrong based on lOfUncertainty
-        if (lOfUncertainty === 2) {
+        // Generate randomRight and randomWrong based on l_Uncertainty
+        if (l_Uncertainty === 2) {
           randomRight = Math.floor(Math.random() * hints.length);
           do {
             randomWrong = Math.floor(Math.random() * hints.length);
           } while (randomWrong === randomRight);
         }
         // Check if the answer is correct
-        if (rights === nOfSlots) {
+        if (rights === n_Slots) {
           const secondColumnCell = document.createElement("td");
           secondColumnCell.textContent = "Answer correct";
           newRow.appendChild(secondColumnCell);
@@ -223,7 +224,7 @@ function setUpTable() {
           let secondColumnCell = displayFeedback(
             wrongs,
             rights,
-            lOfUncertainty,
+            l_Uncertainty,
             randomWrong,
             randomRight
           );
@@ -258,11 +259,11 @@ function setUpTable() {
   });
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
-    level = 1;
+    level = 3;
     chanceRemaining = 16;
-    nOfSlots = 4;
-    nOfChoices = 6;
-    lOfUncertainty = 0;
+    n_Slots = 4;
+    n_Choices = 6;
+    l_Uncertainty = 0;
 
     enterButton.textContent = `Remaining`;
     enterButton.insertAdjacentHTML("beforeend", "<br>");
@@ -283,7 +284,7 @@ function setUpTable() {
     firstRow.appendChild(emptyCell);
     // Append the new row to the output table
     outputTable.appendChild(firstRow);
-    startLevel();
+    levelStart();
   }
 }
 
@@ -310,6 +311,39 @@ function handleLeftDivisionButtonClick(event) {
     updateSlotBorders();
   }
 }
+function updateHeaderTitle() {
+  // Update the title based on l_Uncertainty
+  let titleText = "";
+  for (let i = 0; i <= l_Uncertainty; i++) {
+    titleText += fullName[i];
+    if (i < l_Uncertainty) {
+      titleText += " ";
+    }
+  }
+  document.title = titleText; // Update the document's title
+  // Load the content of the banners.txt file
+  fetch("banners.txt")
+    .then((response) => response.text())
+    .then((data) => {
+      const lines = data.split("\n");
+      let selectedLines = [];
+
+      if (l_Uncertainty === 0) {
+        selectedLines = lines.slice(1, 7); // Lines 2 to 7
+      } else if (l_Uncertainty === 1) {
+        selectedLines = lines.slice(8, 21); // Lines 9 to 21
+      } else if (l_Uncertainty === 2) {
+        selectedLines = lines.slice(22, 38); // Lines 23 to 38
+      }
+      const header = document.querySelector(".header");
+      header.innerHTML = selectedLines
+        .map((line) => `<pre>${line}</pre>`)
+        .join("");
+    })
+    .catch((error) => {
+      console.error("Error fetching or parsing banners.txt:", error);
+    });
+}
 // Function to update slot borders
 function updateSlotBorders() {
   const allSlots = leftDivision.querySelectorAll(".slot");
@@ -321,6 +355,74 @@ function updateSlotBorders() {
     }
   });
 }
+
+function levelStart() {
+  startTime = performance.now(); // Store the current time
+  elapsedTimeList = []; // Clear the elapsed time list
+  inputEnable = 1;
+  updateHeaderTitle();
+  // Create the slots dynamically based on n_Slots
+  leftDivision.innerHTML = "";
+  for (let i = 1; i <= n_Slots; i++) {
+    const slotElement = document.createElement("div");
+    slotElement.classList.add("slot");
+    slotElement.id = `slot${i}`;
+    leftDivision.appendChild(slotElement);
+  }
+  currentIndex = 0;
+  updateSlotBorders();
+  // Add the number buttons to the inputContainer
+  inputContainer.innerHTML = "";
+  inputContainer.innerHTML = numberButtons.slice(0, n_Choices).join("");
+  // Function to handle button clicks in inputContainer
+  function handleInputButtonClick(event) {
+    const clickedButton = event.target;
+    if (inputEnable) {
+      const buttonClone = clickedButton.cloneNode(true);
+
+      // Get the current target slot
+      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
+
+      // If the slot is empty, append the button clone; otherwise, replace the existing button
+      if (currentSlot.children.length === 0) {
+        currentSlot.appendChild(buttonClone);
+      } else {
+        currentSlot.removeChild(currentSlot.firstChild);
+        currentSlot.appendChild(buttonClone);
+      }
+      // Increment the currentIndex and loop back to the first slot
+      currentIndex = (currentIndex + 1) % n_Slots;
+      // Update slot borders based on currentIndex
+      updateSlotBorders();
+    }
+  }
+  // Attach click event listeners to the buttons in inputContainer
+  const inputButtons = inputContainer.querySelectorAll("button");
+  inputButtons.forEach((button) => {
+    button.addEventListener("click", handleInputButtonClick);
+  });
+
+  // Generate random answer
+  const minNumber = Math.pow(n_Choices, n_Slots);
+  const maxNumber = 2 * minNumber - 1;
+  const randomDecimal =
+    Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+  randomAnswer = randomDecimal.toString(n_Choices).slice(1);
+  // Declare a list to store feedback: [wrongs, rights]
+  feedback.length = 0; // Clear the feedback array
+  // If l_Uncertainty is 1
+  if (l_Uncertainty === 1) {
+    // Generate a random index within the length of hints as randomRight
+    randomRight = Math.floor(Math.random() * hints.length);
+    // Generate another random index within the length of hints as random_wrong
+    do {
+      randomWrong = Math.floor(Math.random() * hints.length);
+    } while (randomWrong === randomRight); // Ensure they are different
+  } else if (l_Uncertainty === 0) {
+    const randomRight = 1;
+    const randomWrong = 0;
+  }
+}
 function turnCount(randomAnswer, guess) {
   let rights = 0;
   let wrongs = 0;
@@ -329,7 +431,6 @@ function turnCount(randomAnswer, guess) {
   for (let i = 0; i < randomAnswer.length; i++) {
     const a = randomAnswer[i];
     const g = guess[i];
-
     if (a === g) {
       rights++;
     } else {
@@ -337,28 +438,26 @@ function turnCount(randomAnswer, guess) {
       guessFreq[g] = (guessFreq[g] || 0) + 1;
     }
   }
-
   for (const a in answerFreq) {
     if (guessFreq.hasOwnProperty(a)) {
       wrongs += Math.min(answerFreq[a], guessFreq[a]);
     }
   }
-
   return [wrongs, rights];
 }
 // Append the wrongs and rights values to the second column
 function displayFeedback(
   wrongs,
   rights,
-  lOfUncertainty,
+  l_Uncertainty,
   randomWrong,
   randomRight
 ) {
   const secondColumnCell = document.createElement("td");
-  if (lOfUncertainty === 0) {
+  if (l_Uncertainty === 0) {
     secondColumnCell.innerHTML = `Ⓦ*${wrongs} <span class="rightHint">Ⓡ</span>*${rights}`;
   } else {
-    // Handle the case where lOfUncertainty is not 0
+    // Handle the case where l_Uncertainty is not 0
     const rightHint = hints[randomRight];
     const wrongHint = hints[randomWrong];
     if (randomRight < randomWrong) {
@@ -369,52 +468,10 @@ function displayFeedback(
   }
   return secondColumnCell;
 }
-
-function gameEnd(ifWin) {
-  // Add additional rows
-  let rowsToAdd;
-  if (ifWin) {
-    rowsToAdd = [
-      [
-        `Congratulations!`,
-        `You completed ${gameMode} levels<br />with ${chanceRemaining} chance(s) remaining.`,
-      ],
-    ];
-  } else {
-    // Select all <span> elements within the output table rows
-    const spanElements = outputTable.querySelectorAll("tr span");
-
-    // Loop through the <span> elements and add the rightHint class
-    spanElements.forEach((spanElement) => {
-      spanElement.classList.add("rightHint");
-    });
-    rowsToAdd = [["You lose!", ""]];
-    // Append direction buttons to the first 3 slots in left temp div
-    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
-    for (let i = 0; i < 3; i++) {
-      slotsInLeftTemp[i].innerHTML = directionButtons[i];
-    }
-  }
-  rowsToAdd.push(
-    ["<(fake)", "share to social media"],
-    ["^(fake)", "view personal statistics"],
-    [">(fake)", "view population statistics"],
-    ["③", "3 levels; or,"],
-    ["⑦", "2 mandatory levels +<br />5 out of 25 choosable levels"]
-  );
-  rowsToAdd.forEach((rowContent) => {
-    const newRow = document.createElement("tr");
-    rowContent.forEach((cellContent) => {
-      const cell = document.createElement("td");
-      cell.innerHTML = cellContent;
-      newRow.appendChild(cell);
-    });
-    outputTable.appendChild(newRow);
-  });
-  gameMode = null;
-}
-
 function levelWon() {
+  const endTime = performance.now();
+  const elapsedTimeInMilliseconds = endTime - startTime;
+  elapsedTimeList.push(elapsedTimeInMilliseconds);
   inputEnable = null; // Disable number buttons in input section
 
   // Select all <span> elements within the output table rows
@@ -446,9 +503,9 @@ function levelWon() {
         spanElement.classList.add("rightHint");
       });
       rowsToAdd = [
-        ["<", "number of choices +2 (max 10)"],
-        ["^", "Level of uncertainty +1 (max 2)"],
-        [">", "number of slot +1 (max 6)"],
+        ["<", "number of choices +=2 (max 10)"],
+        ["^", "level of uncertainty +=1 (max 2)"],
+        [">", "number of slot +=1 (max 6)"],
       ];
       rowsToAdd.forEach((rowContent) => {
         const newRow = document.createElement("tr");
@@ -471,27 +528,27 @@ function levelWon() {
         const difficultyInfoCell = document.createElement("td");
         // Determine the next level based on the direction button clicked
         if (directionButton.textContent === "^" || gameMode === 3) {
-          if (lOfUncertainty < 2) {
-            lOfUncertainty += 1;
+          if (l_Uncertainty < 2) {
+            l_Uncertainty += 1;
             difficultyInfoCell.textContent = `Level of uncertainty ${
-              lOfUncertainty - 1
-            } => ${lOfUncertainty}`;
+              l_Uncertainty - 1
+            } => ${l_Uncertainty}`;
             vaildDirectionButtonClick();
           }
         } else if (directionButton.textContent === "<") {
-          if (nOfChoices < 10) {
-            nOfChoices += 2;
+          if (n_Choices < 10) {
+            n_Choices += 2;
             difficultyInfoCell.textContent = `number of colours ${
-              nOfChoices - 2
-            } => ${nOfChoices}`;
+              n_Choices - 2
+            } => ${n_Choices}`;
             vaildDirectionButtonClick();
           }
         } else if (directionButton.textContent === ">") {
-          if (nOfSlots < 6) {
-            nOfSlots += 1;
+          if (n_Slots < 6) {
+            n_Slots += 1;
             difficultyInfoCell.textContent = `number of slots ${
-              nOfSlots - 1
-            } => ${nOfSlots}`;
+              n_Slots - 1
+            } => ${n_Slots}`;
             vaildDirectionButtonClick();
           }
         }
@@ -501,7 +558,7 @@ function levelWon() {
           slotsInLeftTemp.forEach((slot) => {
             slot.innerHTML = ""; // Clear the content of the slot
           });
-          // Increment chanceRemaining, lOfUncertainty, and level
+          // Increment chanceRemaining, l_Uncertainty, and level
           chanceRemaining += gameMode;
           level += 1;
           // Insert cells in the first column of the output table for level info
@@ -512,109 +569,59 @@ function levelWon() {
           firstRow.appendChild(difficultyInfoCell);
           // Append the new row to the output table
           outputTable.appendChild(firstRow);
-          // Call the startLevel() function to set up the next level
-          startLevel();
+          // Call the levelStart() function to set up the next level
+          levelStart();
         }
       });
     }
   }
 }
 
-function startLevel() {
-  inputEnable = 1;
-  updateHeaderTitle();
-  // Create the slots dynamically based on nOfSlots
-  leftDivision.innerHTML = "";
-  for (let i = 1; i <= nOfSlots; i++) {
-    const slotElement = document.createElement("div");
-    slotElement.classList.add("slot");
-    slotElement.id = `slot${i}`;
-    leftDivision.appendChild(slotElement);
-  }
-  currentIndex = 0;
-  updateSlotBorders();
-  // Add the number buttons to the inputContainer
-  inputContainer.innerHTML = "";
-  inputContainer.innerHTML = numberButtons.slice(0, nOfChoices).join("");
-  // Function to handle button clicks in inputContainer
-  function handleInputButtonClick(event) {
-    const clickedButton = event.target;
-    if (inputEnable) {
-      const buttonClone = clickedButton.cloneNode(true);
+function gameEnd(ifWin) {
+  // Add additional rows
+  let rowsToAdd;
+  if (ifWin) {
+    // Calculate the sum of elapsed times
+    const sumElapsedTime =
+      elapsedTimeList.reduce((sum, elapsedTime) => sum + elapsedTime, 0) / 1000; // Convert to seconds
+    rowsToAdd = [
+      [
+        `Congratulations!<br />You completed ${gameMode} levels`,
+        `with ${chanceRemaining} chance(s) remaining<br />using ${sumElapsedTime.toFixed(
+          2
+        )} seconds.`,
+      ],
+    ];
+  } else {
+    // Select all <span> elements within the output table rows
+    const spanElements = outputTable.querySelectorAll("tr span");
 
-      // Get the current target slot
-      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
-
-      // If the slot is empty, append the button clone; otherwise, replace the existing button
-      if (currentSlot.children.length === 0) {
-        currentSlot.appendChild(buttonClone);
-      } else {
-        currentSlot.removeChild(currentSlot.firstChild);
-        currentSlot.appendChild(buttonClone);
-      }
-      // Increment the currentIndex and loop back to the first slot
-      currentIndex = (currentIndex + 1) % nOfSlots;
-      // Update slot borders based on currentIndex
-      updateSlotBorders();
-    }
-  }
-  // Attach click event listeners to the buttons in inputContainer
-  const inputButtons = inputContainer.querySelectorAll("button");
-  inputButtons.forEach((button) => {
-    button.addEventListener("click", handleInputButtonClick);
-  });
-
-  // Generate random answer
-  const minNumber = Math.pow(nOfChoices, nOfSlots);
-  const maxNumber = 2 * minNumber - 1;
-  const randomDecimal =
-    Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-  randomAnswer = randomDecimal.toString(nOfChoices).slice(1);
-  // Declare a list to store feedback: [wrongs, rights]
-  feedback.length = 0; // Clear the feedback array
-  // If lOfUncertainty is 1
-  if (lOfUncertainty === 1) {
-    // Generate a random index within the length of hints as randomRight
-    randomRight = Math.floor(Math.random() * hints.length);
-    // Generate another random index within the length of hints as random_wrong
-    do {
-      randomWrong = Math.floor(Math.random() * hints.length);
-    } while (randomWrong === randomRight); // Ensure they are different
-  } else if (lOfUncertainty === 0) {
-    const randomRight = 1;
-    const randomWrong = 0;
-  }
-}
-function updateHeaderTitle() {
-  // Update the title based on lOfUncertainty
-  let titleText = "";
-  for (let i = 0; i <= lOfUncertainty; i++) {
-    titleText += fullName[i];
-    if (i < lOfUncertainty) {
-      titleText += " ";
-    }
-  }
-  document.title = titleText; // Update the document's title
-  // Load the content of the banners.txt file
-  fetch("banners.txt")
-    .then((response) => response.text())
-    .then((data) => {
-      const lines = data.split("\n");
-      let selectedLines = [];
-
-      if (lOfUncertainty === 0) {
-        selectedLines = lines.slice(1, 7); // Lines 2 to 7
-      } else if (lOfUncertainty === 1) {
-        selectedLines = lines.slice(8, 21); // Lines 9 to 21
-      } else if (lOfUncertainty === 2) {
-        selectedLines = lines.slice(22, 38); // Lines 23 to 38
-      }
-      const header = document.querySelector(".header");
-      header.innerHTML = selectedLines
-        .map((line) => `<pre>${line}</pre>`)
-        .join("");
-    })
-    .catch((error) => {
-      console.error("Error fetching or parsing banners.txt:", error);
+    // Loop through the <span> elements and add the rightHint class
+    spanElements.forEach((spanElement) => {
+      spanElement.classList.add("rightHint");
     });
+    rowsToAdd = [["You lose!", `at ${level} out of ${gameMode} levels`]];
+    // Append direction buttons to the first 3 slots in left temp div
+    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
+    for (let i = 0; i < 3; i++) {
+      slotsInLeftTemp[i].innerHTML = directionButtons[i];
+    }
+  }
+  rowsToAdd.push(
+    ["<(fake)", "share to social media"],
+    ["^(fake)", "view personal statistics"],
+    [">(fake)", "view population statistics"],
+    ["③", "3 levels; or,"],
+    ["⑦", "2 mandatory levels +<br />5 out of 25 choosable levels"]
+  );
+  rowsToAdd.forEach((rowContent) => {
+    const newRow = document.createElement("tr");
+    rowContent.forEach((cellContent) => {
+      const cell = document.createElement("td");
+      cell.innerHTML = cellContent;
+      newRow.appendChild(cell);
+    });
+    outputTable.appendChild(newRow);
+  });
+  gameMode = null;
 }
