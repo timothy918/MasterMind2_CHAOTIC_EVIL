@@ -13,7 +13,7 @@ const numberButtons = [
 
 const directionButtons = [
   '<button value="188" type="button" class="numberButton white"><</button>',
-  '<button value="38" type="button" class="numberButton white">^</button>',
+  '<button value="54" type="button" class="numberButton white">^</button>',
   '<button value="190" type="button" class="numberButton white">></button>',
 ];
 const hints = [
@@ -98,7 +98,7 @@ function setUpTable() {
           break; // Exit the loop once the button is found
         }
       }
-    } else if (keyCode === 188 || keyCode === 38 || keyCode === 190) {
+    } else if (keyCode === 188 || keyCode === 54 || keyCode === 190) {
       // Comma (<), Caret (^), or Period (>)
       // Find the direction button with the corresponding value in leftDivision
       const directionButton = leftDivision.querySelector(
@@ -142,6 +142,15 @@ function setUpTable() {
       currentIndex = (currentIndex + 1) % n_Slots;
       updateSlotBorders();
     }
+    // Check if the pressed key is the Space key
+    else if (keyCode === 32) {
+      // Trigger the click event on the button in the target slot
+      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
+      const buttonInSlot = currentSlot.querySelector("button");
+      if (buttonInSlot) {
+        buttonInSlot.click();
+      }
+    }
   });
   // Add all number buttons to the inputContainer
   inputContainer.innerHTML = numberButtons.join("");
@@ -161,7 +170,7 @@ function setUpTable() {
   });
 
   // Create the Enter button
-  enterButton.textContent = `Remaining chance(s)`;
+  enterButton.textContent = "Remaining chance(s)";
   rightDivision.appendChild(enterButton);
 
   // Event listener for the Enter button
@@ -212,10 +221,14 @@ function setUpTable() {
             randomWrong = Math.floor(Math.random() * hints.length);
           } while (randomWrong === randomRight);
         }
-        // Check if the answer is correct
         if (rights === n_Slots) {
+          const endTime = performance.now();
+          const elapsedTimeInMilliseconds = endTime - startTime;
+          elapsedTimeList.push(elapsedTimeInMilliseconds);
           const secondColumnCell = document.createElement("td");
-          secondColumnCell.textContent = "Answer correct";
+          secondColumnCell.innerHTML = `Answer correct<br />(Time used: ${(
+            elapsedTimeInMilliseconds / 1000
+          ).toFixed(3)} seconds)`;
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow);
           levelWon();
@@ -259,7 +272,7 @@ function setUpTable() {
   });
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
-    level = 3;
+    level = 2;
     chanceRemaining = 16;
     n_Slots = 4;
     n_Choices = 6;
@@ -328,12 +341,16 @@ function updateHeaderTitle() {
       const lines = data.split("\n");
       let selectedLines = [];
 
-      if (l_Uncertainty === 0) {
-        selectedLines = lines.slice(1, 7); // Lines 2 to 7
-      } else if (l_Uncertainty === 1) {
-        selectedLines = lines.slice(8, 21); // Lines 9 to 21
-      } else if (l_Uncertainty === 2) {
-        selectedLines = lines.slice(22, 38); // Lines 23 to 38
+      switch (l_Uncertainty) {
+        case 0:
+          selectedLines = lines.slice(1, 7); // Lines 2 to 7
+          break;
+        case 1:
+          selectedLines = lines.slice(8, 21); // Lines 9 to 21
+          break;
+        case 2:
+          selectedLines = lines.slice(22, 38); // Lines 23 to 38
+          break;
       }
       const header = document.querySelector(".header");
       header.innerHTML = selectedLines
@@ -346,13 +363,8 @@ function updateHeaderTitle() {
 }
 // Function to update slot borders
 function updateSlotBorders() {
-  const allSlots = leftDivision.querySelectorAll(".slot");
-  allSlots.forEach((slot, index) => {
-    if (index === currentIndex) {
-      slot.classList.add("current");
-    } else {
-      slot.classList.remove("current");
-    }
+  leftDivision.querySelectorAll(".slot").forEach((slot, index) => {
+    slot.classList.toggle("current", index === currentIndex);
   });
 }
 
@@ -372,7 +384,6 @@ function levelStart() {
   currentIndex = 0;
   updateSlotBorders();
   // Add the number buttons to the inputContainer
-  inputContainer.innerHTML = "";
   inputContainer.innerHTML = numberButtons.slice(0, n_Choices).join("");
   // Function to handle button clicks in inputContainer
   function handleInputButtonClick(event) {
@@ -469,9 +480,6 @@ function displayFeedback(
   return secondColumnCell;
 }
 function levelWon() {
-  const endTime = performance.now();
-  const elapsedTimeInMilliseconds = endTime - startTime;
-  elapsedTimeList.push(elapsedTimeInMilliseconds);
   inputEnable = null; // Disable number buttons in input section
 
   // Select all <span> elements within the output table rows
@@ -529,7 +537,7 @@ function levelWon() {
         // Determine the next level based on the direction button clicked
         if (directionButton.textContent === "^" || gameMode === 3) {
           if (l_Uncertainty < 2) {
-            l_Uncertainty += 1;
+            l_Uncertainty++;
             difficultyInfoCell.textContent = `Level of uncertainty ${
               l_Uncertainty - 1
             } => ${l_Uncertainty}`;
@@ -545,7 +553,7 @@ function levelWon() {
           }
         } else if (directionButton.textContent === ">") {
           if (n_Slots < 6) {
-            n_Slots += 1;
+            n_Slots++;
             difficultyInfoCell.textContent = `number of slots ${
               n_Slots - 1
             } => ${n_Slots}`;
@@ -560,7 +568,7 @@ function levelWon() {
           });
           // Increment chanceRemaining, l_Uncertainty, and level
           chanceRemaining += gameMode;
-          level += 1;
+          level++;
           // Insert cells in the first column of the output table for level info
           const firstRow = document.createElement("tr");
           const levelInfoCell = document.createElement("td");
@@ -586,10 +594,10 @@ function gameEnd(ifWin) {
       elapsedTimeList.reduce((sum, elapsedTime) => sum + elapsedTime, 0) / 1000; // Convert to seconds
     rowsToAdd = [
       [
-        `Congratulations!<br />You completed ${gameMode} levels`,
-        `with ${chanceRemaining} chance(s) remaining<br />using ${sumElapsedTime.toFixed(
-          2
-        )} seconds.`,
+        `Congratulations!<br/>You completed ${gameMode} levels`,
+        `Chance(s) remaining: ${chanceRemaining}<br/>Time used: ${sumElapsedTime.toFixed(
+          3
+        )} seconds`,
       ],
     ];
   } else {
