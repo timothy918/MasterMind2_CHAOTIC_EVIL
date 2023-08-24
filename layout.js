@@ -83,6 +83,17 @@ function setUpTable() {
         // 7 key
         selectGameMode(7);
       }
+    } else if (keyCode === 188 || keyCode === 54 || keyCode === 190) {
+      // Comma (<), Caret (^), or Period (>)
+      // Find the direction button with the corresponding value in leftDivision
+      const directionButton = leftDivision.querySelector(
+        `.numberButton[value="${keyCode}"]`
+      );
+
+      // Trigger the click event on the direction button
+      if (directionButton && event.target === document.body) {
+        directionButton.click();
+      }
     } else if (keyCode >= 48 && keyCode <= 57) {
       // Number keys 0-9
       const number = keyCode - 48; // Convert key code to number
@@ -97,17 +108,6 @@ function setUpTable() {
           }
           break; // Exit the loop once the button is found
         }
-      }
-    } else if (keyCode === 188 || keyCode === 54 || keyCode === 190) {
-      // Comma (<), Caret (^), or Period (>)
-      // Find the direction button with the corresponding value in leftDivision
-      const directionButton = leftDivision.querySelector(
-        `.numberButton[value="${keyCode}"]`
-      );
-
-      // Trigger the click event on the direction button
-      if (directionButton && event.target === document.body) {
-        directionButton.click();
       }
     }
     // Check if the pressed key is the Return key (Enter)
@@ -277,6 +277,7 @@ function setUpTable() {
     n_Slots = 4;
     n_Choices = 6;
     l_Uncertainty = 0;
+    elapsedTimeList = []; // Clear the elapsed time list
 
     enterButton.textContent = `Remaining`;
     enterButton.insertAdjacentHTML("beforeend", "<br>");
@@ -370,7 +371,6 @@ function updateSlotBorders() {
 
 function levelStart() {
   startTime = performance.now(); // Store the current time
-  elapsedTimeList = []; // Clear the elapsed time list
   inputEnable = 1;
   updateHeaderTitle();
   // Create the slots dynamically based on n_Slots

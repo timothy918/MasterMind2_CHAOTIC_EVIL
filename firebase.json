@@ -1,0 +1,7 @@
+{
+  "hosting": {
+    "site": "mastermind2-chaotic-evil",
+    "public": "deploy",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  }
+}
