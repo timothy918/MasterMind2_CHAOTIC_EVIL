@@ -48,6 +48,7 @@ const fullName = ["MasterMind", "II: CHAOTIC", "EVIL"];
 let inputEnable = 1;
 let l_Uncertainty = 0;
 const feedback = [[], []];
+let availableHints = [];
 let elapsedTimeList = []; // List to store elapsed times
 let startTime; // Variable to store the start time of the level
 let n_Slots,
@@ -83,7 +84,10 @@ function setUpTable() {
         // 7 key
         selectGameMode(7);
       }
-    } else if (keyCode === 188 || keyCode === 54 || keyCode === 190) {
+    } else if (
+      !inputEnable &&
+      (keyCode === 188 || keyCode === 54 || keyCode === 190)
+    ) {
       // Comma (<), Caret (^), or Period (>)
       // Find the direction button with the corresponding value in leftDivision
       const directionButton = leftDivision.querySelector(
@@ -214,21 +218,26 @@ function setUpTable() {
           .join("");
         newRow.appendChild(firstColumnCell);
 
-        // Generate randomRight and randomWrong based on l_Uncertainty
         if (l_Uncertainty === 2) {
-          randomRight = Math.floor(Math.random() * hints.length);
+          // Check if availableHints is empty, reset it to hints
+          if (availableHints.length === 0) {
+            availableHints = [...hints];
+          }
+          // Use availableHints instead of hints for randomRight and randomWrong
+          randomRight = Math.floor(Math.random() * availableHints.length);
           do {
-            randomWrong = Math.floor(Math.random() * hints.length);
+            randomWrong = Math.floor(Math.random() * availableHints.length);
           } while (randomWrong === randomRight);
         }
+
         if (rights === n_Slots) {
           const endTime = performance.now();
           const elapsedTimeInMilliseconds = endTime - startTime;
           elapsedTimeList.push(elapsedTimeInMilliseconds);
           const secondColumnCell = document.createElement("td");
-          secondColumnCell.innerHTML = `Answer correct<br />(Time used: ${(
+          secondColumnCell.innerHTML = `Time used: ${(
             elapsedTimeInMilliseconds / 1000
-          ).toFixed(3)} seconds)`;
+          ).toFixed(3)} seconds`;
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow);
           levelWon();
@@ -272,7 +281,7 @@ function setUpTable() {
   });
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
-    level = 2;
+    level = 1;
     chanceRemaining = 16;
     n_Slots = 4;
     n_Choices = 6;
@@ -370,9 +379,10 @@ function updateSlotBorders() {
 }
 
 function levelStart() {
+  updateHeaderTitle();
+  availableHints = [...hints];
   startTime = performance.now(); // Store the current time
   inputEnable = 1;
-  updateHeaderTitle();
   // Create the slots dynamically based on n_Slots
   leftDivision.innerHTML = "";
   for (let i = 1; i <= n_Slots; i++) {
@@ -469,8 +479,10 @@ function displayFeedback(
     secondColumnCell.innerHTML = `Ⓦ*${wrongs} <span class="rightHint">Ⓡ</span>*${rights}`;
   } else {
     // Handle the case where l_Uncertainty is not 0
-    const rightHint = hints[randomRight];
-    const wrongHint = hints[randomWrong];
+    const rightHint = availableHints[randomRight];
+    const wrongHint = availableHints[randomWrong];
+    // Remove the used hints from availableHints
+    availableHints.splice(randomRight, 1);
     if (randomRight < randomWrong) {
       secondColumnCell.innerHTML = `<span>${rightHint}</span>*${rights} ${wrongHint}*${wrongs}`;
     } else {
@@ -593,11 +605,10 @@ function gameEnd(ifWin) {
     const sumElapsedTime =
       elapsedTimeList.reduce((sum, elapsedTime) => sum + elapsedTime, 0) / 1000; // Convert to seconds
     rowsToAdd = [
+      [`Congratulations!`, `You completed ${gameMode} levels`],
       [
-        `Congratulations!<br/>You completed ${gameMode} levels`,
-        `Chance(s) remaining: ${chanceRemaining}<br/>Time used: ${sumElapsedTime.toFixed(
-          3
-        )} seconds`,
+        `Chance(s) remaining: ${chanceRemaining}`,
+        `Time used: ${sumElapsedTime.toFixed(3)} seconds`,
       ],
     ];
   } else {
