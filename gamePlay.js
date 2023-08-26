@@ -481,12 +481,16 @@ function displayFeedback(
     // Handle the case where l_Uncertainty is not 0
     const rightHint = availableHints[randomRight];
     const wrongHint = availableHints[randomWrong];
-    // Remove the used hints from availableHints
-    availableHints.splice(randomRight, 1);
     if (randomRight < randomWrong) {
       secondColumnCell.innerHTML = `<span>${rightHint}</span>*${rights} ${wrongHint}*${wrongs}`;
     } else {
       secondColumnCell.innerHTML = `${wrongHint}*${wrongs} <span>${rightHint}</span>*${rights}`;
+    }
+    if (l_Uncertainty === 2) {
+      // Remove wrongHint and rightHint from availableHints
+      availableHints = availableHints.filter(
+        (hint) => hint !== wrongHint && hint !== rightHint
+      );
     }
   }
   return secondColumnCell;
@@ -631,7 +635,7 @@ function gameEnd(ifWin) {
     ["^(fake)", "view personal statistics"],
     [">(fake)", "view population statistics"],
     ["③", "3 levels; or,"],
-    ["⑦", "2 mandatory levels +<br />5 out of 25 choosable levels"]
+    ["⑦", "2 + 5 (/25) levels"]
   );
   rowsToAdd.forEach((rowContent) => {
     const newRow = document.createElement("tr");
