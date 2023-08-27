@@ -213,9 +213,12 @@ function setUpTable() {
         feedback.push([wrongs, rights]);
         // Append the guess to the first column
         const firstColumnCell = document.createElement("td");
-        firstColumnCell.textContent = buttonsInSlots
-          .map((button) => button.value)
-          .join("");
+        buttonsInSlots.forEach((button) => {
+          const buttonElement = document.createElement("span");
+          buttonElement.innerHTML = button.value;
+          buttonElement.classList.add(button.value); // Assumes the second class is the color class
+          firstColumnCell.appendChild(buttonElement);
+        });
         newRow.appendChild(firstColumnCell);
 
         if (l_Uncertainty === 2) {
@@ -235,7 +238,7 @@ function setUpTable() {
           const elapsedTimeInMilliseconds = endTime - startTime;
           elapsedTimeList.push(elapsedTimeInMilliseconds);
           const secondColumnCell = document.createElement("td");
-          secondColumnCell.innerHTML = `Time used: ${(
+          secondColumnCell.innerHTML = `${(
             elapsedTimeInMilliseconds / 1000
           ).toFixed(3)} seconds`;
           newRow.appendChild(secondColumnCell);
@@ -476,15 +479,21 @@ function displayFeedback(
 ) {
   const secondColumnCell = document.createElement("td");
   if (l_Uncertainty === 0) {
-    secondColumnCell.innerHTML = `Ⓦ*${wrongs} <span class="rightHint">Ⓡ</span>*${rights}`;
+    secondColumnCell.innerHTML = `${"Ⓦ".repeat(
+      wrongs
+    )}<span class="rightHint">${"Ⓡ".repeat(rights)}</span>`;
   } else {
     // Handle the case where l_Uncertainty is not 0
     const rightHint = availableHints[randomRight];
     const wrongHint = availableHints[randomWrong];
     if (randomRight < randomWrong) {
-      secondColumnCell.innerHTML = `<span>${rightHint}</span>*${rights} ${wrongHint}*${wrongs}`;
+      secondColumnCell.innerHTML = `<span>${rightHint.repeat(
+        rights
+      )}</span>${wrongHint.repeat(wrongs)}`;
     } else {
-      secondColumnCell.innerHTML = `${wrongHint}*${wrongs} <span>${rightHint}</span>*${rights}`;
+      secondColumnCell.innerHTML = `${wrongHint.repeat(
+        wrongs
+      )}<span>${rightHint.repeat(rights)}</span>`;
     }
     if (l_Uncertainty === 2) {
       // Remove wrongHint and rightHint from availableHints
@@ -612,7 +621,9 @@ function gameEnd(ifWin) {
       [`Congratulations!`, `You completed ${gameMode} levels`],
       [
         `Chance(s) remaining: ${chanceRemaining}`,
-        `Time used: ${sumElapsedTime.toFixed(3)} seconds`,
+        `Time used: ${Math.floor(sumElapsedTime / 60)} mins ${(
+          sumElapsedTime % 60
+        ).toFixed(3)} seconds`,
       ],
     ];
   } else {
@@ -632,8 +643,8 @@ function gameEnd(ifWin) {
   }
   rowsToAdd.push(
     ["<(fake)", "share to social media"],
-    ["^(fake)", "view personal statistics"],
-    [">(fake)", "view population statistics"],
+    ["^(fake)", "challenge a friend at your last step"],
+    [">(fake)", "view statistics"],
     ["③", "3 levels; or,"],
     ["⑦", "2 + 5 (/25) levels"]
   );

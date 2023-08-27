@@ -28,6 +28,36 @@ body {
   font-weight: bold;
   vertical-align: middle;
 }
+.⓪ {
+  color: white;
+}
+.① {
+  color: green;
+}
+.② {
+  color: yellow;
+}
+.③ {
+  color: red;
+}
+.④ {
+  color: blue;
+}
+.⑤ {
+  color: black;
+}
+.⑥ {
+  color: purple;
+}
+.⑦ {
+  color: lime;
+}
+.⑧ {
+  color: aqua;
+}
+.⑨ {
+  color: fuchsia;
+}
 .green {
   color: green;
   border-color: green;
