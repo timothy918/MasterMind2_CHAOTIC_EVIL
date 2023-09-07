@@ -1,3 +1,9 @@
+import {
+  serverTimestamp,
+  addDoc,
+} from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
+import { colRef } from "./index.js";
+
 const numberButtons = [
   '<button value="⓪" type="button" class="numberButton white">0</button>',
   '<button value="①" type="button" class="numberButton green">1</button>',
@@ -47,8 +53,10 @@ const fullName = ["MasterMind", "II: CHAOTIC", "EVIL"];
 // Declare the variables
 let inputEnable = 1;
 let l_Uncertainty = 0;
-const feedback = [[], []];
+const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 let availableHints = [];
+let levelsDoc = [];
+let guesses = [];
 let elapsedTimeList = []; // List to store elapsed times
 let startTime; // Variable to store the start time of the level
 let n_Slots,
@@ -59,7 +67,11 @@ let n_Slots,
   gameMode,
   randomAnswer,
   randomRight,
-  randomWrong;
+  randomWrong,
+  userIP,
+  sumElapsedTime,
+  levelDoc,
+  gameDoc;
 
 const inputContainer = document.getElementById("inputContainer");
 const leftDivision = document.querySelector(".left_temp");
@@ -70,6 +82,12 @@ const outputTable = document.querySelector("main.output table");
 document.addEventListener("DOMContentLoaded", setUpTable);
 
 function setUpTable() {
+  // Make an HTTP request to get the user's IP address
+  fetch("https://ipinfo.io/json")
+    .then((response) => response.json())
+    .then((data) => {
+      userIP = data.ip; // Save the user's IP to the variable
+    });
   updateHeaderTitle();
   // Event listener for keydown events
   document.addEventListener("keydown", function (event) {
@@ -194,6 +212,7 @@ function setUpTable() {
           leftDivision.querySelectorAll(".slot button")
         );
         const guess = buttonsInSlots.map((button) => button.textContent);
+        guesses.push(guess.join(""));
         // Remove buttons from slots and update chanceRemaining
         buttonsInSlots.forEach((button) => button.remove());
 
@@ -216,7 +235,7 @@ function setUpTable() {
         buttonsInSlots.forEach((button) => {
           const buttonElement = document.createElement("span");
           buttonElement.innerHTML = button.value;
-          buttonElement.classList.add(button.value); // Assumes the second class is the color class
+          buttonElement.classList.add(button.classList[1]); // Assumes the second class is the color class
           firstColumnCell.appendChild(buttonElement);
         });
         newRow.appendChild(firstColumnCell);
@@ -290,7 +309,11 @@ function setUpTable() {
     n_Choices = 6;
     l_Uncertainty = 0;
     elapsedTimeList = []; // Clear the elapsed time list
-
+    gameDoc = {
+      ipAddress: "userIP",
+      gameMode: game_Mode,
+      dateTime: serverTimestamp(),
+    }; // Create an empty JavaScript object to represent the Firestore document
     enterButton.textContent = `Remaining`;
     enterButton.insertAdjacentHTML("beforeend", "<br>");
     enterButton.insertAdjacentText("beforeend", `${chanceRemaining} chance(s)`);
@@ -398,6 +421,7 @@ function levelStart() {
   updateSlotBorders();
   // Add the number buttons to the inputContainer
   inputContainer.innerHTML = numberButtons.slice(0, n_Choices).join("");
+
   // Function to handle button clicks in inputContainer
   function handleInputButtonClick(event) {
     const clickedButton = event.target;
@@ -425,14 +449,19 @@ function levelStart() {
   inputButtons.forEach((button) => {
     button.addEventListener("click", handleInputButtonClick);
   });
-
   // Generate random answer
   const minNumber = Math.pow(n_Choices, n_Slots);
   const maxNumber = 2 * minNumber - 1;
   const randomDecimal =
     Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
   randomAnswer = randomDecimal.toString(n_Choices).slice(1);
-  // Declare a list to store feedback: [wrongs, rights]
+  levelDoc = {
+    level: level,
+    n_Choices: n_Choices,
+    n_Slots: n_Slots,
+    l_Uncertainty: l_Uncertainty,
+    answer: randomAnswer,
+  }; // Create an embedded document object
   feedback.length = 0; // Clear the feedback array
   // If l_Uncertainty is 1
   if (l_Uncertainty === 1) {
@@ -505,6 +534,9 @@ function displayFeedback(
   return secondColumnCell;
 }
 function levelWon() {
+  levelDoc.guesses = guesses;
+  levelDoc.feedback = feedback;
+  levelsDoc.push(levelDoc);
   inputEnable = null; // Disable number buttons in input section
 
   // Select all <span> elements within the output table rows
@@ -535,12 +567,12 @@ function levelWon() {
       spanElements.forEach((spanElement) => {
         spanElement.classList.add("rightHint");
       });
-      rowsToAdd = [
+      difficultyOptions = [
         ["<", "number of choices +=2 (max 10)"],
         ["^", "level of uncertainty +=1 (max 2)"],
         [">", "number of slot +=1 (max 6)"],
       ];
-      rowsToAdd.forEach((rowContent) => {
+      difficultyOptions.forEach((rowContent) => {
         const newRow = document.createElement("tr");
         rowContent.forEach((cellContent) => {
           const cell = document.createElement("td");
@@ -600,10 +632,8 @@ function levelWon() {
           levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
           firstRow.appendChild(levelInfoCell);
           firstRow.appendChild(difficultyInfoCell);
-          // Append the new row to the output table
-          outputTable.appendChild(firstRow);
-          // Call the levelStart() function to set up the next level
-          levelStart();
+          outputTable.appendChild(firstRow); // Append the new row to the output table
+          levelStart(); // Call the levelStart() function to set up the next level
         }
       });
     }
@@ -612,12 +642,12 @@ function levelWon() {
 
 function gameEnd(ifWin) {
   // Add additional rows
-  let rowsToAdd;
+  let gameEndRowsAdd;
   if (ifWin) {
     // Calculate the sum of elapsed times
-    const sumElapsedTime =
+    sumElapsedTime =
       elapsedTimeList.reduce((sum, elapsedTime) => sum + elapsedTime, 0) / 1000; // Convert to seconds
-    rowsToAdd = [
+    gameEndRowsAdd = [
       [`Congratulations!`, `You completed ${gameMode} levels`],
       [
         `Chance(s) remaining: ${chanceRemaining}`,
@@ -626,7 +656,11 @@ function gameEnd(ifWin) {
         ).toFixed(3)} seconds`,
       ],
     ];
+    gameDoc.resultScore = chanceRemaining;
   } else {
+    levelDoc.feedback = feedback;
+    levelDoc.guesses = guesses;
+    levelsDoc.push(levelDoc);
     // Select all <span> elements within the output table rows
     const spanElements = outputTable.querySelectorAll("tr span");
 
@@ -634,21 +668,22 @@ function gameEnd(ifWin) {
     spanElements.forEach((spanElement) => {
       spanElement.classList.add("rightHint");
     });
-    rowsToAdd = [["You lose!", `at ${level} out of ${gameMode} levels`]];
+    gameEndRowsAdd = [["You lose!", `at ${level} out of ${gameMode} levels`]];
     // Append direction buttons to the first 3 slots in left temp div
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
     for (let i = 0; i < 3; i++) {
       slotsInLeftTemp[i].innerHTML = directionButtons[i];
     }
+    gameDoc.resultScore = level - gameMode - 1;
   }
-  rowsToAdd.push(
+  gameEndRowsAdd.push(
     ["<(fake)", "share to social media"],
     ["^(fake)", "challenge a friend at your last step"],
-    [">(fake)", "view statistics"],
+    [">(fake)", "view statistics and credit"],
     ["③", "3 levels; or,"],
     ["⑦", "2 + 5 (/25) levels"]
   );
-  rowsToAdd.forEach((rowContent) => {
+  gameEndRowsAdd.forEach((rowContent) => {
     const newRow = document.createElement("tr");
     rowContent.forEach((cellContent) => {
       const cell = document.createElement("td");
@@ -657,5 +692,8 @@ function gameEnd(ifWin) {
     });
     outputTable.appendChild(newRow);
   });
+  gameDoc.aveTime = sumElapsedTime / gameMode;
+  gameDoc.levels = levelsDoc;
+  addDoc(colRef, gameDoc);
   gameMode = null;
 }

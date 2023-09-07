@@ -1,0 +1,110 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MasterMind II- Statistics</title>
+    <link
+      rel="stylesheet"
+      href="node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+      <div class="container-fluid">
+        <img src="/img/logo.png" alt="logo" style: width="100px"; height=auto>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-max ml-auto mb-2 mb-lg-0">
+            <b>
+              <li class="nav-item">
+                <a class="nav-link" href="statistics.html">
+                  <i class="fas fa-lg fa-laptop-house"></i>Statistics
+                </a>
+              </li>
+
+              <li class="nav-item active">
+                <a class="nav-link" href="credit.html">
+                  <i class="fa-solid fa-address-card"></i>Credit
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                  <i class="fa-brands fa-projects-hunt"></i>Mini-Game
+                </a>
+              </li>
+            </b>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <h1>Getting Started with MasterMind 2: Chaotic Evil</h1>
+    <p>
+      Welcome to MasterMind 2: Chaotic Evil. This project, crafted in JavaScript
+      and powered by Firebase, offers an immersive gaming experience. It boasts
+      a real-time database that meticulously records game data and a dynamic
+      dashboard for in-depth data analysis. Whether you appreciate the
+      challenging gameplay of MasterMind, the inventive spirit of Not Tetris, or
+      the addictive difficulty of Flappy Bird, you're sure to find something to
+      love in this game.
+    </p>
+    <form class="add">
+      <label for="title">Title:</label>
+      <input type="text" name="title" required />
+      <label for="author">Author:</label>
+      <input type="text" name="author" required />
+
+      <button>add a new book</button>
+    </form>
+
+    <form class="delete">
+      <label for="id">Document id:</label>
+      <input type="text" name="id" required />
+
+      <button>delete a book</button>
+    </form>
+
+    <form class="update">
+      <label for="id">Document id:</label>
+      <input type="text" name="id" required />
+
+      <button>update a book</button>
+    </form>
+
+    <h2>Firebase Auth</h2>
+
+    <form class="signup">
+      <label for="email">email:</label>
+      <input type="email" name="email" />
+      <label for="password">password:</label>
+      <input type="password" name="password" />
+      <button>signup</button>
+    </form>
+
+    <form class="login">
+      <label for="email">email:</label>
+      <input type="email" name="email" />
+      <label for="password">password:</label>
+      <input type="password" name="password" />
+      <button>login</button>
+    </form>
+
+    <button class="logout">logout</button>
+
+    <h2>Unsubscribing</h2>
+    <button class="unsub">unsubscribe from db/auth changes</button>
+
+    <script src="bundle.js"></script>
+  </body>
+</html>

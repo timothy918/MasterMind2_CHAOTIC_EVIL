@@ -32,30 +32,42 @@ body {
   color: green;
   border-color: green;
 }
+.white {
+  color: white;
+  border-color: white;
+}
 .red {
-  background-color: red;
+  color: red;
+  border-color: red;
 }
 .purple {
-  background-color: purple;
+  color: purple;
+  border-color: purple;
 }
 .fuchsia {
-  background-color: fuchsia;
+  color: fuchsia;
+  border-color: fuchsia;
 }
 .lime {
-  background-color: lime;
+  color: lime;
+  border-color: lime;
 }
 .yellow {
-  background-color: yellow;
-  color: silver;
+  color: yellow;
+  border-color: yellow;
 }
 .blue {
-  background-color: blue;
+  color: blue;
+  border-color: blue;
 }
 .aqua {
-  background-color: aqua;
+  color: aqua;
+  border-color: aqua;
 }
 .black {
-  background-color: black;
+  /* background-color: silver; */
+  color: black;
+  border-color: black;
 }
 /* Your existing CSS styles */
 .slot {
@@ -118,4 +130,19 @@ p {
 }
 header {
   font-size: small;
+}
+/*credit page*/
+figure figcaption {
+  text-align: center;
+}
+.icons {
+  width: 80px;
+  height: 80px;
+  flex: 4;
+}
+#flex-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
 }
