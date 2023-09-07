@@ -559,7 +559,7 @@ function levelWon() {
       spanElements.forEach((spanElement) => {
         spanElement.classList.add("rightHint");
       });
-      difficultyOptions = [
+      const difficultyOptions = [
         ["<", "number of choices +=2 (max 10)"],
         ["^", "level of uncertainty +=1 (max 2)"],
         [">", "number of slot +=1 (max 6)"],
