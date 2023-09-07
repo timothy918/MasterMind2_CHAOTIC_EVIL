@@ -55,7 +55,7 @@ let inputEnable = 1;
 let l_Uncertainty = 0;
 const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 let availableHints = [];
-let levelsDoc = [];
+let levelsArray = [];
 let guesses = [];
 let elapsedTimeList = []; // List to store elapsed times
 let startTime; // Variable to store the start time of the level
@@ -70,7 +70,7 @@ let n_Slots,
   randomWrong,
   userIP,
   sumElapsedTime,
-  levelDoc,
+  levelMap,
   gameDoc;
 
 const inputContainer = document.getElementById("inputContainer");
@@ -224,14 +224,11 @@ function setUpTable() {
           "beforeend",
           `${chanceRemaining} chance(s)`
         );
-        // Reset the currentIndex and update slot borders
-        currentIndex = 0;
+        currentIndex = 0; // Reset the currentIndex and update slot borders
         updateSlotBorders();
-        // Call the turnCount function with randomAnswer and guess
-        const [wrongs, rights] = turnCount(randomAnswer, guess);
+        const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
         feedback.push([wrongs, rights]);
-        // Append the guess to the first column
-        const firstColumnCell = document.createElement("td");
+        const firstColumnCell = document.createElement("td"); // Append the guess to the first column
         buttonsInSlots.forEach((button) => {
           const buttonElement = document.createElement("span");
           buttonElement.innerHTML = button.value;
@@ -239,14 +236,11 @@ function setUpTable() {
           firstColumnCell.appendChild(buttonElement);
         });
         newRow.appendChild(firstColumnCell);
-
         if (l_Uncertainty === 2) {
-          // Check if availableHints is empty, reset it to hints
           if (availableHints.length === 0) {
             availableHints = [...hints];
-          }
-          // Use availableHints instead of hints for randomRight and randomWrong
-          randomRight = Math.floor(Math.random() * availableHints.length);
+          } // Check if availableHints is empty, reset it to hints
+          randomRight = Math.floor(Math.random() * availableHints.length); // Use availableHints instead of hints for randomRight and randomWrong
           do {
             randomWrong = Math.floor(Math.random() * availableHints.length);
           } while (randomWrong === randomRight);
@@ -255,7 +249,7 @@ function setUpTable() {
         if (rights === n_Slots) {
           const endTime = performance.now();
           const elapsedTimeInMilliseconds = endTime - startTime;
-          elapsedTimeList.push(elapsedTimeInMilliseconds);
+          levelMap.time = elapsedTimeInMilliseconds;
           const secondColumnCell = document.createElement("td");
           secondColumnCell.innerHTML = `${(
             elapsedTimeInMilliseconds / 1000
@@ -284,7 +278,6 @@ function setUpTable() {
       }
     }
   });
-
   // Attach click event listener to the left division (using event delegation)
   leftDivision.addEventListener("click", function (event) {
     const clickedSlot = event.target.closest(".slot");
@@ -297,8 +290,7 @@ function setUpTable() {
 
       currentIndex = clickedSlotIndex;
       handleLeftDivisionButtonClick(event);
-      // Update slot borders based on currentIndex
-      updateSlotBorders();
+      updateSlotBorders(); // Update slot borders based on currentIndex
     }
   });
   // Function for Game mode buttons
@@ -308,7 +300,6 @@ function setUpTable() {
     n_Slots = 4;
     n_Choices = 6;
     l_Uncertainty = 0;
-    elapsedTimeList = []; // Clear the elapsed time list
     gameDoc = {
       ipAddress: "userIP",
       gameMode: game_Mode,
@@ -455,7 +446,7 @@ function levelStart() {
   const randomDecimal =
     Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
   randomAnswer = randomDecimal.toString(n_Choices).slice(1);
-  levelDoc = {
+  levelMap = {
     level: level,
     n_Choices: n_Choices,
     n_Slots: n_Slots,
@@ -534,9 +525,10 @@ function displayFeedback(
   return secondColumnCell;
 }
 function levelWon() {
-  levelDoc.guesses = guesses;
-  levelDoc.feedback = feedback;
-  levelsDoc.push(levelDoc);
+  levelMap.guesses = guesses;
+  levelMap.wrongs = feedback.map((pair) => pair[0]);
+  levelMap.rights = feedback.map((pair) => pair[1]);
+  levelsArray.push(levelMap);
   inputEnable = null; // Disable number buttons in input section
 
   // Select all <span> elements within the output table rows
@@ -646,7 +638,9 @@ function gameEnd(ifWin) {
   if (ifWin) {
     // Calculate the sum of elapsed times
     sumElapsedTime =
-      elapsedTimeList.reduce((sum, elapsedTime) => sum + elapsedTime, 0) / 1000; // Convert to seconds
+      levelsArray.reduce((sum, levelMap) => {
+        return sum + levelMap.time;
+      }, 0) / 1000; // Convert to seconds
     gameEndRowsAdd = [
       [`Congratulations!`, `You completed ${gameMode} levels`],
       [
@@ -658,9 +652,10 @@ function gameEnd(ifWin) {
     ];
     gameDoc.resultScore = chanceRemaining;
   } else {
-    levelDoc.feedback = feedback;
-    levelDoc.guesses = guesses;
-    levelsDoc.push(levelDoc);
+    levelMap.wrongs = feedback.map((pair) => pair[0]);
+    levelMap.rights = feedback.map((pair) => pair[1]);
+    levelMap.guesses = guesses;
+    levelsArray.push(levelMap);
     // Select all <span> elements within the output table rows
     const spanElements = outputTable.querySelectorAll("tr span");
 
@@ -692,8 +687,8 @@ function gameEnd(ifWin) {
     });
     outputTable.appendChild(newRow);
   });
-  gameDoc.aveTime = sumElapsedTime / gameMode;
-  gameDoc.levels = levelsDoc;
+  gameDoc.secondsPerLevel = sumElapsedTime / gameMode;
+  gameDoc.levels = levelsArray;
   addDoc(colRef, gameDoc);
   gameMode = null;
 }
