@@ -84,9 +84,18 @@ document.addEventListener("DOMContentLoaded", setUpTable);
 function setUpTable() {
   // Make an HTTP request to get the user's IP address
   fetch("https://ipinfo.io/json")
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        // Check if the response status is not OK
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
       userIP = data.ip; // Save the user's IP to the variable
+    })
+    .catch((error) => {
+      userIP = "Anonymous";
     });
   updateHeaderTitle();
   // Event listener for keydown events
@@ -301,7 +310,7 @@ function setUpTable() {
     n_Choices = 6;
     l_Uncertainty = 0;
     gameDoc = {
-      ipAddress: "userIP",
+      ipAddress: userIP,
       gameMode: game_Mode,
       dateTime: serverTimestamp(),
     }; // Create an empty JavaScript object to represent the Firestore document
@@ -634,14 +643,14 @@ function levelWon() {
 
 function gameEnd(ifWin) {
   // Add additional rows
-  let gameEndRowsAdd;
+  let gameEndRows;
   if (ifWin) {
     // Calculate the sum of elapsed times
     sumElapsedTime =
       levelsArray.reduce((sum, levelMap) => {
         return sum + levelMap.time;
       }, 0) / 1000; // Convert to seconds
-    gameEndRowsAdd = [
+    gameEndRows = [
       [`Congratulations!`, `You completed ${gameMode} levels`],
       [
         `Chance(s) remaining: ${chanceRemaining}`,
@@ -652,18 +661,17 @@ function gameEnd(ifWin) {
     ];
     gameDoc.resultScore = chanceRemaining;
   } else {
+    levelMap.guesses = guesses;
     levelMap.wrongs = feedback.map((pair) => pair[0]);
     levelMap.rights = feedback.map((pair) => pair[1]);
-    levelMap.guesses = guesses;
     levelsArray.push(levelMap);
     // Select all <span> elements within the output table rows
     const spanElements = outputTable.querySelectorAll("tr span");
-
     // Loop through the <span> elements and add the rightHint class
     spanElements.forEach((spanElement) => {
       spanElement.classList.add("rightHint");
     });
-    gameEndRowsAdd = [["You lose!", `at ${level} out of ${gameMode} levels`]];
+    gameEndRows = [["You lose!", `at ${level} out of ${gameMode} levels`]];
     // Append direction buttons to the first 3 slots in left temp div
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
     for (let i = 0; i < 3; i++) {
@@ -671,14 +679,14 @@ function gameEnd(ifWin) {
     }
     gameDoc.resultScore = level - gameMode - 1;
   }
-  gameEndRowsAdd.push(
+  gameEndRows.push(
     ["<(fake)", "share to social media"],
     ["^(fake)", "challenge a friend at your last step"],
     [">(fake)", "view statistics and credit"],
     ["③", "3 levels; or,"],
     ["⑦", "2 + 5 (/25) levels"]
   );
-  gameEndRowsAdd.forEach((rowContent) => {
+  gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
     rowContent.forEach((cellContent) => {
       const cell = document.createElement("td");

@@ -1,14 +1,16 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MasterMind II- Statistics</title>
-    <link
+    <!-- <link
       rel="stylesheet"
       href="node_modules/bootstrap/dist/css/bootstrap.min.css"
-    />
+    /> -->
     <link rel="stylesheet" href="site.css" />
+    <script type="module" src="index.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-black">
@@ -59,52 +61,50 @@
       the addictive difficulty of Flappy Bird, you're sure to find something to
       love in this game.
     </p>
-    <form class="add">
-      <label for="title">Title:</label>
-      <input type="text" name="title" required />
-      <label for="author">Author:</label>
-      <input type="text" name="author" required />
-
-      <button>add a new book</button>
+    <form class="query">
+      <fieldset>
+        <legend>View history</legend>
+        <ul>
+          <li>
+            <label for="user">My records only:</label>
+            <input type="checkbox" name="user" />
+          </li>
+          <li>
+            <label for="l_Uncertainty">Level of uncertainty:</label>
+            <input type="number" name="l_Uncertainty" />
+          </li>
+          <li>
+            <label for="n_Choices">Number of Choices:</label>
+            <input type="number" name="n_Choices" />
+          </li>
+          <li>
+            <label for="n_Slots">Number of Slots:</label>
+            <input type="number" name="n_Slots" />
+          </li>
+          <li>
+            <label for="answer">Answer:</label>
+            <input type="nubmer" name="answer" />
+          </li>
+          <li>
+            <button type="button">Query (fake)</button>
+          </li>
+        </ul>
+      </fieldset>
+      <fieldset>
+        <legend>Fake Data</legend>
+        <ul>
+          <li>
+            <label for="n_Games">Number of games:</label>
+            <input type="number" name="n_Games" id="n_Games" />
+          </li>
+          <li>
+            <button type="button" id="Generate">Generate</button>
+          </li>
+          <li>
+            <button type="button" id="RemoveFake">Remove all fakes</button>
+          </li>
+        </ul>
+      </fieldset>
     </form>
-
-    <form class="delete">
-      <label for="id">Document id:</label>
-      <input type="text" name="id" required />
-
-      <button>delete a book</button>
-    </form>
-
-    <form class="update">
-      <label for="id">Document id:</label>
-      <input type="text" name="id" required />
-
-      <button>update a book</button>
-    </form>
-
-    <h2>Firebase Auth</h2>
-
-    <form class="signup">
-      <label for="email">email:</label>
-      <input type="email" name="email" />
-      <label for="password">password:</label>
-      <input type="password" name="password" />
-      <button>signup</button>
-    </form>
-
-    <form class="login">
-      <label for="email">email:</label>
-      <input type="email" name="email" />
-      <label for="password">password:</label>
-      <input type="password" name="password" />
-      <button>login</button>
-    </form>
-
-    <button class="logout">logout</button>
-
-    <h2>Unsubscribing</h2>
-    <button class="unsub">unsubscribe from db/auth changes</button>
-
-    <script src="bundle.js"></script>
   </body>
 </html>
