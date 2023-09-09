@@ -16,7 +16,18 @@ const numberButtons = [
   '<button value="⑧" type="button" class="numberButton aqua">8</button>',
   '<button value="⑨" type="button" class="numberButton fuchsia">9</button>',
 ];
-
+const outputNumbers = [
+  '<span class="white">⓪</span>',
+  '<span class="green">①</span>',
+  '<span class="yellow">②</span>',
+  '<span class="red">③</span>',
+  '<span class="blue">④</span>',
+  '<span class="black">⑤</span>',
+  '<span class="purple">⑥</span>',
+  '<span class="lime">⑦</span>',
+  '<span class="aqua">⑧</span>',
+  '<span class="fuchsia">⑨</span>',
+]; // Define your outputNumbers array
 const directionButtons = [
   '<button value="188" type="button" class="numberButton white"><</button>',
   '<button value="54" type="button" class="numberButton white">^</button>',
@@ -238,11 +249,10 @@ function setUpTable() {
         const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
         feedback.push([wrongs, rights]);
         const firstColumnCell = document.createElement("td"); // Append the guess to the first column
+        let buttonElement = "";
         buttonsInSlots.forEach((button) => {
-          const buttonElement = document.createElement("span");
-          buttonElement.innerHTML = button.value;
-          buttonElement.classList.add(button.classList[1]); // Assumes the second class is the color class
-          firstColumnCell.appendChild(buttonElement);
+          buttonElement += outputNumbers[button.textContent];
+          firstColumnCell.innerHTML = buttonElement;
         });
         newRow.appendChild(firstColumnCell);
         if (l_Uncertainty === 2) {
@@ -254,7 +264,6 @@ function setUpTable() {
             randomWrong = Math.floor(Math.random() * availableHints.length);
           } while (randomWrong === randomRight);
         }
-
         if (rights === n_Slots) {
           const endTime = performance.now();
           const elapsedTimeInMilliseconds = endTime - startTime;
@@ -310,6 +319,7 @@ function setUpTable() {
     n_Choices = 6;
     l_Uncertainty = 0;
     gameDoc = {
+      isReal: true,
       ipAddress: userIP,
       gameMode: game_Mode,
       dateTime: serverTimestamp(),
@@ -671,7 +681,18 @@ function gameEnd(ifWin) {
     spanElements.forEach((spanElement) => {
       spanElement.classList.add("rightHint");
     });
-    gameEndRows = [["You lose!", `at ${level} out of ${gameMode} levels`]];
+    // Convert randomAnswer into a string of corresponding elements
+    let answerString = "";
+    for (let i = 0; i < randomAnswer.length; i++) {
+      const digit = parseInt(randomAnswer[i]);
+      if (!isNaN(digit) && digit >= 0 && digit < outputNumbers.length) {
+        answerString += outputNumbers[digit];
+      }
+    }
+    gameEndRows = [
+      ["You lose!", `at ${level} out of ${gameMode} levels`],
+      [answerString, `correct answer`],
+    ];
     // Append direction buttons to the first 3 slots in left temp div
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
     for (let i = 0; i < 3; i++) {

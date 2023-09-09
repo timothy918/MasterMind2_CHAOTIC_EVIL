@@ -14,10 +14,7 @@ const firebaseConfig = {
   measurementId: "G-SR3RJ42PJE",
 };
 
-// init firebase
-initializeApp(firebaseConfig);
-
-// Initialize Firebase
-const db = getFirestore();
+initializeApp(firebaseConfig); // init firebase
+const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
 export { colRef };

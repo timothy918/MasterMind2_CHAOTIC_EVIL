@@ -5,15 +5,16 @@ import {
   query,
   where,
   deleteDoc,
+  onSnapshot, // Import onSnapshot for real-time updates
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 import { colRef } from "./index.js";
 
 // Get a reference to the "RemoveFake" button
 document.getElementById("RemoveFake").addEventListener("click", async () => {
   try {
-    // Query the Firestore collection to find all documents with isFake = true
+    // Query the Firestore collection to find all documents with isReal = true
     const querySnapshot = await getDocs(
-      query(colRef, where("isFake", "==", true))
+      query(colRef, where("isReal", "==", false))
     );
     // Loop through the documents and delete them
     querySnapshot.forEach(async (doc) => {
@@ -38,11 +39,9 @@ function generateFakeData(n_Games) {
   for (let i = 0; i < n_Games; i++) {
     //Create a fake game document
     var gameDoc = {
-      ipAddress: Array.from({ length: 4 }, () =>
-        Math.floor(Math.random() * 256)
-      ).join("."), // Generate four random parts
+      ipAddress: "Anonymous",
       gameMode: Math.random() > 0.5 ? 3 : 7,
-      isFake: true,
+      isReal: false,
       dateTime: serverTimestamp(),
     };
     let chanceRemaining = 16;
@@ -101,3 +100,49 @@ function generateFakeData(n_Games) {
     addDoc(colRef, gameDoc); //Add the fake game document to the collection
   } //end of game
 }
+
+const countDisplayElement = document.getElementById("DonutChart");
+// Define queries to filter documents for gameMode 3 and gameMode 7
+const gameMode3Query = query(colRef, where("gameMode", "==", 3));
+const gameMode7Query = query(colRef, where("gameMode", "==", 7));
+// const lose3Query = query(gameMode3Query, where("resultScore", "<", 0));
+// const lose7Query = query(gameMode7Query, where("resultScore", "<", 0));
+// Define queries to filter documents where isReal is true
+const real3Query = query(gameMode3Query, where("isReal", "==", true));
+const real7Query = query(gameMode7Query, where("isReal", "==", true));
+// const realLose3Query = query(real3Query, where("resultScore", "<", 0));
+// const realLose7Query = query(real7Query, where("resultScore", "<", 0));
+// Create an array of query promises
+const queryPromises = [
+  getDocs(gameMode3Query),
+  getDocs(gameMode7Query),
+  getDocs(real3Query),
+  getDocs(real7Query),
+  //   getDocs(lose3Query),
+  //   getDocs(lose7Query),
+  //   getDocs(realLose3Query),
+  //   getDocs(realLose7Query),
+];
+
+// Execute all queries in parallel and wait for all promises to resolve
+Promise.all(queryPromises)
+  .then((querySnapshots) => {
+    // Get the count for each query snapshot
+    const count3 = querySnapshots[0].size;
+    const count7 = querySnapshots[1].size;
+    const countReal3 = querySnapshots[2].size;
+    const countReal7 = querySnapshots[3].size;
+    // const countLose3 = querySnapshots[4].size;
+    // const countLose7 = querySnapshots[5].size;
+    // const countRealLose3 = querySnapshots[6].size;
+    // const countRealLose7 = querySnapshots[7].size;
+    // const countWin3 = count3 - countLose3;
+    // const countWin7 = count7 - countLose7;
+    // const countRealWin3 = countReal3 - countRealLose3;
+    // const countRealWin7 = countReal7 - countRealLose7;
+    // Update the HTML element with the counts
+    countDisplayElement.innerHTML = `gameMode3 real: ${countReal3}, gameMode3 total: ${count3},</br> gameMode7 real: ${countReal7}, gameMode7 total: ${count7}`;
+  })
+  .catch((error) => {
+    console.error("Error fetching counts:", error);
+  });
