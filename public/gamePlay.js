@@ -704,8 +704,8 @@ function gameEnd(ifWin) {
     ["<(fake)", "share to social media"],
     ["^(fake)", "challenge a friend at your last step"],
     [">(fake)", "view statistics and credit"],
-    ["③", "3 levels; or,"],
-    ["⑦", "2 + 5 (/25) levels"]
+    [outputNumbers[3], "3 levels; or,"],
+    [outputNumbers[7], "2 + 5 (/25) levels"]
   );
   gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
