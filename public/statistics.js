@@ -108,49 +108,23 @@ const gameMode7Query = query(colRef, where("gameMode", "==", 7));
 // Define queries to filter documents where isReal is true
 const real3Query = query(gameMode3Query, where("isReal", "==", true));
 const real7Query = query(gameMode7Query, where("isReal", "==", true));
+const fake3Query = query(gameMode3Query, where("isReal", "==", false));
+const fake7Query = query(gameMode7Query, where("isReal", "==", false));
 
-// Create an array of queries
-const queries = [gameMode3Query, gameMode7Query, real3Query, real7Query];
-
-// Define an object to store the real-time counts
-const realTimeCounts = {
-  gameMode3: 0,
-  gameMode7: 0,
-  realGameMode3: 0,
-  realGameMode7: 0,
-};
-
-// Create an array to store the unsubscribe functions
-const unsubscribeFunctions = [];
-
-// Function to handle snapshots
-function handleSnapshot(snapshot, index) {
-  switch (index) {
-    case 0:
-      realTimeCounts.gameMode3 = snapshot.size;
-      break;
-    case 1:
-      realTimeCounts.gameMode7 = snapshot.size;
-      break;
-    case 2:
-      realTimeCounts.realGameMode3 = snapshot.size;
-      break;
-    case 3:
-      realTimeCounts.realGameMode7 = snapshot.size;
-      break;
-  }
-  updateCountDisplay(realTimeCounts);
-}
+const queries = [gameMode3Query, gameMode7Query, real3Query, real7Query]; // Create an array of queries
+const realTimeCounts = Array(queries.length).fill(0); // Define an object to store the real-time counts
+const unsubscribeFunctions = []; // Create an array to store the unsubscribe functions
 
 // Loop through the queries and attach onSnapshot listeners
 queries.forEach((query, index) => {
   const unsubscribe = onSnapshot(query, (snapshot) => {
-    handleSnapshot(snapshot, index);
+    realTimeCounts[index] = snapshot.size;
+    updateCountDisplay(realTimeCounts);
   });
   unsubscribeFunctions.push(unsubscribe);
 });
 
 // Helper function to update the count display
 function updateCountDisplay(realTimeCounts) {
-  countDisplayElement.innerHTML = `gameMode3 real: ${realTimeCounts.realGameMode3}, gameMode3 total: ${realTimeCounts.gameMode3},</br> gameMode7 real: ${realTimeCounts.realGameMode7}, gameMode7 total: ${realTimeCounts.gameMode7}`;
+  countDisplayElement.innerHTML = `gameMode3 real: ${realTimeCounts[2]}, gameMode3 total: ${realTimeCounts[0]},</br> gameMode7 real: ${realTimeCounts[3]}, gameMode7 total: ${realTimeCounts[1]}`;
 }

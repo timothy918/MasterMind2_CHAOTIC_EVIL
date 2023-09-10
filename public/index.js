@@ -18,3 +18,21 @@ initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
 export { colRef };
+
+let userIP;
+// Make an HTTP request to get the user's IP address
+fetch("https://ipinfo.io/json")
+  .then((response) => {
+    if (!response.ok) {
+      // Check if the response status is not OK
+      throw new Error(`HTTP Error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then((data) => {
+    userIP = data.ip; // Save the user's IP to the variable
+  })
+  .catch((error) => {
+    userIP = "Anonymous";
+  });
+export { userIP };

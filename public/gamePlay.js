@@ -2,8 +2,7 @@ import {
   serverTimestamp,
   addDoc,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { colRef } from "./index.js";
-
+import { colRef, userIP } from "./index.js";
 const numberButtons = [
   '<button value="⓪" type="button" class="numberButton white">0</button>',
   '<button value="①" type="button" class="numberButton green">1</button>',
@@ -79,7 +78,6 @@ let n_Slots,
   randomAnswer,
   randomRight,
   randomWrong,
-  userIP,
   sumElapsedTime,
   levelMap,
   gameDoc;
@@ -93,21 +91,6 @@ const outputTable = document.querySelector("main.output table");
 document.addEventListener("DOMContentLoaded", setUpTable);
 
 function setUpTable() {
-  // Make an HTTP request to get the user's IP address
-  fetch("https://ipinfo.io/json")
-    .then((response) => {
-      if (!response.ok) {
-        // Check if the response status is not OK
-        throw new Error(`HTTP Error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      userIP = data.ip; // Save the user's IP to the variable
-    })
-    .catch((error) => {
-      userIP = "Anonymous";
-    });
   updateHeaderTitle();
   // Event listener for keydown events
   document.addEventListener("keydown", function (event) {
@@ -311,6 +294,7 @@ function setUpTable() {
       updateSlotBorders(); // Update slot borders based on currentIndex
     }
   });
+
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
     level = 1;
