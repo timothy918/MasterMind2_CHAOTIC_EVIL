@@ -177,8 +177,7 @@ function setUpTable() {
       }
     }
   });
-  // Add all number buttons to the inputContainer
-  inputContainer.innerHTML = numberButtons.join("");
+  inputContainer.innerHTML = numberButtons.join(""); // Add all number buttons to the inputContainer
 
   // Function to handle button clicks in inputContainer
   function handleInputButtonClick(event) {
@@ -188,14 +187,12 @@ function setUpTable() {
       selectGameMode(buttonContent);
     }
   }
-  // Attach click event listeners to the buttons in inputContainer
-  const inputButtons = inputContainer.querySelectorAll("button");
+  const inputButtons = inputContainer.querySelectorAll("button"); // Attach click event listeners to the buttons in inputContainer
   inputButtons.forEach((button) => {
     button.addEventListener("click", handleInputButtonClick);
   });
 
-  // Create the Enter button
-  enterButton.textContent = "Remaining chance(s)";
+  enterButton.textContent = "Remaining chance(s)"; // Create the Enter button
   rightDivision.appendChild(enterButton);
 
   // Event listener for the Enter button
@@ -204,25 +201,17 @@ function setUpTable() {
       const slotsFilled = Array.from(
         leftDivision.querySelectorAll(".slot")
       ).every((slot) => slot.children.length > 0);
-
       if (slotsFilled) {
         chanceRemaining--;
-        // Create a new row in the output table
-        const newRow = document.createElement("tr");
-
-        // Get the values of buttons in the slots as the guess
+        const newRow = document.createElement("tr"); // Create a new row in the output table
         const buttonsInSlots = Array.from(
           leftDivision.querySelectorAll(".slot button")
-        );
+        ); // Get the values of buttons in the slots as the guess
         const guess = buttonsInSlots.map((button) => button.textContent);
         guesses.push(guess.join(""));
-        // Remove buttons from slots and update chanceRemaining
-        buttonsInSlots.forEach((button) => button.remove());
-
-        // Update the text content of the enterButton
-        enterButton.textContent = `Remaining`;
-        // Insert the line break as HTML
-        enterButton.insertAdjacentHTML("beforeend", "<br>");
+        buttonsInSlots.forEach((button) => button.remove()); // Remove buttons from slots and update chanceRemaining
+        enterButton.textContent = `Remaining`; // Update the text content of the enterButton
+        enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
         enterButton.insertAdjacentText(
           "beforeend",
           `${chanceRemaining} chance(s)`
@@ -403,8 +392,8 @@ function levelStart() {
   availableHints = [...hints];
   startTime = performance.now(); // Store the current time
   inputEnable = 1;
-  // Create the slots dynamically based on n_Slots
-  leftDivision.innerHTML = "";
+  guesses = [];
+  leftDivision.innerHTML = ""; // Create the slots dynamically based on n_Slots
   for (let i = 1; i <= n_Slots; i++) {
     const slotElement = document.createElement("div");
     slotElement.classList.add("slot");
@@ -413,17 +402,14 @@ function levelStart() {
   }
   currentIndex = 0;
   updateSlotBorders();
-  // Add the number buttons to the inputContainer
-  inputContainer.innerHTML = numberButtons.slice(0, n_Choices).join("");
+  inputContainer.innerHTML = numberButtons.slice(0, n_Choices).join(""); // Add the number buttons to the inputContainer
 
   // Function to handle button clicks in inputContainer
   function handleInputButtonClick(event) {
     const clickedButton = event.target;
     if (inputEnable) {
       const buttonClone = clickedButton.cloneNode(true);
-
-      // Get the current target slot
-      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
+      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex]; // Get the current target slot
 
       // If the slot is empty, append the button clone; otherwise, replace the existing button
       if (currentSlot.children.length === 0) {
@@ -432,23 +418,19 @@ function levelStart() {
         currentSlot.removeChild(currentSlot.firstChild);
         currentSlot.appendChild(buttonClone);
       }
-      // Increment the currentIndex and loop back to the first slot
-      currentIndex = (currentIndex + 1) % n_Slots;
-      // Update slot borders based on currentIndex
-      updateSlotBorders();
+      currentIndex = (currentIndex + 1) % n_Slots; // Increment the currentIndex and loop back to the first slot
+      updateSlotBorders(); // Update slot borders based on currentIndex
     }
   }
-  // Attach click event listeners to the buttons in inputContainer
-  const inputButtons = inputContainer.querySelectorAll("button");
+  const inputButtons = inputContainer.querySelectorAll("button"); // Attach click event listeners to the buttons in inputContainer
   inputButtons.forEach((button) => {
     button.addEventListener("click", handleInputButtonClick);
   });
-  // Generate random answer
   const minNumber = Math.pow(n_Choices, n_Slots);
   const maxNumber = 2 * minNumber - 1;
   const randomDecimal =
     Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-  randomAnswer = randomDecimal.toString(n_Choices).slice(1);
+  randomAnswer = randomDecimal.toString(n_Choices).slice(1); // Generate random answer
   levelMap = {
     level: level,
     n_Choices: n_Choices,
@@ -459,11 +441,9 @@ function levelStart() {
   feedback.length = 0; // Clear the feedback array
   // If l_Uncertainty is 1
   if (l_Uncertainty === 1) {
-    // Generate a random index within the length of hints as randomRight
-    randomRight = Math.floor(Math.random() * hints.length);
-    // Generate another random index within the length of hints as random_wrong
+    randomRight = Math.floor(Math.random() * hints.length); // Generate a random index within the length of hints as randomRight
     do {
-      randomWrong = Math.floor(Math.random() * hints.length);
+      randomWrong = Math.floor(Math.random() * hints.length); // Generate another random index within the length of hints as random_wrong
     } while (randomWrong === randomRight); // Ensure they are different
   } else if (l_Uncertainty === 0) {
     const randomRight = 1;
@@ -711,20 +691,14 @@ window.addEventListener("beforeunload", function (e) {
     e.returnValue =
       "You have an unfinished game. Are you sure you want to leave?";
   } // Display a custom message
-});
-window.addEventListener("unload", async function () {
-  if (gameMode) {
-    await gameStoped(); // Perform asynchronous actions like adding a document to Firestore
+  if (e.returnValue) {
+    confirmUnload = false;
+    levelMap.guesses = guesses;
+    levelMap.wrongs = feedback.map((pair) => pair[0]);
+    levelMap.rights = feedback.map((pair) => pair[1]);
+    levelsArray.push(levelMap);
+    gameDoc.levels = levelsArray;
+    gameDoc.resultScore = level - gameMode - 1;
+    addDoc(colRef, gameDoc);
   }
 });
-// Function to stop the game and set confirmUnload to false
-function gameStoped() {
-  confirmUnload = false;
-  levelMap.guesses = guesses;
-  levelMap.wrongs = feedback.map((pair) => pair[0]);
-  levelMap.rights = feedback.map((pair) => pair[1]);
-  levelsArray.push(levelMap);
-  gameDoc.levels = levelsArray;
-  gameDoc.resultScore = level - gameMode - 1;
-  addDoc(colRef, gameDoc);
-}
