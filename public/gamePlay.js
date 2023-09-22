@@ -636,8 +636,7 @@ function levelWon() {
 }
 
 function gameEnd(ifWin) {
-  // Add additional rows
-  let gameEndRows;
+  let gameEndRows; // Add additional rows
   if (ifWin) {
     // Calculate the sum of elapsed times
     sumElapsedTime =
@@ -654,11 +653,8 @@ function gameEnd(ifWin) {
       ],
     ];
     gameDoc.resultScore = chanceRemaining;
+    gameDoc.secondsPerLevel = sumElapsedTime / gameMode;
   } else {
-    levelMap.guesses = guesses;
-    levelMap.wrongs = feedback.map((pair) => pair[0]);
-    levelMap.rights = feedback.map((pair) => pair[1]);
-    levelsArray.push(levelMap);
     // Select all <span> elements within the output table rows
     const spanElements = outputTable.querySelectorAll("tr span");
     // Loop through the <span> elements and add the rightHint class
@@ -682,6 +678,10 @@ function gameEnd(ifWin) {
     for (let i = 0; i < 3; i++) {
       slotsInLeftTemp[i].innerHTML = directionButtons[i];
     }
+    levelMap.guesses = guesses;
+    levelMap.wrongs = feedback.map((pair) => pair[0]);
+    levelMap.rights = feedback.map((pair) => pair[1]);
+    levelsArray.push(levelMap);
     gameDoc.resultScore = level - gameMode - 1;
   }
   gameEndRows.push(
@@ -700,8 +700,31 @@ function gameEnd(ifWin) {
     });
     outputTable.appendChild(newRow);
   });
-  gameDoc.secondsPerLevel = sumElapsedTime / gameMode;
   gameDoc.levels = levelsArray;
   addDoc(colRef, gameDoc);
   gameMode = null;
+}
+
+let confirmUnload = true;
+window.addEventListener("beforeunload", function (e) {
+  if (gameMode && confirmUnload) {
+    e.returnValue =
+      "You have an unfinished game. Are you sure you want to leave?";
+  } // Display a custom message
+});
+window.addEventListener("unload", async function () {
+  if (gameMode) {
+    await gameStoped(); // Perform asynchronous actions like adding a document to Firestore
+  }
+});
+// Function to stop the game and set confirmUnload to false
+function gameStoped() {
+  confirmUnload = false;
+  levelMap.guesses = guesses;
+  levelMap.wrongs = feedback.map((pair) => pair[0]);
+  levelMap.rights = feedback.map((pair) => pair[1]);
+  levelsArray.push(levelMap);
+  gameDoc.levels = levelsArray;
+  gameDoc.resultScore = level - gameMode - 1;
+  addDoc(colRef, gameDoc);
 }

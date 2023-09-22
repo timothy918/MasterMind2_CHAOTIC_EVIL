@@ -7,7 +7,7 @@ import {
   deleteDoc,
   onSnapshot, // Import onSnapshot for real-time updates
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { colRef } from "./index.js";
+import { colRef, userIP } from "./index.js";
 
 // Get a reference to the "RemoveFake" button
 document.getElementById("RemoveFake").addEventListener("click", async () => {
@@ -106,12 +106,25 @@ const countDisplayElement = document.getElementById("DonutChart");
 const gameMode3Query = query(colRef, where("gameMode", "==", 3));
 const gameMode7Query = query(colRef, where("gameMode", "==", 7));
 // Define queries to filter documents where isReal is true
-const real3Query = query(gameMode3Query, where("isReal", "==", true));
-const real7Query = query(gameMode7Query, where("isReal", "==", true));
 const fake3Query = query(gameMode3Query, where("isReal", "==", false));
 const fake7Query = query(gameMode7Query, where("isReal", "==", false));
+const queries = [gameMode3Query, gameMode7Query, fake3Query, fake7Query]; // Create an array of queries
 
-const queries = [gameMode3Query, gameMode7Query, real3Query, real7Query]; // Create an array of queries
+try {
+  const selfReal3Query = query(
+    gameMode3Query,
+    where("isReal", "==", true),
+    where("ipAddress", "==", userIP)
+  );
+  const selfReal7Query = query(
+    gameMode7Query,
+    where("isReal", "==", true),
+    where("ipAddress", "==", userIP)
+  );
+  queries += [selfReal3Query, selfReal7Query];
+} catch (error) {
+  console.log("User's IP address not found"); // Handle the error gracefully
+}
 const realTimeCounts = Array(queries.length).fill(0); // Define an object to store the real-time counts
 const unsubscribeFunctions = []; // Create an array to store the unsubscribe functions
 
