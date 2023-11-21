@@ -210,12 +210,7 @@ function setUpTable() {
         const guess = buttonsInSlots.map((button) => button.textContent);
         guesses.push(guess.join(""));
         buttonsInSlots.forEach((button) => button.remove()); // Remove buttons from slots and update chanceRemaining
-        enterButton.textContent = `Remaining`; // Update the text content of the enterButton
-        enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
-        enterButton.insertAdjacentText(
-          "beforeend",
-          `${chanceRemaining} chance(s)`
-        );
+        updateEnterButton();
         currentIndex = 0; // Reset the currentIndex and update slot borders
         updateSlotBorders();
         const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
@@ -291,16 +286,14 @@ function setUpTable() {
     n_Slots = 4;
     n_Choices = 6;
     l_Uncertainty = 0;
+    levelsArray = [];
     gameDoc = {
       isReal: true,
       ipAddress: userIP,
       gameMode: game_Mode,
       dateTime: serverTimestamp(),
     }; // Create an empty JavaScript object to represent the Firestore document
-    enterButton.textContent = `Remaining`;
-    enterButton.insertAdjacentHTML("beforeend", "<br>");
-    enterButton.insertAdjacentText("beforeend", `${chanceRemaining} chance(s)`);
-
+    updateEnterButton();
     // Remove buttons from slots
     Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
       (button) => button.remove()
@@ -379,6 +372,7 @@ function updateHeaderTitle() {
     .catch((error) => {
       console.error("Error fetching or parsing banners.txt:", error);
     });
+  window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll the user back to the top of the page with a smooth effect
 }
 // Function to update slot borders
 function updateSlotBorders() {
@@ -600,6 +594,7 @@ function levelWon() {
           });
           // Increment chanceRemaining, l_Uncertainty, and level
           chanceRemaining += gameMode;
+          updateEnterButton();
           level++;
           // Insert cells in the first column of the output table for level info
           const firstRow = document.createElement("tr");
@@ -686,19 +681,34 @@ function gameEnd(ifWin) {
 }
 
 let confirmUnload = true;
-window.addEventListener("beforeunload", function (e) {
+window.addEventListener("beforeunload", handleBeforeUnload); // Add the event listener for beforeunload
+// Function to handle the beforeunload event
+function handleBeforeUnload(e) {
   if (gameMode && confirmUnload) {
+    e.preventDefault(); // This line prevents the default behavior, which shows the dialog
     e.returnValue =
       "You have an unfinished game. Are you sure you want to leave?";
-  } // Display a custom message
-  if (e.returnValue) {
-    confirmUnload = false;
-    levelMap.guesses = guesses;
-    levelMap.wrongs = feedback.map((pair) => pair[0]);
-    levelMap.rights = feedback.map((pair) => pair[1]);
-    levelsArray.push(levelMap);
-    gameDoc.levels = levelsArray;
-    gameDoc.resultScore = level - gameMode - 1;
-    addDoc(colRef, gameDoc);
+  }
+}
+// Function to stop the game and set confirmUnload to false
+async function gameStopped() {
+  confirmUnload = false;
+  levelMap.guesses = guesses;
+  levelMap.wrongs = feedback.map((pair) => pair[0]);
+  levelMap.rights = feedback.map((pair) => pair[1]);
+  levelsArray.push(levelMap);
+  gameDoc.levels = levelsArray;
+  gameDoc.resultScore = level - gameMode - 1;
+  await addDoc(colRef, gameDoc); // Assuming addDoc is asynchronous and returns a promise
+}
+// Add an event listener for unload, which runs when the user decides to leave
+window.addEventListener("unload", async function () {
+  if (gameMode) {
+    await gameStopped();
   }
 });
+function updateEnterButton() {
+  enterButton.textContent = `Remaining`; // Update the text content of the enterButton
+  enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
+  enterButton.insertAdjacentText("beforeend", `${chanceRemaining} chance(s)`);
+}
