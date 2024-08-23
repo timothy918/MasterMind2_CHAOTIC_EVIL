@@ -4,6 +4,8 @@ import {
   collection,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAC4AgRcsyK1_F8MP9tlIME1AJzsc6XPjc",
   authDomain: "mastermind2-chaotic-evil.firebaseapp.com",

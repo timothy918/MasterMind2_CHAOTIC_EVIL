@@ -81,7 +81,8 @@ body {
 }
 .temp {
   display: flex;
-  align-items: flex-end;
+  justify-content: center; /* Horizontally center */
+  align-items: center; /* Vertically center */
 }
 
 .left_temp {
@@ -102,8 +103,8 @@ main.output {
 }
 td {
   border: 1px dashed black;
-  font-size: 30px;
-  vertical-align: top;
+  font-size: x-large;
+  vertical-align: bottom;
 }
 td:first-child {
   text-align: center;
@@ -129,7 +130,7 @@ p {
   margin: 5px;
 }
 header {
-  font-size: small;
+  font-size: xx-small;
 }
 /*credit page*/
 figure figcaption {

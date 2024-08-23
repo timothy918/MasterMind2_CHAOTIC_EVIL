@@ -94,16 +94,13 @@ function setUpTable() {
   updateHeaderTitle();
   // Event listener for keydown events
   document.addEventListener("keydown", function (event) {
-    // Get the pressed key code
-    const keyCode = event.keyCode || event.which;
+    const keyCode = event.keyCode || event.which; // Get the pressed key code
     // Check if the game mode is set
     if (!gameMode) {
       if (keyCode === 51) {
-        // 3 key
-        selectGameMode(3);
+        selectGameMode(3); // 3 key
       } else if (keyCode === 55) {
-        // 7 key
-        selectGameMode(7);
+        selectGameMode(7); // 7 key
       }
     } else if (
       !inputEnable &&
@@ -122,9 +119,7 @@ function setUpTable() {
     } else if (keyCode >= 48 && keyCode <= 57) {
       // Number keys 0-9
       const number = keyCode - 48; // Convert key code to number
-
-      // Loop through the number buttons to find the matching button by textContent
-      const numberButtons = inputContainer.querySelectorAll(".numberButton");
+      const numberButtons = inputContainer.querySelectorAll(".numberButton"); // Loop through the number buttons to find the matching button by textContent
       for (const button of numberButtons) {
         if (button.textContent === String(number)) {
           // Trigger the click event on the corresponding number button
@@ -236,9 +231,14 @@ function setUpTable() {
           const elapsedTimeInMilliseconds = endTime - startTime;
           levelMap.time = elapsedTimeInMilliseconds;
           const secondColumnCell = document.createElement("td");
-          secondColumnCell.innerHTML = `${(
-            elapsedTimeInMilliseconds / 1000
-          ).toFixed(3)} seconds`;
+          const elapsedTimeInMinute = Math.floor(
+            elapsedTimeInMilliseconds / 1000 / 60
+          );
+          const elapsedTimeInSecond =
+            elapsedTimeInMilliseconds / 1000 - elapsedTimeInMinute * 60;
+          secondColumnCell.innerHTML = `${elapsedTimeInMinute.toFixed(
+            0
+          )} minute(s) ${elapsedTimeInSecond.toFixed(3)} seconds`;
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow);
           levelWon();
@@ -252,8 +252,7 @@ function setUpTable() {
             randomRight
           );
           newRow.appendChild(secondColumnCell);
-          // Append the new row to the output table
-          outputTable.appendChild(newRow);
+          outputTable.appendChild(newRow); // Append the new row to the output table
           // Check if remaining chances are zero and display "You lose"
           if (chanceRemaining === 0) {
             gameEnd(0);
@@ -266,19 +265,16 @@ function setUpTable() {
   // Attach click event listener to the left division (using event delegation)
   leftDivision.addEventListener("click", function (event) {
     const clickedSlot = event.target.closest(".slot");
-
     if (clickedSlot) {
       // Get the index of the clicked slot and set it as the current target slot
       const clickedSlotIndex = Array.from(
         leftDivision.querySelectorAll(".slot")
       ).indexOf(clickedSlot);
-
       currentIndex = clickedSlotIndex;
       handleLeftDivisionButtonClick(event);
       updateSlotBorders(); // Update slot borders based on currentIndex
     }
   });
-
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
     level = 1;
@@ -299,46 +295,35 @@ function setUpTable() {
       (button) => button.remove()
     );
     gameMode = game_Mode; // Set the game mode
-    // Create a new row in the output table
-    const firstRow = document.createElement("tr");
-    // Insert cells in the first column of the output table
-    const levelInfoCell = document.createElement("td");
+    const firstRow = document.createElement("tr"); // Create a new row in the output table
+    const levelInfoCell = document.createElement("td"); // Insert cells in the first column of the output table
     levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
     firstRow.appendChild(levelInfoCell);
     const emptyCell = document.createElement("td");
     firstRow.appendChild(emptyCell);
-    // Append the new row to the output table
-    outputTable.appendChild(firstRow);
+    outputTable.appendChild(firstRow); // Append the new row to the output table
     levelStart();
   }
 }
-
 // Function to handle button clicks in left division (to remove buttons)
 function handleLeftDivisionButtonClick(event) {
   const clickedSlot = event.target.closest(".slot");
-
   if (clickedSlot) {
     const clickedButton = clickedSlot.querySelector("button");
-
     // Remove the button from the clicked slot
     if (clickedButton) {
       clickedButton.remove();
     }
-
     // Get the index of the clicked slot and set it as the current target slot
     const clickedSlotIndex = Array.from(
       leftDivision.querySelectorAll(".slot")
     ).indexOf(clickedSlot);
-
     currentIndex = clickedSlotIndex;
-
-    // Update slot borders based on currentIndex
-    updateSlotBorders();
+    updateSlotBorders(); // Update slot borders based on currentIndex
   }
 }
 function updateHeaderTitle() {
-  // Update the title based on l_Uncertainty
-  let titleText = "";
+  let titleText = ""; // Update the title based on l_Uncertainty
   for (let i = 0; i <= l_Uncertainty; i++) {
     titleText += fullName[i];
     if (i < l_Uncertainty) {
@@ -346,8 +331,7 @@ function updateHeaderTitle() {
     }
   }
   document.title = titleText; // Update the document's title
-  // Load the content of the banners.txt file
-  fetch("banners.txt")
+  fetch("banners.txt") // Load the content of the banners.txt file
     .then((response) => response.text())
     .then((data) => {
       const lines = data.split("\n");
@@ -480,8 +464,7 @@ function displayFeedback(
       wrongs
     )}<span class="rightHint">${"Ⓡ".repeat(rights)}</span>`;
   } else {
-    // Handle the case where l_Uncertainty is not 0
-    const rightHint = availableHints[randomRight];
+    const rightHint = availableHints[randomRight]; // Handle the case where l_Uncertainty is not 0
     const wrongHint = availableHints[randomWrong];
     if (randomRight < randomWrong) {
       secondColumnCell.innerHTML = `<span>${rightHint.repeat(
@@ -507,16 +490,13 @@ function levelWon() {
   levelMap.rights = feedback.map((pair) => pair[1]);
   levelsArray.push(levelMap);
   inputEnable = null; // Disable number buttons in input section
-
-  // Select all <span> elements within the output table rows
-  const spanElements = outputTable.querySelectorAll("tr span");
+  const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
   // Loop through the <span> elements and add the rightHint class
   spanElements.forEach((spanElement) => {
     spanElement.classList.add("rightHint");
   });
 
-  // Append direction buttons to the first 3 slots in left temp div
-  const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
+  const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
   for (let i = 0; i < 3; i++) {
     slotsInLeftTemp[i].innerHTML = directionButtons[i];
   }
@@ -524,8 +504,7 @@ function levelWon() {
     gameEnd(1);
   } else {
     if (gameMode === 3) {
-      // Create a new row in the output table for the instruction
-      const instructionRow = document.createElement("tr");
+      const instructionRow = document.createElement("tr"); // Create a new row in the output table for the instruction
       const instructionCell = document.createElement("td");
       instructionCell.textContent = `Any direction to next level`;
       instructionCell.colSpan = 2; // Span two columns
@@ -539,7 +518,7 @@ function levelWon() {
       const difficultyOptions = [
         ["<", "number of choices +=2 (max 10)"],
         ["^", "level of uncertainty +=1 (max 2)"],
-        [">", "number of slot +=1 (max 6)"],
+        [">", "number of slots +=1 (max 6)"],
       ];
       difficultyOptions.forEach((rowContent) => {
         const newRow = document.createElement("tr");
@@ -551,12 +530,9 @@ function levelWon() {
         outputTable.appendChild(newRow);
       });
     }
-
-    // Append direction buttons to the first 3 slots in left temp div
-    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
+    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
     for (let i = 0; i < 3; i++) {
       const directionButton = slotsInLeftTemp[i].querySelector("button");
-
       // Add event listener to direction buttons
       directionButton.addEventListener("click", function () {
         const difficultyInfoCell = document.createElement("td");
@@ -596,8 +572,7 @@ function levelWon() {
           chanceRemaining += gameMode;
           updateEnterButton();
           level++;
-          // Insert cells in the first column of the output table for level info
-          const firstRow = document.createElement("tr");
+          const firstRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
           const levelInfoCell = document.createElement("td");
           levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
           firstRow.appendChild(levelInfoCell);
@@ -609,7 +584,6 @@ function levelWon() {
     }
   }
 }
-
 function gameEnd(ifWin) {
   let gameEndRows; // Add additional rows
   if (ifWin) {
@@ -630,14 +604,12 @@ function gameEnd(ifWin) {
     gameDoc.resultScore = chanceRemaining;
     gameDoc.secondsPerLevel = sumElapsedTime / gameMode;
   } else {
-    // Select all <span> elements within the output table rows
-    const spanElements = outputTable.querySelectorAll("tr span");
+    const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
     // Loop through the <span> elements and add the rightHint class
     spanElements.forEach((spanElement) => {
       spanElement.classList.add("rightHint");
     });
-    // Convert randomAnswer into a string of corresponding elements
-    let answerString = "";
+    let answerString = ""; // Convert randomAnswer into a string of corresponding elements
     for (let i = 0; i < randomAnswer.length; i++) {
       const digit = parseInt(randomAnswer[i]);
       if (!isNaN(digit) && digit >= 0 && digit < outputNumbers.length) {
@@ -648,8 +620,7 @@ function gameEnd(ifWin) {
       ["You lose!", `at ${level} out of ${gameMode} levels`],
       [answerString, `correct answer`],
     ];
-    // Append direction buttons to the first 3 slots in left temp div
-    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
+    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
     for (let i = 0; i < 3; i++) {
       slotsInLeftTemp[i].innerHTML = directionButtons[i];
     }
@@ -664,7 +635,7 @@ function gameEnd(ifWin) {
     ["^(fake)", "challenge a friend at your last step"],
     [">(fake)", "view statistics and credit"],
     [outputNumbers[3], "3 levels; or,"],
-    [outputNumbers[7], "2 + 5 (/25) levels"]
+    [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
   );
   gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
@@ -676,10 +647,15 @@ function gameEnd(ifWin) {
     outputTable.appendChild(newRow);
   });
   gameDoc.levels = levelsArray;
-  addDoc(colRef, gameDoc);
+  addDoc(colRef, gameDoc) // Adding the document
+    .then(() => {
+      console.log("Document successfully written!");
+    })
+    .catch((error) => {
+      console.error("Error writing document: ", error);
+    });
   gameMode = null;
 }
-
 let confirmUnload = true;
 window.addEventListener("beforeunload", handleBeforeUnload); // Add the event listener for beforeunload
 // Function to handle the beforeunload event
@@ -690,23 +666,25 @@ function handleBeforeUnload(e) {
       "You have an unfinished game. Are you sure you want to leave?";
   }
 }
+// Add an event listener for unload, which runs when the user decides to leave
+window.addEventListener("unload", gameStopped);
 // Function to stop the game and set confirmUnload to false
 async function gameStopped() {
-  confirmUnload = false;
-  levelMap.guesses = guesses;
-  levelMap.wrongs = feedback.map((pair) => pair[0]);
-  levelMap.rights = feedback.map((pair) => pair[1]);
-  levelsArray.push(levelMap);
-  gameDoc.levels = levelsArray;
-  gameDoc.resultScore = level - gameMode - 1;
-  await addDoc(colRef, gameDoc); // Assuming addDoc is asynchronous and returns a promise
-}
-// Add an event listener for unload, which runs when the user decides to leave
-window.addEventListener("unload", async function () {
   if (gameMode) {
-    await gameStopped();
+    levelMap.guesses = guesses;
+    levelMap.wrongs = feedback.map((pair) => pair[0]);
+    levelMap.rights = feedback.map((pair) => pair[1]);
+    levelsArray.push(levelMap);
+    gameDoc.levels = levelsArray;
+    gameDoc.resultScore = level - gameMode - 1;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/updateFirestore", false); // Replace with your server endpoint
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    var data = JSON.stringify(gameDoc); // Prepare the data to send
+    xhr.send(data); // Send the request
+    // await addDoc(gameDoc);
   }
-});
+}
 function updateEnterButton() {
   enterButton.textContent = `Remaining`; // Update the text content of the enterButton
   enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
