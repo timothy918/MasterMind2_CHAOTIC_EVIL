@@ -58,7 +58,10 @@ const hints = [
   "Ⓨ",
   "Ⓩ",
 ];
-const enterButton = document.createElement("button");
+const mainContainer = document.querySelector("main");
+const enterButton = Object.assign(document.createElement("button"), {
+  textContent: "Remaining chance(s)",
+});
 const fullName = ["MasterMind", "II: CHAOTIC", "EVIL"];
 // Declare the variables
 let inputEnable = 1;
@@ -190,8 +193,7 @@ function setUpTable() {
     }
   });
 
-  enterButton.textContent = "Remaining chance(s)"; // Create the Enter button
-  rightDivision.appendChild(enterButton);
+  rightDivision.prepend(enterButton); // Put Enter button in position
 
   // Event listener for the Enter button
   enterButton.addEventListener("click", function () {
@@ -239,6 +241,7 @@ function setUpTable() {
           ).toFixed(3)} seconds`;
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow);
+          scrollToBottom(mainContainer);
           levelWon();
         } else {
           // Append the wrongs and rights values to the second column
@@ -251,6 +254,7 @@ function setUpTable() {
           );
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow); // Append the new row to the output table
+          scrollToBottom(mainContainer);
           // Check if remaining chances are zero and display "You lose"
           if (chanceRemaining === 0) {
             gameEnd(0);
@@ -306,6 +310,7 @@ function setUpTable() {
     const emptyCell = document.createElement("td");
     firstRow.appendChild(emptyCell);
     outputTable.appendChild(firstRow); // Append the new row to the output table
+    scrollToBottom(mainContainer);
     levelStart();
   }
 }
@@ -526,6 +531,7 @@ function levelWon() {
       instructionCell.colSpan = 2; // Span two columns
       instructionRow.appendChild(instructionCell);
       outputTable.appendChild(instructionRow);
+      scrollToBottom(mainContainer);
     } else {
       // Loop through the <span> elements and add the rightHint class
       spanElements.forEach((spanElement) => {
@@ -544,6 +550,7 @@ function levelWon() {
           newRow.appendChild(cell);
         });
         outputTable.appendChild(newRow);
+        scrollToBottom(mainContainer);
       });
     }
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
@@ -594,6 +601,7 @@ function levelWon() {
           firstRow.appendChild(levelInfoCell);
           firstRow.appendChild(difficultyInfoCell);
           outputTable.appendChild(firstRow); // Append the new row to the output table
+          scrollToBottom(mainContainer);
           levelStart(); // Call the levelStart() function to set up the next level
         }
       });
@@ -610,9 +618,10 @@ function gameEnd(ifWin) {
       }, 0) / 1000; // Convert to seconds
     gameEndRows = [
       [`Congratulations!`, `You completed ${gameMode} levels`],
+      [`Remaining chance(s):`, `${chanceRemaining}`],
       [
-        `Chance(s) remaining: ${chanceRemaining}`,
-        `Time used: ${Math.floor(sumElapsedTime / 60)} mins ${(
+        `Time used:`,
+        `${Math.floor(sumElapsedTime / 60)} mins ${(
           sumElapsedTime % 60
         ).toFixed(3)} seconds`,
       ],
@@ -648,7 +657,7 @@ function gameEnd(ifWin) {
   }
   gameEndRows.push(
     ["<(fake)", "share to social media"],
-    ["^(fake)", "challenge a friend at your last step"],
+    ["^(fake)", "challenge a friend"],
     [">(fake)", "view statistics and credit"],
     [outputNumbers[3], "3 levels; or,"],
     [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
@@ -661,6 +670,7 @@ function gameEnd(ifWin) {
       newRow.appendChild(cell);
     });
     outputTable.appendChild(newRow);
+    scrollToBottom(mainContainer);
   });
   gameDoc.levels = levelsArray;
   addDoc(colRef, gameDoc) // Adding the document
@@ -705,4 +715,7 @@ function updateEnterButton() {
   enterButton.textContent = `Remaining`; // Update the text content of the enterButton
   enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
   enterButton.insertAdjacentText("beforeend", `${chanceRemaining} chance(s)`);
+}
+function scrollToBottom(container) {
+  container.scrollTop = container.scrollHeight;
 }

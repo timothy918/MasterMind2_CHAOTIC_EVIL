@@ -1,9 +1,9 @@
 body {
   background-color: gray;
+  margin: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  margin: 0;
   align-items: center; /* Center content horizontally */
   justify-content: flex-end; /* Align content to the bottom */
 }
@@ -116,7 +116,7 @@ table {
 }
 .right_temp {
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* Aligns children horizontally */
   align-items: center; /* Centers content horizontally */
 }
 pre {
@@ -124,6 +124,7 @@ pre {
 }
 footer {
   align-self: flex-start; /* Align to the bottom left */
+  flex-shrink: 0; /* Prevents shrinking when the main section is scrolled */
 }
 div#inputContainer {
   align-self: center; /* Center horizontally */
@@ -132,7 +133,8 @@ p {
   margin: 5px;
 }
 header {
-  font-size: xx-small;
+  font-size: 5px;
+  flex-shrink: 0; /* Prevents shrinking when the main section is scrolled */
 }
 /*credit page*/
 figure figcaption {
