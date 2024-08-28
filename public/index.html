@@ -25,7 +25,53 @@
     <div class="temp">
       <div class="left_temp"></div>
       <div class="right_temp">
-        <button value="?" type="button" class="numberButton white">?</button>
+        <button
+          id="question"
+          value="?"
+          type="button"
+          class="numberButton white">
+          ?
+        </button>
+        <div id="overlay" class="overlay">
+          <h3 style="text-align: center">Instruction</h3>
+          <h4>Classic mastermind:</h4>
+          <p>
+            There are 4 slots and 6 possible colors for each slot. Your goal is
+            to guess the correct combination within a limited number of chances.
+            Every time you make a guess, the machine will provide hints based on
+            your guess:
+            <br />
+            <span style="color: green">Ⓡ</span> (for rights) repersents a
+            correct color in the correct slot;<br />
+            Ⓦ (for wrongs) repersents a correct colour in a wrong slot.
+          </p>
+          <p>
+            If you complete all levels in the game mode you choose, the result
+            will be ranked by number of chance(s) remaining then by time taken.
+          </p>
+          <h4>FAQs:</h4>
+          <p>
+            Why is the machine giving hints other than
+            <span style="color: green">Ⓡ</span>/Ⓦ?<br />
+            It's okay. After you get the correct combination the hints for
+            rights will light up <span style="color: green">green</span>.
+          </p>
+          <br />
+          <p>
+            Why is the machine is giving random hints every turn?<br />
+            Just take a guess.
+          </p>
+          <br />
+          <p>
+            Why are there more than 6 possible colours?<br />
+            More fun for you.
+          </p>
+          <br />
+          <p>
+            Why are there more than 4 slots?<br />
+            I think you know the drill.
+          </p>
+        </div>
       </div>
     </div>
     <div id="inputContainer">

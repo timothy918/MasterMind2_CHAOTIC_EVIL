@@ -3,18 +3,6 @@ import {
   addDoc,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 import { colRef, userIP } from "./index.js";
-// const numberButtons = [
-//   '<button value="⓪" type="button" class="numberButton white">0</button>',
-//   '<button value="①" type="button" class="numberButton green">1</button>',
-//   '<button value="②" type="button" class="numberButton yellow">2</button>',
-//   '<button value="③" type="button" class="numberButton red">3</button>',
-//   '<button value="④" type="button" class="numberButton blue">4</button>',
-//   '<button value="⑤" type="button" class="numberButton black">5</button>',
-//   '<button value="⑥" type="button" class="numberButton purple">6</button>',
-//   '<button value="⑦" type="button" class="numberButton lime">7</button>',
-//   '<button value="⑧" type="button" class="numberButton aqua">8</button>',
-//   '<button value="⑨" type="button" class="numberButton fuchsia">9</button>',
-// ];
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -59,6 +47,7 @@ const hints = [
   "Ⓩ",
 ];
 const mainContainer = document.querySelector("main");
+// Declare the variables
 const enterButton = Object.assign(document.createElement("button"), {
   textContent: "Remaining chance(s)",
 });
@@ -90,8 +79,22 @@ const leftDivision = document.querySelector(".left_temp");
 const rightDivision = document.querySelector(".right_temp");
 const header = document.querySelector(".header");
 const outputTable = document.querySelector("main.output table");
-
 document.addEventListener("DOMContentLoaded", setUpTable);
+
+const questionButton = document.getElementById("question");
+const overlay = document.getElementById("overlay");
+questionButton.addEventListener("mouseover", function () {
+  overlay.classList.add("overlay-visible");
+  const buttonRect = questionButton.getBoundingClientRect(); // Get the button's position
+  // Position the overlay
+  overlay.style.top = `0px`; // Align the top of the overlay with the top of the window
+  overlay.style.left = `${
+    buttonRect.left + window.scrollX - overlay.offsetWidth
+  }px`; // Align the right border of overlay to the left of the button
+});
+questionButton.addEventListener("mouseout", function () {
+  overlay.classList.remove("overlay-visible");
+});
 
 function setUpTable() {
   updateHeaderTitle();
@@ -182,17 +185,17 @@ function setUpTable() {
     const buttonContent = parseInt(clickedButton.textContent);
     selectGameMode(buttonContent);
   }
-  // Get all the button elements within inputContainer
-  const inputButtons = inputContainer.querySelectorAll(".numberButton");
+  const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
     if (buttonValue == "3" || buttonValue == "7") {
       button.addEventListener("click", handleSelectGameMode);
+      button.classList.remove("disabled");
     } else {
       button.classList.add("disabled");
+      button.removeEventListener("click", handleSelectGameMode);
     }
   });
-
   rightDivision.prepend(enterButton); // Put Enter button in position
 
   // Event listener for the Enter button
@@ -408,11 +411,6 @@ function levelStart() {
   updateSlotBorders();
 
   const numberButtons = inputContainer.querySelectorAll(".numberButton");
-  // if (level !== 1) {
-  //   numberButtons.forEach((button, index) => {
-  //   });
-  // }
-  // Loop through the buttons
   numberButtons.forEach((button, index) => {
     button.removeEventListener("click", handleInputButtonClick);
     if (index >= n_Choices) {
@@ -525,13 +523,21 @@ function levelWon() {
     gameEnd(1);
   } else {
     if (gameMode === 3) {
-      const instructionRow = document.createElement("tr"); // Create a new row in the output table for the instruction
-      const instructionCell = document.createElement("td");
-      instructionCell.textContent = `Any direction to next level`;
-      instructionCell.colSpan = 2; // Span two columns
-      instructionRow.appendChild(instructionCell);
-      outputTable.appendChild(instructionRow);
-      scrollToBottom(mainContainer);
+      const sameOptions = [
+        ["<", "Any direction to next level"],
+        ["^", "Any direction to next level"],
+        [">", "Any direction to next level"],
+      ];
+      sameOptions.forEach((rowContent) => {
+        const newRow = document.createElement("tr");
+        rowContent.forEach((cellContent) => {
+          const cell = document.createElement("td");
+          cell.innerHTML = cellContent;
+          newRow.appendChild(cell);
+        });
+        outputTable.appendChild(newRow);
+        scrollToBottom(mainContainer);
+      });
     } else {
       // Loop through the <span> elements and add the rightHint class
       spanElements.forEach((spanElement) => {
@@ -681,6 +687,7 @@ function gameEnd(ifWin) {
       console.error("Error writing document: ", error);
     });
   gameMode = null;
+  setUpTable();
 }
 let confirmUnload = true;
 window.addEventListener("beforeunload", handleBeforeUnload); // Add the event listener for beforeunload

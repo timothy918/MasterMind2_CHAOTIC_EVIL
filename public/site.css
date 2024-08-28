@@ -154,3 +154,18 @@ figure figcaption {
 #query {
   float: right;
 }
+.overlay {
+  display: none; /* Hidden by default */
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 1000;
+  /* Set width for better alignment, adjust as necessary */
+  width: 400px;
+}
+
+.overlay-visible {
+  display: block; /* Show overlay when visible */
+}
