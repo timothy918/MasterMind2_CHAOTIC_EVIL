@@ -3,18 +3,18 @@ import {
   addDoc,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 import { colRef, userIP } from "./index.js";
-const numberButtons = [
-  '<button value="⓪" type="button" class="numberButton white">0</button>',
-  '<button value="①" type="button" class="numberButton green">1</button>',
-  '<button value="②" type="button" class="numberButton yellow">2</button>',
-  '<button value="③" type="button" class="numberButton red">3</button>',
-  '<button value="④" type="button" class="numberButton blue">4</button>',
-  '<button value="⑤" type="button" class="numberButton black">5</button>',
-  '<button value="⑥" type="button" class="numberButton purple">6</button>',
-  '<button value="⑦" type="button" class="numberButton lime">7</button>',
-  '<button value="⑧" type="button" class="numberButton aqua">8</button>',
-  '<button value="⑨" type="button" class="numberButton fuchsia">9</button>',
-];
+// const numberButtons = [
+//   '<button value="⓪" type="button" class="numberButton white">0</button>',
+//   '<button value="①" type="button" class="numberButton green">1</button>',
+//   '<button value="②" type="button" class="numberButton yellow">2</button>',
+//   '<button value="③" type="button" class="numberButton red">3</button>',
+//   '<button value="④" type="button" class="numberButton blue">4</button>',
+//   '<button value="⑤" type="button" class="numberButton black">5</button>',
+//   '<button value="⑥" type="button" class="numberButton purple">6</button>',
+//   '<button value="⑦" type="button" class="numberButton lime">7</button>',
+//   '<button value="⑧" type="button" class="numberButton aqua">8</button>',
+//   '<button value="⑨" type="button" class="numberButton fuchsia">9</button>',
+// ];
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -172,19 +172,29 @@ function setUpTable() {
       }
     }
   });
-  inputContainer.innerHTML = numberButtons.join(""); // Add all number buttons to the inputContainer
 
   // Function to handle button clicks in inputContainer
-  function handleInputButtonClick(event) {
+  function handleSelectGameMode(event) {
+    inputButtons.forEach((button) => {
+      const buttonValue = button.textContent.trim();
+      if (buttonValue == "3" || buttonValue == "7") {
+        button.removeEventListener("click", handleSelectGameMode);
+        console.log(`Event listener removed from button ${buttonContent}`); // Log the event listener removal
+      }
+    });
     const clickedButton = event.target;
     const buttonContent = parseInt(clickedButton.textContent);
-    if (buttonContent === 3 || buttonContent === 7) {
-      selectGameMode(buttonContent);
-    }
+    selectGameMode(buttonContent);
   }
-  const inputButtons = inputContainer.querySelectorAll("button"); // Attach click event listeners to the buttons in inputContainer
+  // Get all the button elements within inputContainer
+  const inputButtons = inputContainer.querySelectorAll(".numberButton");
   inputButtons.forEach((button) => {
-    button.addEventListener("click", handleInputButtonClick);
+    const buttonValue = button.textContent.trim();
+    if (buttonValue == "3" || buttonValue == "7") {
+      button.addEventListener("click", handleSelectGameMode);
+    } else {
+      button.classList.add("disabled");
+    }
   });
 
   enterButton.textContent = "Remaining chance(s)"; // Create the Enter button
@@ -231,14 +241,9 @@ function setUpTable() {
           const elapsedTimeInMilliseconds = endTime - startTime;
           levelMap.time = elapsedTimeInMilliseconds;
           const secondColumnCell = document.createElement("td");
-          const elapsedTimeInMinute = Math.floor(
-            elapsedTimeInMilliseconds / 1000 / 60
-          );
-          const elapsedTimeInSecond =
-            elapsedTimeInMilliseconds / 1000 - elapsedTimeInMinute * 60;
-          secondColumnCell.innerHTML = `${elapsedTimeInMinute.toFixed(
-            0
-          )} minute(s) ${elapsedTimeInSecond.toFixed(3)} seconds`;
+          secondColumnCell.innerHTML = `${(
+            elapsedTimeInMilliseconds / 1000
+          ).toFixed(3)} seconds`;
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow);
           levelWon();
@@ -380,7 +385,6 @@ function levelStart() {
   }
   currentIndex = 0;
   updateSlotBorders();
-  inputContainer.innerHTML = numberButtons.slice(0, n_Choices).join(""); // Add the number buttons to the inputContainer
 
   // Function to handle button clicks in inputContainer
   function handleInputButtonClick(event) {
@@ -400,10 +404,19 @@ function levelStart() {
       updateSlotBorders(); // Update slot borders based on currentIndex
     }
   }
-  const inputButtons = inputContainer.querySelectorAll("button"); // Attach click event listeners to the buttons in inputContainer
-  inputButtons.forEach((button) => {
-    button.addEventListener("click", handleInputButtonClick);
+  const numberButtons = inputContainer.querySelectorAll(".numberButton");
+  // Loop through the buttons
+  numberButtons.forEach((button, index) => {
+    if (index >= n_Choices) {
+      button.classList.add("disabled"); // Add the "disabled" class to buttons beyond the limit
+    } else {
+      button.addEventListener("click", handleInputButtonClick);
+      if (button.classList.contains("disabled")) {
+        button.classList.remove("disabled"); // Remove the "disabled" class only if it exists
+      }
+    }
   });
+
   const minNumber = Math.pow(n_Choices, n_Slots);
   const maxNumber = 2 * minNumber - 1;
   const randomDecimal =

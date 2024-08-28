@@ -69,7 +69,10 @@ body {
   color: black;
   border-color: black;
 }
-/* Your existing CSS styles */
+.disabled {
+  color: darkgrey;
+  border-color: darkgrey;
+}
 .slot {
   flex: 1;
   display: flex;
@@ -84,7 +87,6 @@ body {
   justify-content: center; /* Horizontally center */
   align-items: center; /* Vertically center */
 }
-
 .left_temp {
   display: flex;
   flex: 1;
