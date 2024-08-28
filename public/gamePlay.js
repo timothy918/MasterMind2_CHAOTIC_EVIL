@@ -175,13 +175,6 @@ function setUpTable() {
 
   // Function to handle button clicks in inputContainer
   function handleSelectGameMode(event) {
-    inputButtons.forEach((button) => {
-      const buttonValue = button.textContent.trim();
-      if (buttonValue == "3" || buttonValue == "7") {
-        button.removeEventListener("click", handleSelectGameMode);
-        console.log(`Event listener removed from button ${buttonContent}`); // Log the event listener removal
-      }
-    });
     const clickedButton = event.target;
     const buttonContent = parseInt(clickedButton.textContent);
     selectGameMode(buttonContent);
@@ -282,6 +275,12 @@ function setUpTable() {
   });
   // Function for Game mode buttons
   function selectGameMode(game_Mode) {
+    inputButtons.forEach((button) => {
+      const buttonValue = button.textContent.trim();
+      if (buttonValue == "3" || buttonValue == "7") {
+        button.removeEventListener("click", handleSelectGameMode);
+      }
+    });
     level = 1;
     chanceRemaining = 16;
     n_Slots = 4;
@@ -369,7 +368,24 @@ function updateSlotBorders() {
     slot.classList.toggle("current", index === currentIndex);
   });
 }
+// Function to handle button clicks in inputContainer
+function handleInputButtonClick(event) {
+  const clickedButton = event.target;
+  if (inputEnable) {
+    const buttonClone = clickedButton.cloneNode(true);
+    const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex]; // Get the current target slot
 
+    // If the slot is empty, append the button clone; otherwise, replace the existing button
+    if (currentSlot.children.length === 0) {
+      currentSlot.appendChild(buttonClone);
+    } else {
+      currentSlot.removeChild(currentSlot.firstChild);
+      currentSlot.appendChild(buttonClone);
+    }
+    currentIndex = (currentIndex + 1) % n_Slots; // Increment the currentIndex and loop back to the first slot
+    updateSlotBorders(); // Update slot borders based on currentIndex
+  }
+}
 function levelStart() {
   updateHeaderTitle();
   availableHints = [...hints];
@@ -386,27 +402,14 @@ function levelStart() {
   currentIndex = 0;
   updateSlotBorders();
 
-  // Function to handle button clicks in inputContainer
-  function handleInputButtonClick(event) {
-    const clickedButton = event.target;
-    if (inputEnable) {
-      const buttonClone = clickedButton.cloneNode(true);
-      const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex]; // Get the current target slot
-
-      // If the slot is empty, append the button clone; otherwise, replace the existing button
-      if (currentSlot.children.length === 0) {
-        currentSlot.appendChild(buttonClone);
-      } else {
-        currentSlot.removeChild(currentSlot.firstChild);
-        currentSlot.appendChild(buttonClone);
-      }
-      currentIndex = (currentIndex + 1) % n_Slots; // Increment the currentIndex and loop back to the first slot
-      updateSlotBorders(); // Update slot borders based on currentIndex
-    }
-  }
   const numberButtons = inputContainer.querySelectorAll(".numberButton");
+  // if (level !== 1) {
+  //   numberButtons.forEach((button, index) => {
+  //   });
+  // }
   // Loop through the buttons
   numberButtons.forEach((button, index) => {
+    button.removeEventListener("click", handleInputButtonClick);
     if (index >= n_Choices) {
       button.classList.add("disabled"); // Add the "disabled" class to buttons beyond the limit
     } else {
