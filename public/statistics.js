@@ -139,5 +139,5 @@ queries.forEach((query, index) => {
 
 // Helper function to update the count display
 function updateCountDisplay(realTimeCounts) {
-  countDisplayElement.innerHTML = `gameMode3 real: ${realTimeCounts[2]}, gameMode3 total: ${realTimeCounts[0]},</br> gameMode7 real: ${realTimeCounts[3]}, gameMode7 total: ${realTimeCounts[1]}`;
+  countDisplayElement.innerHTML = `gameMode3 fake: ${realTimeCounts[2]}, gameMode3 total: ${realTimeCounts[0]},</br> gameMode7 fake: ${realTimeCounts[3]}, gameMode7 total: ${realTimeCounts[1]}`;
 }

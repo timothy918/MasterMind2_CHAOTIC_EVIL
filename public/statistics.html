@@ -14,100 +14,113 @@
     <script type="module" src="statistics.js"></script>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
-      <div class="container-fluid">
-        <img src="/img/logo.png" alt="logo" style: width="100px"; height=auto>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-max ml-auto mb-2 mb-lg-0">
-            <b>
-              <li class="nav-item">
-                <a class="nav-link" href="statistics.html">
-                  <i class="fas fa-lg fa-laptop-house"></i>Statistics
-                </a>
-              </li>
-
-              <li class="nav-item active">
-                <a
-                  class="nav-link"
-                  href="https://hiretimothykwok.onrender.com/">
-                  <i class="fa-solid fa-address-card"></i>Credit
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="index.html">
-                  <i class="fa-brands fa-projects-hunt"></i>Mini-Game
-                </a>
-              </li>
-            </b>
-          </ul>
-        </div>
-      </div>
-    </nav>
-    <h1>Getting Started with MasterMind 2: Chaotic Evil</h1>
+    <h2 class="title">Welcome to MasterMind 2: Chaotic Evil</h2>
     <p>
-      Welcome to MasterMind 2: Chaotic Evil. This project, crafted in JavaScript
-      and powered by Firebase, offers an immersive gaming experience. It boasts
-      a real-time database that meticulously records game data and a dynamic
-      dashboard for in-depth data analysis. Whether you appreciate the
-      challenging gameplay of MasterMind, the inventive spirit of Not Tetris, or
-      the addictive difficulty of Flappy Bird, you're sure to find something to
-      love in this game.
+      Whether you appreciate the challenging gameplay of MasterMind, the
+      inventive spirit of Not Tetris, or the addictive difficulty of Flappy
+      Bird, you're sure to find something to love in this game.
     </p>
-    <div id="DonutChart">Loading...</div>
-    <form class="query">
-      <fieldset>
-        <legend>View history</legend>
-        <ul>
-          <li>
-            <label for="user">My records only:</label>
-            <input type="checkbox" name="user" />
-          </li>
-          <li>
-            <label for="l_Uncertainty">Level of uncertainty:</label>
-            <input type="number" name="l_Uncertainty" />
-          </li>
-          <li>
-            <label for="n_Choices">Number of Choices:</label>
-            <input type="number" name="n_Choices" />
-          </li>
-          <li>
-            <label for="n_Slots">Number of Slots:</label>
-            <input type="number" name="n_Slots" />
-          </li>
-          <li>
-            <label for="answer">Answer:</label>
-            <input type="nubmer" name="answer" />
-          </li>
-          <li>
-            <button type="button">Query (fake)</button>
-          </li>
-        </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Fake Data</legend>
-        <ul>
-          <li>
-            <label for="n_Games">Number of games:</label>
-            <input type="number" name="n_Games" id="n_Games" />
-          </li>
-          <li>
-            <button type="button" id="Generate">Generate</button>
-          </li>
-          <li>
-            <button type="button" id="RemoveFake">Remove all fakes</button>
-          </li>
-        </ul>
-      </fieldset>
-    </form>
+    <h4 class="title">THE MAKING-OF</h4>
+    <p>
+      This project, crafted in JavaScript and powered by Firebase, offers an
+      immersive gaming experience. It boasts a real-time no-SQL database that
+      meticulously records game data and a dynamic dashboard for query and
+      analysis (coming soon). Here is the <a>schema</a> of database. This is a
+      personal project developed under try and error model. Feel free to check
+      out my <a>personal website</a> for other work of mine.
+    </p>
+    <main class="dashboard">
+      <div id="DonutChart">Loading...</div>
+      <form class="query">
+        <fieldset>
+          <legend>View games</legend>
+          <ul>
+            <li>
+              <label for="user">My records only:</label>
+              <input type="checkbox" name="user" />
+            </li>
+            <li>
+              <label for="mode">Game mode:</label>
+              <select name="mode" id="mode">
+                <option value="3">3 levels</option>
+                <option value="7">7 levels</option>
+              </select>
+            </li>
+            <li>
+              <label for="time">Within:</label>
+              <select name="time" id="time">
+                <option value="day">last 24 hours</option>
+                <option value="week">last 7 days</option>
+                <option value="month">last 4 weeks</option>
+                <option value="quarter">last 3 months</option>
+                <option value="year">last 4 quarters</option>
+                <option value="*">all time</option>
+              </select>
+            </li>
+            <li>
+              <button type="button">Query (fake)</button>
+            </li>
+          </ul>
+        </fieldset>
+        <fieldset>
+          <legend>View levels</legend>
+          <ul>
+            <li>
+              <label for="user">My records only:</label>
+              <input type="checkbox" name="user" />
+            </li>
+            <li>
+              <label for="l_Uncertainty">Level of uncertainty:</label>
+              <select name="l_Uncertainty" id="l_Uncertainty">
+                <option value="*">*</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+              </select>
+            </li>
+            <li>
+              <label for="n_Choices">Number of Choices:</label>
+              <select name="n_Choices" id="n_Choices">
+                <option value="*">*</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+              </select>
+            </li>
+            <li>
+              <label for="n_Slots">Number of Slots:</label>
+              <select name="n_Slots" id="n_Slots">
+                <option value="*">*</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+            </li>
+            <li>
+              <label for="answer">Answer:</label>
+              <input type="number" name="answer" min="0" max="999999" />
+            </li>
+            <li>
+              <button type="button">Query (fake)</button>
+            </li>
+          </ul>
+        </fieldset>
+        <fieldset>
+          <legend>Fake Data</legend>
+          <ul>
+            <li>
+              <label for="n_Games">Number of games:</label>
+              <input type="number" name="n_Games" id="n_Games" min="0" />
+            </li>
+            <li>
+              <button type="button" id="Generate">Generate</button>
+            </li>
+            <li>
+              <button type="button" id="RemoveFake">Remove all fakes</button>
+            </li>
+          </ul>
+        </fieldset>
+      </form>
+    </main>
   </body>
 </html>

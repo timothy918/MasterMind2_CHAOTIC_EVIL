@@ -83,16 +83,16 @@ document.addEventListener("DOMContentLoaded", setUpTable);
 
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
-questionButton.addEventListener("mouseover", function () {
+questionButton.addEventListener("mousedown", function () {
   overlay.classList.add("overlay-visible");
   const buttonRect = questionButton.getBoundingClientRect(); // Get the button's position
   // Position the overlay
   overlay.style.top = `0px`; // Align the top of the overlay with the top of the window
   overlay.style.left = `${
     buttonRect.left + window.scrollX - overlay.offsetWidth
-  }px`; // Align the right border of overlay to the left of the button
+  }px`; // Align the right border of the overlay to the left of the button
 });
-questionButton.addEventListener("mouseout", function () {
+questionButton.addEventListener("mouseup", function () {
   overlay.classList.remove("overlay-visible");
 });
 
@@ -307,11 +307,12 @@ function setUpTable() {
     );
     gameMode = game_Mode; // Set the game mode
     const firstRow = document.createElement("tr"); // Create a new row in the output table
-    const levelInfoCell = document.createElement("td"); // Insert cells in the first column of the output table
-    levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
-    firstRow.appendChild(levelInfoCell);
-    const emptyCell = document.createElement("td");
-    firstRow.appendChild(emptyCell);
+    const leftCell = document.createElement("td"); // Insert cells in the first column of the output table
+    leftCell.textContent = `Level`;
+    firstRow.appendChild(leftCell);
+    const rightCell = document.createElement("td");
+    rightCell.textContent = `${level - 1} => ${level}`;
+    firstRow.appendChild(rightCell);
     outputTable.appendChild(firstRow); // Append the new row to the output table
     scrollToBottom(mainContainer);
     levelStart();
@@ -524,9 +525,9 @@ function levelWon() {
   } else {
     if (gameMode === 3) {
       const sameOptions = [
-        ["<", "Any direction to next level"],
-        ["^", "Any direction to next level"],
-        [">", "Any direction to next level"],
+        ["<", "any direction to next level"],
+        ["^", "any direction to next level"],
+        [">", "any direction to next level"],
       ];
       sameOptions.forEach((rowContent) => {
         const newRow = document.createElement("tr");
@@ -564,12 +565,14 @@ function levelWon() {
       const directionButton = slotsInLeftTemp[i].querySelector("button");
       // Add event listener to direction buttons
       directionButton.addEventListener("click", function () {
-        const difficultyInfoCell = document.createElement("td");
+        const difficultyLeftCell = document.createElement("td");
+        const difficultyRightCell = document.createElement("td");
         // Determine the next level based on the direction button clicked
         if (directionButton.textContent === "^" || gameMode === 3) {
           if (l_Uncertainty < 2) {
             l_Uncertainty++;
-            difficultyInfoCell.textContent = `Level of uncertainty ${
+            difficultyLeftCell.textContent = `Level of uncertainty`;
+            difficultyRightCell.textContent = `${
               l_Uncertainty - 1
             } => ${l_Uncertainty}`;
             vaildDirectionButtonClick();
@@ -577,7 +580,8 @@ function levelWon() {
         } else if (directionButton.textContent === "<") {
           if (n_Choices < 10) {
             n_Choices += 2;
-            difficultyInfoCell.textContent = `number of colours ${
+            difficultyLeftCell.textContent = `number of colours`;
+            difficultyRightCell.textContent = `${
               n_Choices - 2
             } => ${n_Choices}`;
             vaildDirectionButtonClick();
@@ -585,9 +589,8 @@ function levelWon() {
         } else if (directionButton.textContent === ">") {
           if (n_Slots < 6) {
             n_Slots++;
-            difficultyInfoCell.textContent = `number of slots ${
-              n_Slots - 1
-            } => ${n_Slots}`;
+            difficultyLeftCell.textContent = `number of slots`;
+            difficultyRightCell.textContent = `${n_Slots - 1} => ${n_Slots}`;
             vaildDirectionButtonClick();
           }
         }
@@ -602,11 +605,30 @@ function levelWon() {
           updateEnterButton();
           level++;
           const firstRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
-          const levelInfoCell = document.createElement("td");
-          levelInfoCell.textContent = `Level ${level - 1} => ${level}`;
-          firstRow.appendChild(levelInfoCell);
-          firstRow.appendChild(difficultyInfoCell);
+          const left1Cell = Object.assign(document.createElement("td"), {
+            textContent: `Level`,
+          });
+          firstRow.appendChild(left1Cell);
+          const right1Cell = Object.assign(document.createElement("td"), {
+            textContent: `${level - 1} => ${level}`,
+          });
+          firstRow.appendChild(right1Cell);
+          // firstRow.appendChild(difficultyInfoCell);
           outputTable.appendChild(firstRow); // Append the new row to the output table
+          const secondRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
+          const left2Cell = Object.assign(document.createElement("td"), {
+            textContent: `Remaining chances`,
+          });
+          secondRow.appendChild(left2Cell);
+          const right2Cell = Object.assign(document.createElement("td"), {
+            textContent: `${chanceRemaining - gameMode} => ${chanceRemaining}`,
+          });
+          secondRow.appendChild(right2Cell);
+          outputTable.appendChild(secondRow); // Append the new row to the output table
+          const thridRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
+          thridRow.appendChild(difficultyLeftCell);
+          thridRow.appendChild(difficultyRightCell);
+          outputTable.appendChild(thridRow); // Append the new row to the output table
           scrollToBottom(mainContainer);
           levelStart(); // Call the levelStart() function to set up the next level
         }
@@ -623,10 +645,10 @@ function gameEnd(ifWin) {
         return sum + levelMap.time;
       }, 0) / 1000; // Convert to seconds
     gameEndRows = [
-      [`Congratulations!`, `You completed ${gameMode} levels`],
-      [`Remaining chance(s):`, `${chanceRemaining}`],
+      [`Congratulations!`, `you completed ${gameMode} levels`],
+      [`Remaining chance(s)`, `${chanceRemaining}`],
       [
-        `Time used:`,
+        `Time used`,
         `${Math.floor(sumElapsedTime / 60)} mins ${(
           sumElapsedTime % 60
         ).toFixed(3)} seconds`,
@@ -663,8 +685,8 @@ function gameEnd(ifWin) {
   }
   gameEndRows.push(
     ["<(fake)", "share to social media"],
-    ["^(fake)", "challenge a friend"],
-    [">(fake)", "view statistics and credit"],
+    ["^(fake)", "view statistics page"],
+    [">(fake)", "view credit page"],
     [outputNumbers[3], "3 levels; or,"],
     [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
   );
