@@ -98,8 +98,7 @@ questionButton.addEventListener("mouseup", function () {
 
 function setUpTable() {
   updateHeaderTitle();
-  // Event listener for keydown events
-  document.addEventListener("keydown", function (event) {
+  function handleKeybroad(event) {
     const keyCode = event.keyCode || event.which; // Get the pressed key code
     // Check if the game mode is set
     if (!gameMode) {
@@ -110,9 +109,8 @@ function setUpTable() {
       }
     } else if (
       !inputEnable &&
-      (keyCode === 188 || keyCode === 54 || keyCode === 190)
+      (keyCode === 188 || keyCode === 54 || keyCode === 190) // Comma (<), Caret (^), or Period (>)
     ) {
-      // Comma (<), Caret (^), or Period (>)
       // Find the direction button with the corresponding value in leftDivision
       const directionButton = leftDivision.querySelector(
         `.numberButton[value="${keyCode}"]`
@@ -145,8 +143,7 @@ function setUpTable() {
     }
     // Check if the pressed key is the Backspace key
     else if (keyCode === 8) {
-      // Move currentIndex back by 1, wrapping around if necessary
-      currentIndex = (currentIndex + n_Slots - 1) % n_Slots;
+      currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex back by 1, wrapping around if necessary
 
       // Remove the button from the targeted slot
       const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
@@ -158,14 +155,12 @@ function setUpTable() {
     }
     // Check if the pressed key is the Left arrow key
     else if (keyCode === 37) {
-      // Move currentIndex left by 1, wrapping around if necessary
-      currentIndex = (currentIndex + n_Slots - 1) % n_Slots;
+      currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex left by 1, wrapping around if necessary
       updateSlotBorders();
     }
     // Check if the pressed key is the Right arrow key
     else if (keyCode === 39) {
-      // Move currentIndex right by 1, wrapping around if necessary
-      currentIndex = (currentIndex + 1) % n_Slots;
+      currentIndex = (currentIndex + 1) % n_Slots; // Move currentIndex right by 1, wrapping around if necessary
       updateSlotBorders();
     }
     // Check if the pressed key is the Space key
@@ -177,23 +172,20 @@ function setUpTable() {
         buttonInSlot.click();
       }
     }
-  });
-
-  // Function to handle button clicks in inputContainer
-  function handleSelectGameMode(event) {
-    const clickedButton = event.target;
-    const buttonContent = parseInt(clickedButton.textContent);
-    selectGameMode(buttonContent);
   }
+  document.removeEventListener("keydown", handleKeybroad);
+  document.addEventListener("keydown", handleKeybroad); // Event listener for keydown events
+
   const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
     if (buttonValue == "3" || buttonValue == "7") {
+      button.removeEventListener("click", handleInputButtonClick);
       button.addEventListener("click", handleSelectGameMode);
       button.classList.remove("disabled");
     } else {
       button.classList.add("disabled");
-      button.removeEventListener("click", handleSelectGameMode);
+      button.removeEventListener("click", handleInputButtonClick);
     }
   });
   rightDivision.prepend(enterButton); // Put Enter button in position
@@ -317,6 +309,12 @@ function setUpTable() {
     scrollToBottom(mainContainer);
     levelStart();
   }
+}
+// Function to handle button clicks in inputContainer
+function handleSelectGameMode(event) {
+  const clickedButton = event.target;
+  const buttonContent = parseInt(clickedButton.textContent);
+  selectGameMode(buttonContent);
 }
 // Function to handle button clicks in left division (to remove buttons)
 function handleLeftDivisionButtonClick(event) {
@@ -684,7 +682,7 @@ function gameEnd(ifWin) {
     gameDoc.resultScore = level - gameMode - 1;
   }
   gameEndRows.push(
-    ["<(fake)", "share to social media"],
+    ["<(fake)", "share your result to social media"],
     ["^(fake)", "view statistics page"],
     [">(fake)", "view credit page"],
     [outputNumbers[3], "3 levels; or,"],
@@ -709,7 +707,19 @@ function gameEnd(ifWin) {
       console.error("Error writing document: ", error);
     });
   gameMode = null;
-  setUpTable();
+
+  const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
+  inputButtons.forEach((button) => {
+    const buttonValue = button.textContent.trim();
+    if (buttonValue == "3" || buttonValue == "7") {
+      button.removeEventListener("click", handleInputButtonClick);
+      button.addEventListener("click", handleSelectGameMode);
+      button.classList.remove("disabled");
+    } else {
+      button.classList.add("disabled");
+      button.removeEventListener("click", handleInputButtonClick);
+    }
+  });
 }
 let confirmUnload = true;
 window.addEventListener("beforeunload", handleBeforeUnload); // Add the event listener for beforeunload
