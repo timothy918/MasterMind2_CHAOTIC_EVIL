@@ -1,8 +1,11 @@
 import {
-  serverTimestamp,
   addDoc,
+  doc,
+  updateDoc,
+  serverTimestamp,
+  collection,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { colRef, userIP } from "./index.js";
+import { db, colRef, userIP } from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -49,9 +52,9 @@ const hints = [
 const mainContainer = document.querySelector("main");
 // Declare the variables
 const enterButton = Object.assign(document.createElement("button"), {
-  textContent: "Remaining chance(s)",
+  textContent: "Beginning chances: 16",
 });
-const fullName = ["MasterMind", "II: CHAOTIC", "EVIL"];
+const fullName = ["MasterMind II", ": CHAOTIC", "EVIL"];
 // Declare the variables
 let inputEnable = 1;
 let l_Uncertainty = 0;
@@ -72,6 +75,7 @@ let n_Slots,
   randomWrong,
   sumElapsedTime,
   levelMap,
+  docRef,
   gameDoc;
 
 const inputContainer = document.getElementById("inputContainer");
@@ -291,7 +295,18 @@ function setUpTable() {
       ipAddress: userIP,
       gameMode: game_Mode,
       dateTime: serverTimestamp(),
+      resultScore: -game_Mode,
     }; // Create an empty JavaScript object to represent the Firestore document
+    const colRef = collection(db, "GamesPlayed"); // Reference to the Firestore collection
+    addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
+      .then((x) => {
+        console.log(x.id);
+        docRef = doc(db, "GamesPlayed", x.id);
+      })
+      .catch((error) => {
+        console.error("Error writing document: ", error);
+      });
+
     updateEnterButton();
     // Remove buttons from slots
     Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
@@ -506,7 +521,8 @@ function levelWon() {
   levelMap.guesses = guesses;
   levelMap.wrongs = feedback.map((pair) => pair[0]);
   levelMap.rights = feedback.map((pair) => pair[1]);
-  levelsArray.push(levelMap);
+  checkLevelsArray(levelMap);
+  updateDoc(docRef, { levels: levelsArray });
   inputEnable = null; // Disable number buttons in input section
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
   // Loop through the <span> elements and add the rightHint class
@@ -543,7 +559,7 @@ function levelWon() {
         spanElement.classList.add("rightHint");
       });
       const difficultyOptions = [
-        ["<", "number of choices +=2 (max 10)"],
+        ["<", "number of Colours +=2 (max 10)"],
         ["^", "level of uncertainty +=1 (max 2)"],
         [">", "number of slots +=1 (max 6)"],
       ];
@@ -652,8 +668,10 @@ function gameEnd(ifWin) {
         ).toFixed(3)} seconds`,
       ],
     ];
-    gameDoc.resultScore = chanceRemaining;
-    gameDoc.secondsPerLevel = sumElapsedTime / gameMode;
+    updateDoc(docRef, { resultScore: chanceRemaining });
+    updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
+    // gameDoc.resultScore = chanceRemaining;
+    // gameDoc.secondsPerLevel = sumElapsedTime / gameMode;
   } else {
     const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
     // Loop through the <span> elements and add the rightHint class
@@ -678,12 +696,14 @@ function gameEnd(ifWin) {
     levelMap.guesses = guesses;
     levelMap.wrongs = feedback.map((pair) => pair[0]);
     levelMap.rights = feedback.map((pair) => pair[1]);
-    levelsArray.push(levelMap);
-    gameDoc.resultScore = level - gameMode - 1;
+    checkLevelsArray(levelMap);
+    updateDoc(docRef, { levels: levelsArray });
+    // gameDoc.resultScore = level - gameMode - 1;
+    updateDoc(docRef, { resultScore: level - gameMode - 1 });
   }
   gameEndRows.push(
-    ["<(fake)", "share your result to social media"],
-    ["^(fake)", "view statistics page"],
+    ["<(fake)", "view statistics to see how well you did"],
+    ["^(fake)", "share so others know how well you did"],
     [">(fake)", "view credit page"],
     [outputNumbers[3], "3 levels; or,"],
     [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
@@ -698,14 +718,15 @@ function gameEnd(ifWin) {
     outputTable.appendChild(newRow);
     scrollToBottom(mainContainer);
   });
-  gameDoc.levels = levelsArray;
-  addDoc(colRef, gameDoc) // Adding the document
-    .then(() => {
-      console.log("Document successfully written!");
-    })
-    .catch((error) => {
-      console.error("Error writing document: ", error);
-    });
+  updateDoc(docRef, { levels: levelsArray });
+  // gameDoc.levels = levelsArray;
+  // addDoc(colRef, gameDoc) // Adding the document
+  //   .then(() => {
+  //     console.log("Document successfully written!");
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error writing document: ", error);
+  //   });
   gameMode = null;
 
   const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
@@ -725,28 +746,30 @@ let confirmUnload = true;
 window.addEventListener("beforeunload", handleBeforeUnload); // Add the event listener for beforeunload
 // Function to handle the beforeunload event
 function handleBeforeUnload(e) {
+  gameStopped();
   if (gameMode && confirmUnload) {
     e.preventDefault(); // This line prevents the default behavior, which shows the dialog
     e.returnValue =
       "You have an unfinished game. Are you sure you want to leave?";
   }
 }
-// Add an event listener for unload, which runs when the user decides to leave
-window.addEventListener("unload", gameStopped);
+
 // Function to stop the game and set confirmUnload to false
 async function gameStopped() {
   if (gameMode) {
     levelMap.guesses = guesses;
     levelMap.wrongs = feedback.map((pair) => pair[0]);
     levelMap.rights = feedback.map((pair) => pair[1]);
-    levelsArray.push(levelMap);
-    gameDoc.levels = levelsArray;
-    gameDoc.resultScore = level - gameMode - 1;
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/updateFirestore", false); // Replace with your server endpoint
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    var data = JSON.stringify(gameDoc); // Prepare the data to send
-    xhr.send(data); // Send the request
+    checkLevelsArray(levelMap);
+    updateDoc(docRef, { levels: levelsArray });
+    updateDoc(docRef, { resultScore: level - gameMode - 1 });
+    // gameDoc.levels = levelsArray;
+    // gameDoc.resultScore = level - gameMode - 1;
+    // var xhr = new XMLHttpRequest();
+    // xhr.open("POST", "/updateFirestore", false); // Replace with your server endpoint
+    // xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    // var data = JSON.stringify(gameDoc); // Prepare the data to send
+    // xhr.send(data); // Send the request
     // await addDoc(gameDoc);
   }
 }
@@ -757,4 +780,12 @@ function updateEnterButton() {
 }
 function scrollToBottom(container) {
   container.scrollTop = container.scrollHeight;
+}
+function checkLevelsArray(levelMap) {
+  const index = levelsArray.findIndex((item) => item.level === levelMap.level); // Find the index of the existing item with the same level
+  if (index !== -1) {
+    levelsArray[index] = levelMap; // If found, replace the existing item with levelMap
+  } else {
+    levelsArray.push(levelMap); // If not found, push levelMap to levelsArray
+  }
 }

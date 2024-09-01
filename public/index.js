@@ -19,7 +19,7 @@ const firebaseConfig = {
 initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
-export { colRef };
+export { db, colRef };
 
 let userIP;
 // Make an HTTP request to get the user's IP address
