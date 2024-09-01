@@ -83,6 +83,7 @@ const leftDivision = document.querySelector(".left_temp");
 const rightDivision = document.querySelector(".right_temp");
 const header = document.querySelector(".header");
 const outputTable = document.querySelector("main.output table");
+const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
 document.addEventListener("DOMContentLoaded", setUpTable);
 
 const questionButton = document.getElementById("question");
@@ -180,18 +181,8 @@ function setUpTable() {
   document.removeEventListener("keydown", handleKeybroad);
   document.addEventListener("keydown", handleKeybroad); // Event listener for keydown events
 
-  const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
-  inputButtons.forEach((button) => {
-    const buttonValue = button.textContent.trim();
-    if (buttonValue == "3" || buttonValue == "7") {
-      button.removeEventListener("click", handleInputButtonClick);
-      button.addEventListener("click", handleSelectGameMode);
-      button.classList.remove("disabled");
-    } else {
-      button.classList.add("disabled");
-      button.removeEventListener("click", handleInputButtonClick);
-    }
-  });
+  resetGameModeButton();
+
   rightDivision.prepend(enterButton); // Put Enter button in position
 
   // Event listener for the Enter button
@@ -276,54 +267,54 @@ function setUpTable() {
       updateSlotBorders(); // Update slot borders based on currentIndex
     }
   });
-  // Function for Game mode buttons
-  function selectGameMode(game_Mode) {
-    inputButtons.forEach((button) => {
-      const buttonValue = button.textContent.trim();
-      if (buttonValue == "3" || buttonValue == "7") {
-        button.removeEventListener("click", handleSelectGameMode);
-      }
+}
+// Function for Game mode buttons
+function selectGameMode(game_Mode) {
+  inputButtons.forEach((button) => {
+    const buttonValue = button.textContent.trim();
+    if (buttonValue == "3" || buttonValue == "7") {
+      button.removeEventListener("click", handleSelectGameMode);
+    }
+  });
+  level = 1;
+  chanceRemaining = 16;
+  n_Slots = 4;
+  n_Choices = 6;
+  l_Uncertainty = 0;
+  levelsArray = [];
+  gameDoc = {
+    isReal: true,
+    ipAddress: userIP,
+    gameMode: game_Mode,
+    dateTime: serverTimestamp(),
+    resultScore: -game_Mode,
+  }; // Create an empty JavaScript object to represent the Firestore document
+  const colRef = collection(db, "GamesPlayed"); // Reference to the Firestore collection
+  addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
+    .then((x) => {
+      console.log(x.id);
+      docRef = doc(db, "GamesPlayed", x.id);
+    })
+    .catch((error) => {
+      console.error("Error writing document: ", error);
     });
-    level = 1;
-    chanceRemaining = 16;
-    n_Slots = 4;
-    n_Choices = 6;
-    l_Uncertainty = 0;
-    levelsArray = [];
-    gameDoc = {
-      isReal: true,
-      ipAddress: userIP,
-      gameMode: game_Mode,
-      dateTime: serverTimestamp(),
-      resultScore: -game_Mode,
-    }; // Create an empty JavaScript object to represent the Firestore document
-    const colRef = collection(db, "GamesPlayed"); // Reference to the Firestore collection
-    addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
-      .then((x) => {
-        console.log(x.id);
-        docRef = doc(db, "GamesPlayed", x.id);
-      })
-      .catch((error) => {
-        console.error("Error writing document: ", error);
-      });
 
-    updateEnterButton();
-    // Remove buttons from slots
-    Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
-      (button) => button.remove()
-    );
-    gameMode = game_Mode; // Set the game mode
-    const firstRow = document.createElement("tr"); // Create a new row in the output table
-    const leftCell = document.createElement("td"); // Insert cells in the first column of the output table
-    leftCell.textContent = `Level`;
-    firstRow.appendChild(leftCell);
-    const rightCell = document.createElement("td");
-    rightCell.textContent = `${level - 1} => ${level}`;
-    firstRow.appendChild(rightCell);
-    outputTable.appendChild(firstRow); // Append the new row to the output table
-    scrollToBottom(mainContainer);
-    levelStart();
-  }
+  updateEnterButton();
+  // Remove buttons from slots
+  Array.from(leftDivision.querySelectorAll(".slot button")).forEach((button) =>
+    button.remove()
+  );
+  gameMode = game_Mode; // Set the game mode
+  const firstRow = document.createElement("tr"); // Create a new row in the output table
+  const leftCell = document.createElement("td"); // Insert cells in the first column of the output table
+  leftCell.textContent = `Level`;
+  firstRow.appendChild(leftCell);
+  const rightCell = document.createElement("td");
+  rightCell.textContent = `${level - 1} => ${level}`;
+  firstRow.appendChild(rightCell);
+  outputTable.appendChild(firstRow); // Append the new row to the output table
+  scrollToBottom(mainContainer);
+  levelStart();
 }
 // Function to handle button clicks in inputContainer
 function handleSelectGameMode(event) {
@@ -659,7 +650,7 @@ function gameEnd(ifWin) {
         return sum + levelMap.time;
       }, 0) / 1000; // Convert to seconds
     gameEndRows = [
-      [`Congratulations!`, `you completed ${gameMode} levels`],
+      [`You win!`, `you completed ${gameMode} levels`],
       [`Remaining chance(s)`, `${chanceRemaining}`],
       [
         `Time used`,
@@ -728,8 +719,9 @@ function gameEnd(ifWin) {
   //     console.error("Error writing document: ", error);
   //   });
   gameMode = null;
-
-  const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
+  resetGameModeButton();
+}
+function resetGameModeButton() {
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
     if (buttonValue == "3" || buttonValue == "7") {
@@ -742,6 +734,7 @@ function gameEnd(ifWin) {
     }
   });
 }
+
 let confirmUnload = true;
 window.addEventListener("beforeunload", handleBeforeUnload); // Add the event listener for beforeunload
 // Function to handle the beforeunload event
@@ -765,12 +758,6 @@ async function gameStopped() {
     updateDoc(docRef, { resultScore: level - gameMode - 1 });
     // gameDoc.levels = levelsArray;
     // gameDoc.resultScore = level - gameMode - 1;
-    // var xhr = new XMLHttpRequest();
-    // xhr.open("POST", "/updateFirestore", false); // Replace with your server endpoint
-    // xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    // var data = JSON.stringify(gameDoc); // Prepare the data to send
-    // xhr.send(data); // Send the request
-    // await addDoc(gameDoc);
   }
 }
 function updateEnterButton() {
