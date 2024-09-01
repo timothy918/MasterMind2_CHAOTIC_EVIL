@@ -19,22 +19,57 @@ const firebaseConfig = {
 initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
-export { db, colRef };
+export { db, colRef, checkCookie };
 
 let userIP;
-// Make an HTTP request to get the user's IP address
-fetch("https://ipinfo.io/json")
-  .then((response) => {
-    if (!response.ok) {
-      // Check if the response status is not OK
-      throw new Error(`HTTP Error! Status: ${response.status}`);
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i].trim();
+    if (c.indexOf(nameEQ) === 0) {
+      let d = c.substring(nameEQ.length, c.length);
+      userIP = d;
+      return d; // Return the cookie value
     }
-    return response.json();
-  })
-  .then((data) => {
-    userIP = data.ip; // Save the user's IP to the variable
-  })
-  .catch((error) => {
-    userIP = "Anonymous";
-  });
+  }
+  return null; // Return null if not found
+}
+
+function checkCookie() {
+  const playerID = getCookie("MasterMind2playerID");
+  const expiryDate = new Date(); // Set the expiration date to 400 days from now
+  expiryDate.setDate(expiryDate.getDate() + 400); // Add 400 days
+  if (!playerID) {
+    const playerConsent = confirm(
+      "If you accept the cookies, you would be able to track your personal best."
+    );
+    if (playerConsent) {
+      // Set a cookie that never expires (or expires far in the future)
+      userIP = `${Date.now()}`; // Generate a unique ID using the current timestamp
+      console.log("Player ID:", playerID, "expiring at ", expiryDate); // Log the existing player ID
+      document.cookie = `MasterMind2playerID=${userIP}; expires=${expiryDate.toUTCString()}; path=/`;
+    } else {
+      // Make an HTTP request to get the user's IP address
+      fetch("https://ipinfo.io/json")
+        .then((response) => {
+          if (!response.ok) {
+            // Check if the response status is not OK
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          userIP = data.ip; // Save the user's IP to the variable
+          console.log(userIP, "w/out cookie");
+        })
+        .catch((error) => {
+          userIP = "Anonymous";
+        });
+    }
+  } else {
+    document.cookie = `MasterMind2playerID=${playerID}; expires=${expiryDate.toUTCString()}; path=/`;
+    console.log("Player ID:", playerID, "updated to ", expiryDate); // Log the existing player ID
+  }
+}
 export { userIP };

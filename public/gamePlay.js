@@ -5,7 +5,7 @@ import {
   serverTimestamp,
   collection,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { db, colRef, userIP } from "./index.js";
+import { db, colRef, userIP, checkCookie } from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -102,6 +102,7 @@ questionButton.addEventListener("mouseup", function () {
 });
 
 function setUpTable() {
+  checkCookie();
   updateHeaderTitle();
   function handleKeybroad(event) {
     const keyCode = event.keyCode || event.which; // Get the pressed key code
@@ -292,7 +293,7 @@ function selectGameMode(game_Mode) {
   const colRef = collection(db, "GamesPlayed"); // Reference to the Firestore collection
   addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
     .then((x) => {
-      console.log(x.id);
+      console.log("Game doc (", x.id, ") added to FireStore");
       docRef = doc(db, "GamesPlayed", x.id);
     })
     .catch((error) => {
@@ -514,6 +515,7 @@ function levelWon() {
   levelMap.rights = feedback.map((pair) => pair[1]);
   checkLevelsArray(levelMap);
   updateDoc(docRef, { levels: levelsArray });
+  console.log("Game doc updated in FireStore");
   inputEnable = null; // Disable number buttons in input section
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
   // Loop through the <span> elements and add the rightHint class
@@ -661,8 +663,7 @@ function gameEnd(ifWin) {
     ];
     updateDoc(docRef, { resultScore: chanceRemaining });
     updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
-    // gameDoc.resultScore = chanceRemaining;
-    // gameDoc.secondsPerLevel = sumElapsedTime / gameMode;
+    console.log("Game doc updated in FireStore");
   } else {
     const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
     // Loop through the <span> elements and add the rightHint class
@@ -689,8 +690,8 @@ function gameEnd(ifWin) {
     levelMap.rights = feedback.map((pair) => pair[1]);
     checkLevelsArray(levelMap);
     updateDoc(docRef, { levels: levelsArray });
-    // gameDoc.resultScore = level - gameMode - 1;
     updateDoc(docRef, { resultScore: level - gameMode - 1 });
+    console.log("Game doc updated in FireStore");
   }
   gameEndRows.push(
     ["<(fake)", "view statistics to see how well you did"],
@@ -710,14 +711,7 @@ function gameEnd(ifWin) {
     scrollToBottom(mainContainer);
   });
   updateDoc(docRef, { levels: levelsArray });
-  // gameDoc.levels = levelsArray;
-  // addDoc(colRef, gameDoc) // Adding the document
-  //   .then(() => {
-  //     console.log("Document successfully written!");
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error writing document: ", error);
-  //   });
+  console.log("Game doc updated in FireStore");
   gameMode = null;
   resetGameModeButton();
 }
@@ -756,8 +750,7 @@ async function gameStopped() {
     checkLevelsArray(levelMap);
     updateDoc(docRef, { levels: levelsArray });
     updateDoc(docRef, { resultScore: level - gameMode - 1 });
-    // gameDoc.levels = levelsArray;
-    // gameDoc.resultScore = level - gameMode - 1;
+    console.log("Game doc updated in FireStore");
   }
 }
 function updateEnterButton() {
