@@ -5,7 +5,7 @@ import {
   serverTimestamp,
   collection,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { db, colRef, userIP, checkCookie } from "./index.js";
+import { db, colRef, checkBest, checkCookie, userIP } from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -63,8 +63,8 @@ let availableHints = [];
 let levelsArray = [];
 let guesses = [];
 let elapsedTimeList = []; // List to store elapsed times
-let startTime; // Variable to store the start time of the level
-let n_Slots,
+let startTime, // Variable to store the start time of the level
+  n_Slots,
   n_Choices,
   currentIndex,
   chanceRemaining,
@@ -76,8 +76,9 @@ let n_Slots,
   sumElapsedTime,
   levelMap,
   docRef,
-  gameDoc;
-
+  gameDoc,
+  publicBest,
+  personalBest;
 const inputContainer = document.getElementById("inputContainer");
 const leftDivision = document.querySelector(".left_temp");
 const rightDivision = document.querySelector(".right_temp");
@@ -85,24 +86,14 @@ const header = document.querySelector(".header");
 const outputTable = document.querySelector("main.output table");
 const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
 document.addEventListener("DOMContentLoaded", setUpTable);
-
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
-questionButton.addEventListener("mousedown", function () {
-  overlay.classList.add("overlay-visible");
-  const buttonRect = questionButton.getBoundingClientRect(); // Get the button's position
-  // Position the overlay
-  overlay.style.top = `0px`; // Align the top of the overlay with the top of the window
-  overlay.style.left = `${
-    buttonRect.left + window.scrollX - overlay.offsetWidth
-  }px`; // Align the right border of the overlay to the left of the button
-});
-questionButton.addEventListener("mouseup", function () {
-  overlay.classList.remove("overlay-visible");
-});
 
 function setUpTable() {
   checkCookie();
+  publicBest = checkBest(true); // For public best check
+  personalBest = checkBest(false, userIP); // For personal best check
+
   updateHeaderTitle();
   function handleKeybroad(event) {
     const keyCode = event.keyCode || event.which; // Get the pressed key code
@@ -269,6 +260,7 @@ function setUpTable() {
     }
   });
 }
+
 // Function for Game mode buttons
 function selectGameMode(game_Mode) {
   inputButtons.forEach((button) => {
@@ -290,10 +282,9 @@ function selectGameMode(game_Mode) {
     dateTime: serverTimestamp(),
     resultScore: -game_Mode,
   }; // Create an empty JavaScript object to represent the Firestore document
-  const colRef = collection(db, "GamesPlayed"); // Reference to the Firestore collection
   addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
     .then((x) => {
-      console.log("Game doc (", x.id, ") added to FireStore");
+      console.log("Game doc (", x.id, ") created");
       docRef = doc(db, "GamesPlayed", x.id);
     })
     .catch((error) => {
@@ -753,6 +744,18 @@ async function gameStopped() {
     console.log("Game doc updated in FireStore");
   }
 }
+questionButton.addEventListener("mousedown", function () {
+  overlay.classList.add("overlay-visible");
+  const buttonRect = questionButton.getBoundingClientRect(); // Get the button's position
+  // Position the overlay
+  overlay.style.top = `0px`; // Align the top of the overlay with the top of the window
+  overlay.style.left = `${
+    buttonRect.left + window.scrollX - overlay.offsetWidth
+  }px`; // Align the right border of the overlay to the left of the button
+});
+questionButton.addEventListener("mouseup", function () {
+  overlay.classList.remove("overlay-visible");
+});
 function updateEnterButton() {
   enterButton.textContent = `Remaining`; // Update the text content of the enterButton
   enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
