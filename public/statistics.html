@@ -41,6 +41,21 @@
       <div id="DonutChart">Loading...</div>
       <form class="query">
         <fieldset>
+          <legend>Population size</legend>
+          <ul>
+            <li>
+              <label for="n_Games">Number of games:</label>
+              <input type="number" name="n_Games" id="n_Games" min="1" />
+            </li>
+            <li>
+              <button type="button" id="Generate">Generate records</button>
+            </li>
+            <li>
+              <button type="button" id="RemoveFake">Remove all fakes</button>
+            </li>
+          </ul>
+        </fieldset>
+        <fieldset>
           <legend>View games</legend>
           <ul>
             <li>
@@ -110,21 +125,6 @@
             </li>
             <li>
               <button type="button">Query (fake)</button>
-            </li>
-          </ul>
-        </fieldset>
-        <fieldset>
-          <legend>Fake Data</legend>
-          <ul>
-            <li>
-              <label for="n_Games">Number of games:</label>
-              <input type="number" name="n_Games" id="n_Games" min="0" />
-            </li>
-            <li>
-              <button type="button" id="Generate">Generate</button>
-            </li>
-            <li>
-              <button type="button" id="RemoveFake">Remove all fakes</button>
             </li>
           </ul>
         </fieldset>

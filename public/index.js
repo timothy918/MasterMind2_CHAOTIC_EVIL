@@ -2,6 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase
 import {
   getFirestore,
   collection,
+  query,
+  where,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
@@ -20,7 +23,7 @@ initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
 let userIP;
-export { db, colRef, userIP, checkCookie };
+export { db, colRef, userIP, checkNSetCookie };
 
 function getCookie(name) {
   const nameEQ = name + "=";
@@ -36,39 +39,40 @@ function getCookie(name) {
   return null; // Return null if not found
 }
 
-function checkCookie() {
+async function checkNSetCookie() {
   const playerID = getCookie("MasterMind2playerID");
   const expiryDate = new Date(); // Set the expiration date to 400 days from now
   expiryDate.setDate(expiryDate.getDate() + 400); // Add 400 days
+  const maxLength = 20; // Set a maximum length for the player ID
+
   if (!playerID) {
-    const playerConsent = confirm(
-      "If you accept the cookies, you would be able to track your personal best."
+    let customPlayerID = prompt(
+      `Enter your desired player ID (max ${maxLength} characters) to track personal result. Cancel to decline cookies.`
     );
-    if (playerConsent) {
-      // Set a cookie that never expires (or expires far in the future)
-      userIP = `${Date.now()}`; // Generate a unique ID using the current timestamp
-      console.log("Player ID:", userIP, "expiring at ", expiryDate); // Log the existing player ID
-      document.cookie = `MasterMind2playerID=${userIP}; expires=${expiryDate.toUTCString()}; path=/`;
-    } else {
-      // Make an HTTP request to get the user's IP address
-      fetch("https://ipinfo.io/json")
-        .then((response) => {
-          if (!response.ok) {
-            // Check if the response status is not OK
-            throw new Error(`HTTP Error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          userIP = data.ip; // Save the user's IP to the variable
-          console.log(userIP, "w/out cookie");
-        })
-        .catch((error) => {
-          userIP = "Anonymous";
-        });
+
+    while (customPlayerID) {
+      let q = query(colRef, where("ipAddress", "==", customPlayerID));
+      const querySnapshot = await getDocs(q); // Execute the query
+
+      if (querySnapshot.empty && customPlayerID.length <= maxLength) {
+        // Set the cookie with the custom player ID
+        document.cookie = `MasterMind2playerID=${customPlayerID}; expires=${expiryDate.toUTCString()}; path=/`;
+        console.log(
+          "Player ID set:",
+          customPlayerID,
+          "expiring at",
+          expiryDate
+        );
+        break; // Exit the loop if the ID is successfully set
+      } else {
+        customPlayerID = prompt(
+          "Either too long or duplicate. Try a different player ID."
+        );
+      }
     }
   } else {
+    // If the cookie already exists, update its expiration date
     document.cookie = `MasterMind2playerID=${playerID}; expires=${expiryDate.toUTCString()}; path=/`;
-    console.log("Player ID:", playerID, "updated to ", expiryDate); // Log the existing player ID
+    console.log("Player ID:", playerID, "updated to expire at", expiryDate);
   }
 }

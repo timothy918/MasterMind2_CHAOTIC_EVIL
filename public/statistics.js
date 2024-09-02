@@ -7,7 +7,7 @@ import {
   deleteDoc,
   onSnapshot, // Import onSnapshot for real-time updates
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { colRef, userIP } from "./index.js";
+import { colRef, userIP, checkNSetCookie } from "./index.js";
 
 // Get a reference to the "RemoveFake" button
 document.getElementById("RemoveFake").addEventListener("click", async () => {

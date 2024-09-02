@@ -6,10 +6,10 @@ import {
   query,
   where,
   getDocs,
-  // collection,
+  orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { db, colRef, checkCookie, userIP } from "./index.js";
+import { db, colRef, checkNSetCookie, userIP } from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -101,9 +101,11 @@ const timeframes = [
   { label: "last 7 days", duration: 604800 }, // 7 days
   { label: "last 24 hours", duration: 86400 }, // 24 hours
 ];
-checkCookie();
+checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
-personalBest = await searchBest(false, userIP); // For personal best check
+if (userIP !== "Anonymous") {
+  personalBest = await searchBest(false, userIP); // For personal best check
+}
 
 function setUpTable() {
   updateHeaderTitle();
@@ -665,8 +667,12 @@ function gameEnd(ifWin) {
         ).toFixed(3)} seconds`,
       ],
     ];
-    gameEndRows.push(checkBest(chanceRemaining, aveElapsedTime, personalBest));
     gameEndRows.push(checkBest(chanceRemaining, aveElapsedTime, publicBest));
+    if (userIP !== "Anonymous") {
+      gameEndRows.push(
+        checkBest(chanceRemaining, aveElapsedTime, personalBest)
+      );
+    }
     updateDoc(docRef, { resultScore: chanceRemaining });
     updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
     console.log("Game doc updated in FireStore");
