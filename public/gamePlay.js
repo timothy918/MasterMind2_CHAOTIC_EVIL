@@ -3,9 +3,13 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
-  collection,
+  query,
+  where,
+  getDocs,
+  // collection,
+  Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { db, colRef, checkBest, checkCookie, userIP } from "./index.js";
+import { db, colRef, checkCookie, userIP } from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -62,7 +66,7 @@ const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 let availableHints = [];
 let levelsArray = [];
 let guesses = [];
-let elapsedTimeList = []; // List to store elapsed times
+// let elapsedTimeList = []; // List to store elapsed times
 let startTime, // Variable to store the start time of the level
   n_Slots,
   n_Choices,
@@ -88,12 +92,20 @@ const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get al
 document.addEventListener("DOMContentLoaded", setUpTable);
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
+// Define timeframes in seconds
+const timeframes = [
+  { label: "all time", duration: Infinity },
+  { label: "last year", duration: 31557600 }, // 1 year (365.25 days)
+  { label: "last quarter", duration: 7889400 }, // 3 months (approx.)
+  { label: "last month", duration: 2629800 }, // 1 month (approx.)
+  { label: "last 7 days", duration: 604800 }, // 7 days
+  { label: "last 24 hours", duration: 86400 }, // 24 hours
+];
+checkCookie();
+publicBest = await searchBest(true); // For public best check
+personalBest = await searchBest(false, userIP); // For personal best check
 
 function setUpTable() {
-  checkCookie();
-  publicBest = checkBest(true); // For public best check
-  personalBest = checkBest(false, userIP); // For personal best check
-
   updateHeaderTitle();
   function handleKeybroad(event) {
     const keyCode = event.keyCode || event.which; // Get the pressed key code
@@ -505,8 +517,8 @@ function levelWon() {
   levelMap.wrongs = feedback.map((pair) => pair[0]);
   levelMap.rights = feedback.map((pair) => pair[1]);
   checkLevelsArray(levelMap);
-  updateDoc(docRef, { levels: levelsArray });
-  console.log("Game doc updated in FireStore");
+  // updateDoc(docRef, { levels: levelsArray });
+  // console.log("Game doc updated in FireStore");
   inputEnable = null; // Disable number buttons in input section
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
   // Loop through the <span> elements and add the rightHint class
@@ -642,6 +654,7 @@ function gameEnd(ifWin) {
       levelsArray.reduce((sum, levelMap) => {
         return sum + levelMap.time;
       }, 0) / 1000; // Convert to seconds
+    let aveElapsedTime = sumElapsedTime / gameMode;
     gameEndRows = [
       [`You win!`, `you completed ${gameMode} levels`],
       [`Remaining chance(s)`, `${chanceRemaining}`],
@@ -652,6 +665,8 @@ function gameEnd(ifWin) {
         ).toFixed(3)} seconds`,
       ],
     ];
+    gameEndRows.push(checkBest(chanceRemaining, aveElapsedTime, personalBest));
+    gameEndRows.push(checkBest(chanceRemaining, aveElapsedTime, publicBest));
     updateDoc(docRef, { resultScore: chanceRemaining });
     updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
     console.log("Game doc updated in FireStore");
@@ -770,5 +785,79 @@ function checkLevelsArray(levelMap) {
     levelsArray[index] = levelMap; // If found, replace the existing item with levelMap
   } else {
     levelsArray.push(levelMap); // If not found, push levelMap to levelsArray
+  }
+}
+
+async function searchBest(isPublic = true, userIP = null) {
+  const results = [];
+  const now = Timestamp.now();
+  let lastRecordHold = null;
+
+  for (const timeframe of timeframes) {
+    // If the record hold is less than the current timeframe duration, skip the loop
+    if (lastRecordHold !== null && lastRecordHold <= timeframe.duration) {
+      results.push(results[results.length - 1]); // Push the last result since it's the same record
+      continue;
+    }
+
+    const lastDuration =
+      timeframe.duration === Infinity ? 0 : now.seconds - timeframe.duration;
+    const lastTimestamp = new Timestamp(lastDuration, 0);
+
+    // Build the query based on whether it's a public check or personal best
+    let q = query(colRef, where("dateTime", ">=", lastTimestamp));
+    if (!isPublic && userIP) {
+      q = query(q, where("ipAddress", "==", userIP));
+    }
+
+    try {
+      const querySnapshot = await getDocs(q); // Execute the query
+
+      if (!querySnapshot.empty) {
+        const sortedQ = querySnapshot.docs // Extract data and sort the results manually
+          .map((doc) => doc.data())
+          .sort((a, b) =>
+            a.resultScore !== b.resultScore
+              ? b.resultScore - a.resultScore
+              : a.secondsPerLevel - b.secondsPerLevel
+          );
+
+        // Get the highest score and lowest secondsPerLevel from the first document
+        const data = sortedQ[0];
+        const highestScore = data.resultScore;
+        const lowestSecondsPerLevel =
+          data.secondsPerLevel !== undefined ? data.secondsPerLevel : null;
+        lastRecordHold = now.seconds - data.dateTime.seconds; // Calculate record hold in seconds
+
+        results.push([highestScore, lowestSecondsPerLevel]);
+      } else {
+        results.push([null, null]); // No documents found within the timeframe
+      }
+    } catch (error) {
+      console.error(
+        `Error retrieving documents for ${timeframe.label}: `,
+        error
+      );
+    }
+  }
+  console.log("Results:", isPublic ? "Public" : `for IP ${userIP}`, results);
+  return results; // Return a two-dimensional array with results for each timeframe
+}
+
+function checkBest(chanceRemaining, aveElapsedTime, bestResults, isPublic) {
+  for (let i = 0; i < bestResults.length; i++) {
+    const [highestScore, lowestSecondsPerLevel] = bestResults[i];
+    // Compare chanceRemaining with the highestScore
+    if (
+      highestScore == null ||
+      chanceRemaining > highestScore ||
+      (chanceRemaining = highestScore && aveElapsedTime < lowestSecondsPerLevel)
+    ) {
+      const bestType = isPublic ? "public" : "personal";
+      return [
+        "Congratulations!",
+        `it's a ${bestType} best in ${timeframes[i].label}`,
+      ];
+    }
   }
 }

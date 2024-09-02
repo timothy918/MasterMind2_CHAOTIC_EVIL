@@ -2,11 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase
 import {
   getFirestore,
   collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
@@ -25,7 +20,7 @@ initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
 let userIP;
-export { db, colRef, checkBest, checkCookie, userIP };
+export { db, colRef, userIP, checkCookie };
 
 function getCookie(name) {
   const nameEQ = name + "=";
@@ -76,70 +71,4 @@ function checkCookie() {
     document.cookie = `MasterMind2playerID=${playerID}; expires=${expiryDate.toUTCString()}; path=/`;
     console.log("Player ID:", playerID, "updated to ", expiryDate); // Log the existing player ID
   }
-}
-
-async function checkBest(isPublic = true, userIP = null) {
-  const results = [];
-  const now = Timestamp.now();
-  let lastRecordHold = null;
-  // Define timeframes in seconds
-  const timeframes = [
-    { label: "all time", duration: Infinity },
-    { label: "last year", duration: 31557600 }, // 1 year (365.25 days)
-    { label: "last quarter", duration: 7889400 }, // 3 months (approx.)
-    { label: "last month", duration: 2629800 }, // 1 month (approx.)
-    { label: "last 7 days", duration: 604800 }, // 7 days
-    { label: "last 24 hours", duration: 86400 }, // 24 hours
-  ];
-
-  for (const timeframe of timeframes) {
-    // If the record hold is less than the current timeframe duration, skip the loop
-    if (lastRecordHold !== null && lastRecordHold <= timeframe.duration) {
-      results.push(results[results.length - 1]); // Push the last result since it's the same record
-      continue;
-    }
-
-    const lastDuration =
-      timeframe.duration === Infinity ? 0 : now.seconds - timeframe.duration;
-    const lastTimestamp = new Timestamp(lastDuration, 0);
-
-    let q = query(colRef, where("dateTime", ">=", lastTimestamp)); // Create the base query to find documents within the timeframe
-    // If checking personal best, add the IP address filter
-    if (!isPublic && userIP) {
-      // Create the base query to find documents within the timeframe
-      q = query(
-        q,
-        where("ipAddress", "==", userIP) // where("resultScore", ">=", 0),
-      );
-    }
-    getDocs(q).then((snapshot) => {
-      const sortedQ = snapshot.docs.map((doc) => doc.data()); // Map through the snapshot docs and extract the data
-      sortedQ.sort((a, b) => {
-        return b.resultScore - a.resultScore; // Sort the results array manually by the 'resultScore' field
-      });
-      sortedQ.sort((a, b) => {
-        return a.secondsPerLevel - b.secondsPerLevel; // Sort the results array manually by the 'secondsPerLevel' field
-      });
-      try {
-        // Initialize variables for highest score and lowest secondsPerLevel
-        let highestScore = null;
-        let lowestSecondsPerLevel = null;
-
-        // Check if there are any documents in the results array
-        if (sortedQ.length > 0) {
-          const data = sortedQ[0]; // Get the first document's data
-          highestScore = data.resultScore;
-          lowestSecondsPerLevel =
-            data.secondsPerLevel !== undefined ? data.secondsPerLevel : null;
-          lastRecordHold = now.seconds - data.dateTime.seconds; // Calculate record hold in seconds
-        }
-        results.push([highestScore, lowestSecondsPerLevel]);
-      } catch (error) {
-        console.error("Error processing results:", error);
-        results.push([null, null]); // If there's an error, push null values
-      }
-    });
-  }
-  console.log("Results:", isPublic ? "Public" : `for IP ${userIP}`, results);
-  return results; // Return a two-dimensional array with results for each timeframe
 }
