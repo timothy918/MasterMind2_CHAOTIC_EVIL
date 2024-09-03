@@ -66,6 +66,7 @@ const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 let availableHints = [];
 let levelsArray = [];
 let guesses = [];
+let cookieRejected = false;
 // let elapsedTimeList = []; // List to store elapsed times
 let startTime, // Variable to store the start time of the level
   n_Slots,
@@ -95,15 +96,16 @@ const overlay = document.getElementById("overlay");
 // Define timeframes in seconds
 const timeframes = [
   { label: "all time", duration: Infinity },
-  { label: "last year", duration: 31557600 }, // 1 year (365.25 days)
-  { label: "last quarter", duration: 7889400 }, // 3 months (approx.)
-  { label: "last month", duration: 2629800 }, // 1 month (approx.)
-  { label: "last 7 days", duration: 604800 }, // 7 days
-  { label: "last 24 hours", duration: 86400 }, // 24 hours
+  { label: "yearly", duration: 31557600 }, // 1 year (365.25 days)
+  { label: "quarterly", duration: 7889400 }, // 3 months (approx.)
+  { label: "monthly", duration: 2629800 }, // 1 month (approx.)
+  { label: "weekly", duration: 604800 }, // 7 days
+  { label: "daily", duration: 86400 }, // 24 hours
+  { label: "hourly", duration: 3600 }, // 24 hours
 ];
 checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
-if (userIP !== "Anonymous") {
+if (userIP !== "Anonymous" && !cookieRejected) {
   personalBest = await searchBest(false, userIP); // For personal best check
 }
 
@@ -667,11 +669,25 @@ function gameEnd(ifWin) {
         ).toFixed(3)} seconds`,
       ],
     ];
-    gameEndRows.push(checkBest(chanceRemaining, aveElapsedTime, publicBest));
-    if (userIP !== "Anonymous") {
-      gameEndRows.push(
-        checkBest(chanceRemaining, aveElapsedTime, personalBest)
+    let congratulations = checkBest(
+      chanceRemaining,
+      aveElapsedTime,
+      publicBest,
+      true
+    );
+    if (congratulations) {
+      gameEndRows.push(congratulations);
+    }
+    if (personalBest) {
+      congratulations = checkBest(
+        chanceRemaining,
+        aveElapsedTime,
+        personalBest,
+        false
       );
+      if (congratulations) {
+        gameEndRows.push(congratulations);
+      }
     }
     updateDoc(docRef, { resultScore: chanceRemaining });
     updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
@@ -709,8 +725,9 @@ function gameEnd(ifWin) {
     ["<(fake)", "view statistics to see how well you did"],
     ["^(fake)", "share so others know how well you did"],
     [">(fake)", "view credit page"],
-    [outputNumbers[3], "3 levels; or,"],
-    [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
+    [outputNumbers[3], "3 levels"],
+    [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"],
+    [`${outputNumbers[9]}(fake)`, "2+5 (random out of 25 possible) levels"]
   );
   gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
@@ -862,8 +879,9 @@ function checkBest(chanceRemaining, aveElapsedTime, bestResults, isPublic) {
       const bestType = isPublic ? "public" : "personal";
       return [
         "Congratulations!",
-        `it's a ${bestType} best in ${timeframes[i].label}`,
+        `it's a ${bestType} ${timeframes[i].label} best.`,
       ];
     }
   }
+  return null; // Return null if no best score is found
 }

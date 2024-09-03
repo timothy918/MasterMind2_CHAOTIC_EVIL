@@ -47,9 +47,9 @@ async function checkNSetCookie() {
 
   if (!playerID) {
     let customPlayerID = prompt(
-      `Enter your desired player ID (max ${maxLength} characters) to track personal result. Cancel to decline cookies.`
+      `Enter your desired player ID (max ${maxLength} characters) to track personal result. 
+      Cancel to decline cookies.`
     );
-
     while (customPlayerID) {
       let q = query(colRef, where("ipAddress", "==", customPlayerID));
       const querySnapshot = await getDocs(q); // Execute the query
@@ -63,6 +63,7 @@ async function checkNSetCookie() {
           "expiring at",
           expiryDate
         );
+        playerID = customPlayerID;
         break; // Exit the loop if the ID is successfully set
       } else {
         customPlayerID = prompt(
@@ -70,6 +71,8 @@ async function checkNSetCookie() {
         );
       }
     }
+    cookieRejected = true;
+    userIP = data.ip; // Save the user's IP to the variable
   } else {
     // If the cookie already exists, update its expiration date
     document.cookie = `MasterMind2playerID=${playerID}; expires=${expiryDate.toUTCString()}; path=/`;

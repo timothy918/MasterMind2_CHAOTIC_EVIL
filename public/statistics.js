@@ -101,7 +101,7 @@ function generateFakeData(n_Games) {
   } //end of game
 }
 
-const countDisplayElement = document.getElementById("DonutChart");
+const populationTable = document.getElementById("population");
 // Define queries to filter documents for gameMode 3 and gameMode 7
 const gameMode3Query = query(colRef, where("gameMode", "==", 3));
 const gameMode7Query = query(colRef, where("gameMode", "==", 7));
@@ -139,5 +139,28 @@ queries.forEach((query, index) => {
 
 // Helper function to update the count display
 function updateCountDisplay(realTimeCounts) {
-  countDisplayElement.innerHTML = `gameMode3 fake: ${realTimeCounts[2]}, gameMode3 total: ${realTimeCounts[0]},</br> gameMode7 fake: ${realTimeCounts[3]}, gameMode7 total: ${realTimeCounts[1]}`;
+  let populationRows = [
+    [
+      `3`,
+      realTimeCounts[0] - realTimeCounts[2],
+      realTimeCounts[2],
+      realTimeCounts[0],
+    ],
+    [
+      `7`,
+      realTimeCounts[1] - realTimeCounts[3],
+      realTimeCounts[3],
+      realTimeCounts[1],
+    ],
+  ];
+  populationRows.forEach((rowContent) => {
+    const newRow = document.createElement("tr");
+    rowContent.forEach((cellContent) => {
+      const cell = document.createElement("td");
+      cell.innerHTML = cellContent;
+      newRow.appendChild(cell);
+    });
+    populationTable.appendChild(newRow);
+  });
+  // populationTable.innerHTML = `gameMode3 fake: ${}, gameMode3 total: ${},</br> gameMode7 fake: ${}, gameMode7 total: ${}`;
 }
