@@ -7,7 +7,7 @@ import {
   deleteDoc,
   onSnapshot, // Import onSnapshot for real-time updates
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { colRef, userIP, checkNSetCookie } from "./index.js";
+import { colRef, userIP, checkNSetCookie, getCookie } from "./index.js";
 
 // Get a reference to the "RemoveFake" button
 document.getElementById("RemoveFake").addEventListener("click", async () => {
@@ -106,11 +106,11 @@ const populationTable = document.getElementById("population");
 const gameMode3Query = query(colRef, where("gameMode", "==", 3));
 const gameMode7Query = query(colRef, where("gameMode", "==", 7));
 // Define queries to filter documents where isReal is true
-const fake3Query = query(gameMode3Query, where("isReal", "==", false));
-const fake7Query = query(gameMode7Query, where("isReal", "==", false));
+const fake3Query = query(gameMode3Query, where("isReal", "==", true));
+const fake7Query = query(gameMode7Query, where("isReal", "==", true));
 const queries = [gameMode3Query, gameMode7Query, fake3Query, fake7Query]; // Create an array of queries
-
 try {
+  getCookie("MasterMind2playerID");
   const selfReal3Query = query(
     gameMode3Query,
     where("isReal", "==", true),
@@ -121,7 +121,7 @@ try {
     where("isReal", "==", true),
     where("ipAddress", "==", userIP)
   );
-  queries += [selfReal3Query, selfReal7Query];
+  queries.push(selfReal3Query, selfReal7Query);
 } catch (error) {
   console.log("User's IP address not found"); // Handle the error gracefully
 }
@@ -132,24 +132,28 @@ const unsubscribeFunctions = []; // Create an array to store the unsubscribe fun
 queries.forEach((query, index) => {
   const unsubscribe = onSnapshot(query, (snapshot) => {
     realTimeCounts[index] = snapshot.size;
-    updateCountDisplay(realTimeCounts);
+    // updateCountDisplay(realTimeCounts);
   });
   unsubscribeFunctions.push(unsubscribe);
 });
+
+updateCountDisplay(realTimeCounts);
 
 // Helper function to update the count display
 function updateCountDisplay(realTimeCounts) {
   let populationRows = [
     [
       `3`,
+      realTimeCounts[4],
+      realTimeCounts[2] - realTimeCounts[4],
       realTimeCounts[0] - realTimeCounts[2],
-      realTimeCounts[2],
       realTimeCounts[0],
     ],
     [
       `7`,
+      realTimeCounts[5],
+      realTimeCounts[3] - realTimeCounts[5],
       realTimeCounts[1] - realTimeCounts[3],
-      realTimeCounts[3],
       realTimeCounts[1],
     ],
   ];
@@ -162,5 +166,4 @@ function updateCountDisplay(realTimeCounts) {
     });
     populationTable.appendChild(newRow);
   });
-  // populationTable.innerHTML = `gameMode3 fake: ${}, gameMode3 total: ${},</br> gameMode7 fake: ${}, gameMode7 total: ${}`;
 }

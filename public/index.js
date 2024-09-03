@@ -23,7 +23,7 @@ initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
 let userIP;
-export { db, colRef, userIP, checkNSetCookie };
+export { db, colRef, userIP, checkNSetCookie, getCookie };
 
 function getCookie(name) {
   const nameEQ = name + "=";

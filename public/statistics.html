@@ -44,10 +44,14 @@
           <legend>Population size</legend>
           <table id="population">
             <tr>
-              <th>Game<br />Mode</th>
-              <th>Real</th>
-              <th>Fake</th>
-              <th>Total</th>
+              <th rowspan="2">Game<br />Mode</th>
+              <th colspan="2">Real</th>
+              <th rowspan="2">Fake</th>
+              <th rowspan="2">Total</th>
+            </tr>
+            <tr>
+              <th>yours</th>
+              <th>otehrs</th>
             </tr>
           </table>
           <ul>
@@ -56,7 +60,7 @@
               <input type="number" name="n_Games" id="n_Games" min="1" />
             </li>
             <li>
-              <button type="button" id="Generate">Generate records</button>
+              <button type="button" id="Generate">Fabricate records</button>
             </li>
             <li>
               <button type="button" id="RemoveFake">Remove all fakes</button>
@@ -80,11 +84,12 @@
             <li>
               <label for="time">Within:</label>
               <select name="time" id="time">
-                <option value="day">last 24 hours</option>
-                <option value="week">last 7 days</option>
-                <option value="month">last 30.4375 days</option>
-                <option value="quarter">last 91.3125 days</option>
-                <option value="year">last 365.25 days</option>
+                <option value="hourly">last hour</option>
+                <option value="daily">last 24 hours</option>
+                <option value="weekly">last 7 days</option>
+                <option value="monthly">last 4 weeks</option>
+                <option value="quarterly">last 3 months</option>
+                <option value="yearly">last 12 months</option>
                 <option value="*">all time</option>
               </select>
             </li>

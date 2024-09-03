@@ -62,7 +62,6 @@ const fullName = ["MasterMind II", ": CHAOTIC", "EVIL"];
 // Declare the variables
 let inputEnable = 1;
 let l_Uncertainty = 0;
-const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 let availableHints = [];
 let levelsArray = [];
 let guesses = [];
@@ -84,15 +83,17 @@ let startTime, // Variable to store the start time of the level
   gameDoc,
   publicBest,
   personalBest;
+const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 const inputContainer = document.getElementById("inputContainer");
 const leftDivision = document.querySelector(".left_temp");
 const rightDivision = document.querySelector(".right_temp");
 const header = document.querySelector(".header");
 const outputTable = document.querySelector("main.output table");
 const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
-document.addEventListener("DOMContentLoaded", setUpTable);
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
+document.addEventListener("DOMContentLoaded", setUpTable);
+
 // Define timeframes in seconds
 const timeframes = [
   { label: "all time", duration: Infinity },
@@ -186,7 +187,6 @@ function setUpTable() {
       }
     }
   }
-  document.removeEventListener("keydown", handleKeybroad);
   document.addEventListener("keydown", handleKeybroad); // Event listener for keydown events
 
   resetGameModeButton();
@@ -373,7 +373,6 @@ function updateHeaderTitle() {
           selectedLines = lines.slice(22, 38); // Lines 23 to 38
           break;
       }
-      const header = document.querySelector(".header");
       header.innerHTML = selectedLines
         .map((line) => `<pre>${line}</pre>`)
         .join("");

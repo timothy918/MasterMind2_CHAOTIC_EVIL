@@ -106,7 +106,8 @@ main {
 main.dashboard {
   flex-direction: row; /* Align items from top to bottom */
 }
-td {
+td,
+th {
   border: 1px dashed black;
   vertical-align: bottom;
 }
@@ -117,6 +118,11 @@ table {
   border-collapse: collapse;
   font-family: "Lucida Console", Monaco, monospace;
   font-size: large;
+}
+#population {
+  border-collapse: collapse;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: small;
 }
 .right_temp {
   display: flex;
@@ -174,7 +180,6 @@ figure figcaption {
   width: 500px;
   font-family: "Lucida Console", Monaco, monospace;
 }
-
 .overlay-visible {
   display: block; /* Show overlay when visible */
 }
