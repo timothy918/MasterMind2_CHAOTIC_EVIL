@@ -157,7 +157,7 @@ function setUpTable() {
             enterButton.click();
           }
           break;
-        case 32: // Check if the pressed key is the Space key
+        case 32: // Check if the pressed key is the Space bar
           const currentSlot =
             leftDivision.querySelectorAll(".slot")[currentIndex];
           const buttonInSlot = currentSlot.querySelector("button");
@@ -261,11 +261,15 @@ function setUpTable() {
         leftDivision.querySelectorAll(".slot")
       ).indexOf(clickedSlot);
       currentIndex = clickedSlotIndex;
-      handleLeftDivisionButtonClick(event);
+      const clickedButton = clickedSlot.querySelector("button");
+      // Remove the button from the clicked slot
+      if (clickedButton) {
+        clickedButton.remove();
+      }
+      updateSlotBorders(); // Update slot borders based on currentIndex
     }
   });
 }
-
 // Function for Game mode buttons
 function selectGameMode(game_Mode) {
   inputButtons.forEach((button) => {
@@ -318,18 +322,6 @@ function handleSelectGameMode(event) {
   const clickedButton = event.target;
   const buttonContent = parseInt(clickedButton.textContent);
   selectGameMode(buttonContent);
-}
-// Function to handle button clicks in left division (to remove buttons)
-function handleLeftDivisionButtonClick(event) {
-  const clickedSlot = event.target.closest(".slot");
-  if (clickedSlot) {
-    const clickedButton = clickedSlot.querySelector("button");
-    // Remove the button from the clicked slot
-    if (clickedButton) {
-      clickedButton.remove();
-    }
-    updateSlotBorders(); // Update slot borders based on currentIndex
-  }
 }
 function updateHeaderTitle() {
   let titleText = ""; // Update the title based on l_Uncertainty
@@ -504,8 +496,6 @@ function levelWon() {
   levelMap.wrongs = feedback.map((pair) => pair[0]);
   levelMap.rights = feedback.map((pair) => pair[1]);
   checkLevelsArray(levelMap);
-  // updateDoc(docRef, { levels: levelsArray });
-  // console.log("Game doc updated in FireStore");
   inputEnable = null; // Disable number buttons in input section
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
   // Loop through the <span> elements and add the rightHint class
@@ -577,7 +567,6 @@ function levelWon() {
         textContent: `${level - 1} => ${level}`,
       });
       firstRow.appendChild(right1Cell);
-      // firstRow.appendChild(difficultyInfoCell);
       outputTable.appendChild(firstRow); // Append the new row to the output table
       const secondRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
       const left2Cell = Object.assign(document.createElement("td"), {
