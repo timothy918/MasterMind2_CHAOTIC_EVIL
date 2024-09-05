@@ -119,8 +119,11 @@ function setUpTable() {
       // Number keys 0-9
       const number = keyCode - 48; // Convert key code to number
       const numberButtons = inputContainer.querySelectorAll(".numberButton"); // Loop through the number buttons to find the matching button by textContent
-      for (const button of numberButtons && event.target === document.body) {
-        if (button.textContent === String(number)) {
+      for (const button of numberButtons) {
+        if (
+          button.textContent === String(number) &&
+          event.target === document.body
+        ) {
           button.click(); // Trigger the click event on the corresponding number button
           break; // Exit the loop once the button is found
         }
@@ -259,7 +262,6 @@ function setUpTable() {
       ).indexOf(clickedSlot);
       currentIndex = clickedSlotIndex;
       handleLeftDivisionButtonClick(event);
-      updateSlotBorders(); // Update slot borders based on currentIndex
     }
   });
 }
@@ -326,11 +328,6 @@ function handleLeftDivisionButtonClick(event) {
     if (clickedButton) {
       clickedButton.remove();
     }
-    // Get the index of the clicked slot and set it as the current target slot
-    const clickedSlotIndex = Array.from(
-      leftDivision.querySelectorAll(".slot")
-    ).indexOf(clickedSlot);
-    currentIndex = clickedSlotIndex;
     updateSlotBorders(); // Update slot borders based on currentIndex
   }
 }
@@ -517,7 +514,7 @@ function levelWon() {
   });
 
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < directionButtons.length; i++) {
     slotsInLeftTemp[i].innerHTML = directionButtons[i];
   }
   if (level === gameMode) {
