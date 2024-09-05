@@ -119,61 +119,59 @@ function setUpTable() {
       // Number keys 0-9
       const number = keyCode - 48; // Convert key code to number
       const numberButtons = inputContainer.querySelectorAll(".numberButton"); // Loop through the number buttons to find the matching button by textContent
-      for (const button of numberButtons) {
+      for (const button of numberButtons && event.target === document.body) {
         if (button.textContent === String(number)) {
-          // Trigger the click event on the corresponding number button
-          if (event.target === document.body) {
-            button.click();
-          }
+          button.click(); // Trigger the click event on the corresponding number button
           break; // Exit the loop once the button is found
         }
       }
-    } else if (
-      !inputEnable &&
-      (keyCode === 188 || keyCode === 86 || keyCode === 190) // Comma (<), Caret (v), or Period (>)
-    ) {
-      // Find the direction button with the corresponding value in leftDivision
-      const directionButton = leftDivision.querySelector(
-        `.numberButton[value="${keyCode}"]`
-      );
-      // Trigger the click event on the direction button
-      if (directionButton && event.target === document.body) {
-        directionButton.click();
+    } else {
+      switch (keyCode) {
+        case 188: // Comma (<),
+        case 86: //Caret (v),
+        case 190: // or Period (>)
+          // Find the direction button with the corresponding value in leftDivision
+          const directionButton = leftDivision.querySelector(
+            `.numberButton[value="${keyCode}"]`
+          );
+          if (directionButton && event.target === document.body) {
+            directionButton.click(); // Trigger the click event on the direction button
+          }
+          break;
+        case 8: // Check if the pressed key is the Backspace key
+          currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex back by 1, wrapping around if necessary
+          const currentMinus1Slot =
+            leftDivision.querySelectorAll(".slot")[currentIndex];
+          const buttonInSlotMinus1 = currentMinus1Slot.querySelector("button");
+          // Remove the button from the targeted slot
+          if (buttonInSlotMinus1) {
+            buttonInSlotMinus1.remove();
+          }
+          updateSlotBorders();
+          break;
+        case 13: // Trigger the click event on the Start or Enter button
+          if (enterButton && event.target === document.body) {
+            enterButton.click();
+          }
+          break;
+        case 32: // Check if the pressed key is the Space key
+          const currentSlot =
+            leftDivision.querySelectorAll(".slot")[currentIndex];
+          const buttonInSlot = currentSlot.querySelector("button");
+          // Trigger the click event on the button in the target slot
+          if (buttonInSlot) {
+            buttonInSlot.click();
+          }
+          break;
+        case 37: // Check if the pressed key is the Left arrow key
+          currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex left by 1, wrapping around if necessary
+          updateSlotBorders();
+          break;
+        case 39: // Check if the pressed key is the Right arrow key
+          currentIndex = (currentIndex + 1) % n_Slots; // Move currentIndex right by 1, wrapping around if necessary
+          updateSlotBorders();
+          break;
       }
-    }
-    const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
-    const buttonInSlot = currentSlot.querySelector("button");
-    switch (keyCode) {
-      case 8: // Check if the pressed key is the Backspace key
-        currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex back by 1, wrapping around if necessary
-        const currentSlot =
-          leftDivision.querySelectorAll(".slot")[currentIndex];
-        const buttonInSlotMinus1 = currentSlot.querySelector("button");
-        // Remove the button from the targeted slot
-        if (buttonInSlotMinus1) {
-          buttonInSlotMinus1.remove();
-        }
-        updateSlotBorders();
-        break;
-      case 13: // Trigger the click event on the Start or Enter button
-        if (enterButton && event.target === document.body) {
-          enterButton.click();
-        }
-        break;
-      case 32: // Check if the pressed key is the Space key
-        // Trigger the click event on the button in the target slot
-        if (buttonInSlot) {
-          buttonInSlot.click();
-        }
-        break;
-      case 37: // Check if the pressed key is the Left arrow key
-        currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex left by 1, wrapping around if necessary
-        updateSlotBorders();
-        break;
-      case 39: // Check if the pressed key is the Right arrow key
-        currentIndex = (currentIndex + 1) % n_Slots; // Move currentIndex right by 1, wrapping around if necessary
-        updateSlotBorders();
-        break;
     }
   }
   document.addEventListener("keydown", handleKeybroad); // Event listener for keydown events
@@ -724,7 +722,7 @@ function gameEnd(ifWin) {
     [">(fake)", "view credit page"],
     [outputNumbers[3], "3 levels"],
     [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"],
-    [`${outputNumbers[9]}(fake)`, "2+5 (random out of 25 possible) levels"]
+    [`${outputNumbers[9]}(fake)`, "2+7 (random out of 45 possible) levels"]
   );
   gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
