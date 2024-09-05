@@ -24,7 +24,7 @@ const outputNumbers = [
 ]; // Define your outputNumbers array
 const directionButtons = [
   '<button value="188" type="button" class="numberButton white"><</button>',
-  '<button value="54" type="button" class="numberButton white">^</button>',
+  '<button value="86" type="button" class="numberButton white">v</button>',
   '<button value="190" type="button" class="numberButton white">></button>',
 ];
 const hints = [
@@ -123,7 +123,7 @@ function setUpTable() {
       }
     } else if (
       !inputEnable &&
-      (keyCode === 188 || keyCode === 54 || keyCode === 190) // Comma (<), Caret (^), or Period (>)
+      (keyCode === 188 || keyCode === 86 || keyCode === 190) // Comma (<), Caret (v), or Period (>)
     ) {
       // Find the direction button with the corresponding value in leftDivision
       const directionButton = leftDivision.querySelector(
@@ -539,7 +539,7 @@ function levelWon() {
     if (gameMode === 3) {
       const sameOptions = [
         ["<", "any direction to next level"],
-        ["^", "any direction to next level"],
+        ["v", "any direction to next level"],
         [">", "any direction to next level"],
       ];
       sameOptions.forEach((rowContent) => {
@@ -559,7 +559,7 @@ function levelWon() {
       });
       const difficultyOptions = [
         ["<", "number of Colours +=2 (max 10)"],
-        ["^", "level of uncertainty +=1 (max 2)"],
+        ["v", "level of uncertainty +=1 (max 2)"],
         [">", "number of slots +=1 (max 6)"],
       ];
       difficultyOptions.forEach((rowContent) => {
@@ -573,15 +573,14 @@ function levelWon() {
         scrollToBottom(mainContainer);
       });
     }
-    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < directionButtons.length; i++) {
       const directionButton = slotsInLeftTemp[i].querySelector("button");
       // Add event listener to direction buttons
       directionButton.addEventListener("click", function () {
         const difficultyLeftCell = document.createElement("td");
         const difficultyRightCell = document.createElement("td");
         // Determine the next level based on the direction button clicked
-        if (directionButton.textContent === "^" || gameMode === 3) {
+        if (directionButton.textContent === "v" || gameMode === 3) {
           if (l_Uncertainty < 2) {
             l_Uncertainty++;
             difficultyLeftCell.textContent = `Level of uncertainty`;
@@ -711,6 +710,17 @@ function gameEnd(ifWin) {
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
     for (let i = 0; i < 3; i++) {
       slotsInLeftTemp[i].innerHTML = directionButtons[i];
+      // const directionButton = slotsInLeftTemp[i].querySelector("button");
+      // // Add event listener to direction buttons
+      // directionButton.addEventListener("click", function () {
+      //   // Determine the next level based on the direction button clicked
+      //   if (directionButton.textContent === "v") {
+      //     window.open("statistics.js", "_blank"); // Open the link in a new tab when the ">" button is clicked
+      //   } else if (directionButton.textContent === "<") {
+      //   } else if (directionButton.textContent === ">") {
+      //     window.open("https://hiretimothykwok.onrender.com/", "_blank"); // Open the link in a new tab when the ">" button is clicked
+      //   }
+      // });
     }
     levelMap.guesses = guesses;
     levelMap.wrongs = feedback.map((pair) => pair[0]);
@@ -722,7 +732,7 @@ function gameEnd(ifWin) {
   }
   gameEndRows.push(
     ["<(fake)", "view statistics to see how well you did"],
-    ["^(fake)", "share so others know how well you did"],
+    ["v(fake)", "share so others know how well you did"],
     [">(fake)", "view credit page"],
     [outputNumbers[3], "3 levels"],
     [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"],

@@ -23,7 +23,9 @@ initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
 let userIP;
-export { db, colRef, userIP, checkNSetCookie, getCookie };
+let cookieRejected = false;
+
+export { db, colRef, userIP, checkNSetCookie, getCookie, cookieRejected };
 
 function getCookie(name) {
   const nameEQ = name + "=";
@@ -31,7 +33,7 @@ function getCookie(name) {
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i].trim();
     if (c.indexOf(nameEQ) === 0) {
-      let d = c.substring(nameEQ.length, c.length);
+      const d = c.substring(nameEQ.length, c.length);
       userIP = d;
       return d; // Return the cookie value
     }

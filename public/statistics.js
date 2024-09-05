@@ -7,6 +7,9 @@ import {
   deleteDoc,
   onSnapshot, // Import onSnapshot for real-time updates
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
+// Import Firebase services
+// import { getCountFromServer } from "firebase/firestore";
+
 import { colRef, userIP, checkNSetCookie, getCookie } from "./index.js";
 
 // Get a reference to the "RemoveFake" button
@@ -125,19 +128,24 @@ try {
 } catch (error) {
   console.log("User's IP address not found"); // Handle the error gracefully
 }
-const realTimeCounts = Array(queries.length).fill(0); // Define an object to store the real-time counts
-const unsubscribeFunctions = []; // Create an array to store the unsubscribe functions
+const realTimeCounts = []; // Define an object to store the real-time counts
 
-// Loop through the queries and attach onSnapshot listeners
-queries.forEach((query, index) => {
-  const unsubscribe = onSnapshot(query, (snapshot) => {
-    realTimeCounts[index] = snapshot.size;
-    // updateCountDisplay(realTimeCounts);
-  });
-  unsubscribeFunctions.push(unsubscribe);
+async function getCountsForQueries(queries) {
+  try {
+    const countPromises = queries.map((query) => getCountFromServer(query)); // Map over queries and get count promises
+    const counts = await Promise.all(countPromises); // Resolve all promises
+    return counts.map((countResult) => countResult.data().count); // Extract the count values from the results
+  } catch (error) {
+    console.error("Error getting counts:", error);
+    return []; // Return an empty array in case of error
+  }
+}
+
+// Usage example:
+getCountsForQueries(queries).then((counts) => {
+  updateCountDisplay(counts);
+  // This will be an array of counts corresponding to your queries
 });
-
-updateCountDisplay(realTimeCounts);
 
 // Helper function to update the count display
 function updateCountDisplay(realTimeCounts) {
