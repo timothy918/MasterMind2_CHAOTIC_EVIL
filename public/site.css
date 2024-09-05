@@ -80,7 +80,7 @@ body {
   justify-content: center;
   width: 60px;
   height: 60px;
-  border: 1px solid black;
+  border: 1px solid white;
 }
 .temp {
   display: flex;
@@ -95,7 +95,7 @@ body {
 }
 /* Add styles for current target slot */
 .slot.current {
-  border: 1px solid red;
+  border: 1px solid lime;
 }
 main {
   overflow-y: auto; /* Use 'auto' to display scrollbar only when needed */
@@ -108,7 +108,7 @@ main.dashboard {
 }
 td,
 th {
-  border: 1px dashed black;
+  border: 1px dashed white;
   vertical-align: bottom;
 }
 td:first-child {
