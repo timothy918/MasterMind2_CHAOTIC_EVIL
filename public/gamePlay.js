@@ -270,8 +270,28 @@ function setUpTable() {
     }
   });
 }
+function handleRecommendationButton(event) {
+  const target = event.target; // Get the clicked element
+  // Check if the clicked element is a button
+  if (target.tagName === "BUTTON") {
+    const directionButton = target; // The clicked button
+    // Determine the next level based on the direction button clicked
+    switch (directionButton.textContent) {
+      case "<":
+        window.open("statistics.html", "_blank"); // Open the link in a new tab when the ">" button is clicked
+        break;
+      case "v":
+        break;
+      case ">":
+        window.open("https://hiretimothykwok.onrender.com/", "_blank"); // Open the link in a new tab when the ">" button is clicked
+        break;
+    }
+  }
+}
 // Function for Game mode buttons
 function selectGameMode(game_Mode) {
+  leftDivision.removeEventListener("click", handleRecommendationButton); // Add the event listener
+
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
     if (buttonValue == "3" || buttonValue == "7") {
@@ -583,12 +603,16 @@ function levelWon() {
       thridRow.appendChild(difficultyRightCell);
       outputTable.appendChild(thridRow); // Append the new row to the output table
       scrollToBottom(mainContainer);
+      leftDivision.removeEventListener("click", handleDirectionButtonClick); // Later, if you need to remove the event listener
       levelStart(); // Call the levelStart() function to set up the next level
     }
-    for (let i = 0; i < directionButtons.length; i++) {
-      const directionButton = slotsInLeftTemp[i].querySelector("button");
-      // Add event listener to direction buttons
-      directionButton.addEventListener("click", function () {
+    // Define the event listener function
+    function handleDirectionButtonClick(event) {
+      const target = event.target; // Get the clicked element
+      // Check if the clicked element is a button
+      if (target.tagName === "BUTTON") {
+        const directionButton = target; // The clicked button
+
         // Determine the next level based on the direction button clicked
         if (directionButton.textContent === "v" || gameMode === 3) {
           if (l_Uncertainty < 2) {
@@ -616,8 +640,9 @@ function levelWon() {
             vaildDirectionButtonClick();
           }
         }
-      });
+      }
     }
+    leftDivision.addEventListener("click", handleDirectionButtonClick); // Add the event listener
   }
 }
 function gameEnd(ifWin) {
@@ -680,19 +705,8 @@ function gameEnd(ifWin) {
       [answerString, `correct answer`],
     ];
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < directionButtons.length; i++) {
       slotsInLeftTemp[i].innerHTML = directionButtons[i];
-      // const directionButton = slotsInLeftTemp[i].querySelector("button");
-      // // Add event listener to direction buttons
-      // directionButton.addEventListener("click", function () {
-      //   // Determine the next level based on the direction button clicked
-      //   if (directionButton.textContent === "v") {
-      //     window.open("statistics.js", "_blank"); // Open the link in a new tab when the ">" button is clicked
-      //   } else if (directionButton.textContent === "<") {
-      //   } else if (directionButton.textContent === ">") {
-      //     window.open("https://hiretimothykwok.onrender.com/", "_blank"); // Open the link in a new tab when the ">" button is clicked
-      //   }
-      // });
     }
     levelMap.guesses = guesses;
     levelMap.wrongs = feedback.map((pair) => pair[0]);
@@ -703,12 +717,12 @@ function gameEnd(ifWin) {
     console.log("Game doc updated in FireStore");
   }
   gameEndRows.push(
-    ["<(fake)", "view statistics to see how well you did"],
+    ["<", "view statistics to see how well you did"],
     ["v(fake)", "share so others know how well you did"],
-    [">(fake)", "view credit page"],
+    [">", "view credit page"],
     [outputNumbers[3], "3 levels"],
     [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"],
-    [`${outputNumbers[9]}(fake)`, "2+7 (random out of 45 possible) levels"]
+    [`${outputNumbers[9]}(fake)`, "2+7 (random out of 43 possible) levels"]
   );
   gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
@@ -720,6 +734,8 @@ function gameEnd(ifWin) {
     outputTable.appendChild(newRow);
     scrollToBottom(mainContainer);
   });
+  leftDivision.addEventListener("click", handleRecommendationButton); // Add the event listener
+
   updateDoc(docRef, { levels: levelsArray });
   console.log("Game doc updated in FireStore");
   gameMode = null;
