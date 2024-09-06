@@ -96,7 +96,7 @@ body {
 }
 /* Add styles for current target slot */
 .slot.current {
-  border: 1px solid lime;
+  border: 2px solid lime;
 }
 main {
   overflow-y: auto; /* Use 'auto' to display scrollbar only when needed */

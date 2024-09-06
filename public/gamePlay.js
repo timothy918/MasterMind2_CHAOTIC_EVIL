@@ -384,24 +384,31 @@ function updateSlotBorders() {
     slot.classList.toggle("current", index === currentIndex);
   });
 }
-// Function to handle button clicks in inputContainer
 function handleInputButtonClick(event) {
   const clickedButton = event.target;
-  if (inputEnable) {
-    const buttonClone = clickedButton.cloneNode(true);
-    const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex]; // Get the current target slot
-
-    // If the slot is empty, append the button clone; otherwise, replace the existing button
-    if (currentSlot.children.length === 0) {
-      currentSlot.appendChild(buttonClone);
-    } else {
-      currentSlot.removeChild(currentSlot.firstChild);
-      currentSlot.appendChild(buttonClone);
-    }
-    currentIndex = (currentIndex + 1) % n_Slots; // Increment the currentIndex and loop back to the first slot
-    updateSlotBorders(); // Update slot borders based on currentIndex
-  }
+  if (!inputEnable) return;
+  const buttonClone = clickedButton.cloneNode(true);
+  const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
+  // Replace existing button or append the clone if the slot is empty
+  currentSlot.innerHTML = ""; // Clear the current slot content (if any)
+  currentSlot.appendChild(buttonClone);
+  // Move to the next available empty slot or loop back if all are filled
+  currentIndex = findNextEmptySlot();
+  updateSlotBorders(); // Update the slot borders based on the new currentIndex
 }
+function findNextEmptySlot() {
+  const slots = Array.from(leftDivision.querySelectorAll(".slot"));
+  // Search for the next empty slot starting from the currentIndex + 1
+  for (let i = currentIndex + 1; i < slots.length; i++) {
+    if (!slots[i].children.length) return i;
+  }
+  // Search from the beginning if no empty slot was found after currentIndex
+  for (let i = 0; i < currentIndex; i++) {
+    if (!slots[i].children.length) return i;
+  }
+  return (currentIndex + 1) % n_Slots; // Increment the currentIndex and loop back to the first slot
+}
+
 function levelStart() {
   updateHeaderTitle();
   availableHints = [...hints];

@@ -6,9 +6,8 @@ import {
   where,
   deleteDoc,
   onSnapshot, // Import onSnapshot for real-time updates
-} from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-// Import Firebase services
-// import { getCountFromServer } from "firebase/firestore";
+  getCountFromServer,
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
 import { colRef, userIP, checkNSetCookie, getCookie } from "./index.js";
 
