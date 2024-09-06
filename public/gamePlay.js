@@ -392,8 +392,7 @@ function handleInputButtonClick(event) {
   // Replace existing button or append the clone if the slot is empty
   currentSlot.innerHTML = ""; // Clear the current slot content (if any)
   currentSlot.appendChild(buttonClone);
-  // Move to the next available empty slot or loop back if all are filled
-  currentIndex = findNextEmptySlot();
+  currentIndex = findNextEmptySlot(); // Move to the next available empty slot
   updateSlotBorders(); // Update the slot borders based on the new currentIndex
 }
 function findNextEmptySlot() {
@@ -832,7 +831,11 @@ async function searchBest(isPublic = true, userIP = null) {
     const lastTimestamp = new Timestamp(lastDuration, 0);
 
     // Build the query based on whether it's a public check or personal best
-    let q = query(colRef, where("dateTime", ">=", lastTimestamp));
+    let q = query(
+      colRef,
+      where("isReal", "==", true),
+      where("dateTime", ">=", lastTimestamp)
+    );
     if (!isPublic && userIP) {
       q = query(q, where("ipAddress", "==", userIP));
     }
