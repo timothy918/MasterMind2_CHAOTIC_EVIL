@@ -9,7 +9,14 @@ import {
   orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import { db, colRef, checkNSetCookie, userIP } from "./index.js";
+import {
+  db,
+  colRef,
+  checkNSetCookie,
+  userIP,
+  timeframes,
+  cookieRejected,
+} from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -65,7 +72,6 @@ let l_Uncertainty = 0;
 let availableHints = [];
 let levelsArray = [];
 let guesses = [];
-let cookieRejected = false;
 // let elapsedTimeList = []; // List to store elapsed times
 let startTime, // Variable to store the start time of the level
   n_Slots,
@@ -94,19 +100,9 @@ const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
 document.addEventListener("DOMContentLoaded", setUpTable);
 
-// Define timeframes in seconds
-const timeframes = [
-  { label: "all time", duration: Infinity },
-  { label: "yearly", duration: 31557600 }, // 1 year (365.25 days)
-  { label: "quarterly", duration: 7889400 }, // 3 months (approx.)
-  { label: "monthly", duration: 2629800 }, // 1 month (approx.)
-  { label: "weekly", duration: 604800 }, // 7 days
-  { label: "daily", duration: 86400 }, // 24 hours
-  { label: "hourly", duration: 3600 }, // 24 hours
-];
 checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
-if (userIP !== "Anonymous" && !cookieRejected) {
+if (!cookieRejected) {
   personalBest = await searchBest(false, userIP); // For personal best check
 }
 
@@ -813,23 +809,19 @@ function checkLevelsArray(levelMap) {
     levelsArray.push(levelMap); // If not found, push levelMap to levelsArray
   }
 }
-
 async function searchBest(isPublic = true, userIP = null) {
   const results = [];
   const now = Timestamp.now();
   let lastRecordHold = null;
-
   for (const timeframe of timeframes) {
     // If the record hold is less than the current timeframe duration, skip the loop
     if (lastRecordHold !== null && lastRecordHold <= timeframe.duration) {
       results.push(results[results.length - 1]); // Push the last result since it's the same record
       continue;
     }
-
     const lastDuration =
       timeframe.duration === Infinity ? 0 : now.seconds - timeframe.duration;
     const lastTimestamp = new Timestamp(lastDuration, 0);
-
     // Build the query based on whether it's a public check or personal best
     let q = query(
       colRef,
@@ -839,10 +831,8 @@ async function searchBest(isPublic = true, userIP = null) {
     if (!isPublic && userIP) {
       q = query(q, where("ipAddress", "==", userIP));
     }
-
     try {
       const querySnapshot = await getDocs(q); // Execute the query
-
       if (!querySnapshot.empty) {
         const sortedQ = querySnapshot.docs // Extract data and sort the results manually
           .map((doc) => doc.data())
@@ -851,14 +841,12 @@ async function searchBest(isPublic = true, userIP = null) {
               ? b.resultScore - a.resultScore
               : a.secondsPerLevel - b.secondsPerLevel
           );
-
         // Get the highest score and lowest secondsPerLevel from the first document
         const data = sortedQ[0];
         const highestScore = data.resultScore;
         const lowestSecondsPerLevel =
           data.secondsPerLevel !== undefined ? data.secondsPerLevel : null;
         lastRecordHold = now.seconds - data.dateTime.seconds; // Calculate record hold in seconds
-
         results.push([highestScore, lowestSecondsPerLevel]);
       } else {
         results.push([null, null]); // No documents found within the timeframe
@@ -873,7 +861,6 @@ async function searchBest(isPublic = true, userIP = null) {
   console.log("Results:", isPublic ? "Public" : `for IP ${userIP}`, results);
   return results; // Return a two-dimensional array with results for each timeframe
 }
-
 function checkBest(chanceRemaining, aveElapsedTime, bestResults, isPublic) {
   for (let i = 0; i < bestResults.length; i++) {
     const [highestScore, lowestSecondsPerLevel] = bestResults[i];

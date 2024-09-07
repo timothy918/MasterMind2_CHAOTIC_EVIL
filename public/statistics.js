@@ -6,10 +6,10 @@ import {
   where,
   deleteDoc,
   onSnapshot, // Import onSnapshot for real-time updates
-  getCountFromServer,
-} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+  // getCountFromServer,
+} from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
-import { colRef, userIP, checkNSetCookie, getCookie } from "./index.js";
+import { colRef, checkNSetCookie, getCookie } from "./index.js";
 
 // Get a reference to the "RemoveFake" button
 document.getElementById("RemoveFake").addEventListener("click", async () => {
@@ -33,7 +33,7 @@ document.getElementById("RemoveFake").addEventListener("click", async () => {
   }
 });
 
-document.getElementById("Generate").addEventListener("click", function () {
+document.getElementById("Fabricate").addEventListener("click", function () {
   var n_Games = document.getElementById("n_Games");
   generateFakeData(n_Games.value);
 });
@@ -72,7 +72,6 @@ function generateFakeData(n_Games) {
         let right = Math.ceil(Math.random() * (n_Slots - wrong));
         wrongs.push(wrong);
         rights.push(right);
-        console.log(gameDoc.gameMode, level, chanceRemaining);
         if (right === n_Slots) {
           chanceRemaining--;
           break;
@@ -102,75 +101,65 @@ function generateFakeData(n_Games) {
     addDoc(colRef, gameDoc); //Add the fake game document to the collection
   } //end of game
 }
-
-const populationTable = document.getElementById("population");
-// Define queries to filter documents for gameMode 3 and gameMode 7
-const gameMode3Query = query(colRef, where("gameMode", "==", 3));
-const gameMode7Query = query(colRef, where("gameMode", "==", 7));
-// Define queries to filter documents where isReal is true
-const fake3Query = query(gameMode3Query, where("isReal", "==", true));
-const fake7Query = query(gameMode7Query, where("isReal", "==", true));
-const queries = [gameMode3Query, gameMode7Query, fake3Query, fake7Query]; // Create an array of queries
-try {
-  getCookie("MasterMind2playerID");
-  const selfReal3Query = query(
-    gameMode3Query,
-    where("isReal", "==", true),
-    where("ipAddress", "==", userIP)
-  );
-  const selfReal7Query = query(
-    gameMode7Query,
-    where("isReal", "==", true),
-    where("ipAddress", "==", userIP)
-  );
-  queries.push(selfReal3Query, selfReal7Query);
-} catch (error) {
-  console.log("User's IP address not found"); // Handle the error gracefully
-}
-const realTimeCounts = []; // Define an object to store the real-time counts
-
-async function getCountsForQueries(queries) {
+let userIP;
+const queries = getQueries(); // Define an array of queries
+const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
+attachQueryListeners(queries, realTimeCounts); // Loop through the queries and attach onSnapshot listeners
+// Function to define and return queries
+function getQueries() {
+  const baseQueries = [
+    query(colRef, where("gameMode", "==", 3)), // GameMode 3
+    query(colRef, where("gameMode", "==", 7)), // GameMode 7
+    query(
+      query(colRef, where("gameMode", "==", 3)),
+      where("isReal", "==", true)
+    ), // Real GameMode 3
+    query(
+      query(colRef, where("gameMode", "==", 7)),
+      where("isReal", "==", true)
+    ), // Real GameMode 7
+  ];
   try {
-    const countPromises = queries.map((query) => getCountFromServer(query)); // Map over queries and get count promises
-    const counts = await Promise.all(countPromises); // Resolve all promises
-    return counts.map((countResult) => countResult.data().count); // Extract the count values from the results
+    // Try to get the player's IP address and create personalized queries
+    userIP = getCookie("MasterMind2playerID");
+    const personalizedQueries = [
+      query(baseQueries[2], where("ipAddress", "==", userIP)), // Personal Real GameMode 3
+      query(baseQueries[3], where("ipAddress", "==", userIP)), // Personal Real GameMode 7
+    ];
+    return [...baseQueries, ...personalizedQueries]; // Return both base and personalized queries
   } catch (error) {
-    console.error("Error getting counts:", error);
-    return []; // Return an empty array in case of error
+    console.log("User's IP address not found");
+    return baseQueries; // Return only base queries if no user IP
   }
 }
-
-// Usage example:
-getCountsForQueries(queries).then((counts) => {
-  updateCountDisplay(counts);
-  // This will be an array of counts corresponding to your queries
-});
-
-// Helper function to update the count display
-function updateCountDisplay(realTimeCounts) {
-  let populationRows = [
-    [
-      `3`,
-      realTimeCounts[4],
-      realTimeCounts[2] - realTimeCounts[4],
-      realTimeCounts[0] - realTimeCounts[2],
-      realTimeCounts[0],
-    ],
-    [
-      `7`,
-      realTimeCounts[5],
-      realTimeCounts[3] - realTimeCounts[5],
-      realTimeCounts[1] - realTimeCounts[3],
-      realTimeCounts[1],
-    ],
-  ];
-  populationRows.forEach((rowContent) => {
-    const newRow = document.createElement("tr");
-    rowContent.forEach((cellContent) => {
-      const cell = document.createElement("td");
-      cell.innerHTML = cellContent;
-      newRow.appendChild(cell);
+// Function to attach onSnapshot listeners
+function attachQueryListeners(queries, realTimeCounts) {
+  queries.forEach((query, index) => {
+    const unsubscribe = onSnapshot(query, (snapshot) => {
+      realTimeCounts[index] = snapshot.size;
+      updateCountDisplay(realTimeCounts);
     });
-    populationTable.appendChild(newRow);
+    // You can store the unsubscribe function if you need it later
   });
+}
+// Function to update the table display
+function updateCountDisplay(realTimeCounts) {
+  const table = document.getElementById("population");
+  const gameMode3Row = table.rows[2]; // Row for GameMode 3
+  gameMode3Row.cells[3].textContent = realTimeCounts[0] - realTimeCounts[2]; // Fake = all - real count
+  gameMode3Row.cells[4].textContent = realTimeCounts[0]; // Total count
+  const gameMode7Row = table.rows[3]; // Row for GameMode 7
+  gameMode7Row.cells[3].textContent = realTimeCounts[1] - realTimeCounts[3]; // Fake = all - real count
+  gameMode7Row.cells[4].textContent = realTimeCounts[1]; // Total count
+  if (userIP) {
+    gameMode3Row.cells[1].textContent = realTimeCounts[4]; // "yours" real count
+    gameMode3Row.cells[2].textContent = realTimeCounts[2] - realTimeCounts[4]; // others = real- yours count
+    gameMode7Row.cells[1].textContent = realTimeCounts[5]; // "yours" real count
+    gameMode7Row.cells[2].textContent = realTimeCounts[3] - realTimeCounts[5]; // others = real- yours count
+  } else {
+    gameMode3Row.cells[1].textContent = "NaN"; // "yours" real count
+    gameMode3Row.cells[2].textContent = realTimeCounts[2]; // others = real
+    gameMode7Row.cells[1].textContent = "NaN"; // "yours" real count
+    gameMode7Row.cells[2].textContent = realTimeCounts[3]; // others = real
+  }
 }

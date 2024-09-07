@@ -25,7 +25,15 @@ const colRef = collection(db, "GamesPlayed");
 let userIP;
 let cookieRejected = false;
 
-export { db, colRef, userIP, checkNSetCookie, getCookie, cookieRejected };
+export {
+  db,
+  colRef,
+  userIP,
+  checkNSetCookie,
+  getCookie,
+  cookieRejected,
+  timeframes,
+};
 
 function getCookie(name) {
   const nameEQ = name + "=";
@@ -55,7 +63,6 @@ async function checkNSetCookie() {
     while (customPlayerID) {
       let q = query(colRef, where("ipAddress", "==", customPlayerID));
       const querySnapshot = await getDocs(q); // Execute the query
-
       if (querySnapshot.empty && customPlayerID.length <= maxLength) {
         // Set the cookie with the custom player ID
         document.cookie = `MasterMind2playerID=${customPlayerID}; expires=${expiryDate.toUTCString()}; path=/`;
@@ -66,6 +73,7 @@ async function checkNSetCookie() {
           expiryDate
         );
         playerID = customPlayerID;
+        cookieRejected = false;
         break; // Exit the loop if the ID is successfully set
       } else {
         customPlayerID = prompt(
@@ -73,11 +81,21 @@ async function checkNSetCookie() {
         );
       }
     }
-    cookieRejected = true;
-    userIP = data.ip; // Save the user's IP to the variable
+    userIP = "Anonymous"; // Save the user's IP to the variable
   } else {
+    cookieRejected = false;
     // If the cookie already exists, update its expiration date
     document.cookie = `MasterMind2playerID=${playerID}; expires=${expiryDate.toUTCString()}; path=/`;
     console.log("Player ID:", playerID, "updated to expire at", expiryDate);
   }
 }
+// Define timeframes in seconds
+const timeframes = [
+  { label: "all time", duration: Infinity },
+  { label: "yearly", duration: 31557600 }, // 1 year (365.25 days)
+  { label: "quarterly", duration: 7889400 }, // 3 months (approx.)
+  { label: "monthly", duration: 2629800 }, // 1 month (approx.)
+  { label: "weekly", duration: 604800 }, // 7 days
+  { label: "daily", duration: 86400 }, // 24 hours
+  { label: "hourly", duration: 3600 }, // 24 hours
+];
