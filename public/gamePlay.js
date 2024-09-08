@@ -307,15 +307,16 @@ function selectGameMode(game_Mode) {
     dateTime: serverTimestamp(),
     resultScore: -game_Mode,
   }; // Create an empty JavaScript object to represent the Firestore document
-  addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
-    .then((x) => {
-      console.log("Game doc (", x.id, ") created");
-      docRef = doc(db, "GamesPlayed", x.id);
-    })
-    .catch((error) => {
-      console.error("Error writing document: ", error);
-    });
-
+  try {
+    addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
+      .then((x) => {
+        console.log("Game doc (", x.id, ") created");
+        docRef = doc(db, "GamesPlayed", x.id);
+      })
+      .catch((error) => {
+        console.error("Error writing document: ", error);
+      });
+  } catch {}
   updateEnterButton();
   // Remove buttons from slots
   Array.from(leftDivision.querySelectorAll(".slot button")).forEach((button) =>
@@ -666,29 +667,35 @@ function gameEnd(ifWin) {
         ).toFixed(3)} seconds`,
       ],
     ];
-    let congratulations = checkBest(
-      chanceRemaining,
-      aveElapsedTime,
-      publicBest,
-      true
-    );
-    if (congratulations) {
-      gameEndRows.push(congratulations);
-    }
-    if (personalBest) {
-      congratulations = checkBest(
+    if (publicBest) {
+      let congratulations = checkBest(
         chanceRemaining,
         aveElapsedTime,
-        personalBest,
-        false
+        publicBest,
+        true
       );
       if (congratulations) {
         gameEndRows.push(congratulations);
       }
+      if (personalBest) {
+        congratulations = checkBest(
+          chanceRemaining,
+          aveElapsedTime,
+          personalBest,
+          false
+        );
+        if (congratulations) {
+          gameEndRows.push(congratulations);
+        }
+      }
+    } else {
+      gameEndRows.push("Sorry", "records reading not available.");
     }
-    updateDoc(docRef, { resultScore: chanceRemaining });
-    updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
-    console.log("Game doc updated in FireStore");
+    try {
+      updateDoc(docRef, { resultScore: chanceRemaining });
+      updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
+      console.log("Game doc updated in FireStore");
+    } catch {}
   } else {
     const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
     // Loop through the <span> elements and add the rightHint class
@@ -714,17 +721,18 @@ function gameEnd(ifWin) {
     levelMap.wrongs = feedback.map((pair) => pair[0]);
     levelMap.rights = feedback.map((pair) => pair[1]);
     checkLevelsArray(levelMap);
-    updateDoc(docRef, { levels: levelsArray });
-    updateDoc(docRef, { resultScore: level - gameMode - 1 });
-    console.log("Game doc updated in FireStore");
+    try {
+      updateDoc(docRef, { levels: levelsArray });
+      updateDoc(docRef, { resultScore: level - gameMode - 1 });
+      console.log("Game doc updated in FireStore");
+    } catch {}
   }
   gameEndRows.push(
     ["<", "view statistics to see how well you did"],
     ["v(fake)", "share so others know how well you did"],
     [">", "view credit page"],
     [outputNumbers[3], "3 levels"],
-    [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"],
-    [`${outputNumbers[9]}(fake)`, "2+7 (random out of 43 possible) levels"]
+    [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
   );
   gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
@@ -737,9 +745,10 @@ function gameEnd(ifWin) {
     scrollToBottom(mainContainer);
   });
   leftDivision.addEventListener("click", handleRecommendationButton); // Add the event listener
-
-  updateDoc(docRef, { levels: levelsArray });
-  console.log("Game doc updated in FireStore");
+  try {
+    updateDoc(docRef, { levels: levelsArray });
+    console.log("Game doc updated in FireStore");
+  } catch {}
   gameMode = null;
   resetGameModeButton();
 }
@@ -757,12 +766,11 @@ function resetGameModeButton() {
   });
 }
 
-let confirmUnload = true;
 window.addEventListener("beforeunload", handleBeforeUnload); // Add the event listener for beforeunload
 // Function to handle the beforeunload event
 function handleBeforeUnload(e) {
   gameStopped();
-  if (gameMode && confirmUnload) {
+  if (gameMode) {
     e.preventDefault(); // This line prevents the default behavior, which shows the dialog
     e.returnValue =
       "You have an unfinished game. Are you sure you want to leave?";
@@ -776,9 +784,11 @@ async function gameStopped() {
     levelMap.wrongs = feedback.map((pair) => pair[0]);
     levelMap.rights = feedback.map((pair) => pair[1]);
     checkLevelsArray(levelMap);
-    updateDoc(docRef, { levels: levelsArray });
-    updateDoc(docRef, { resultScore: level - gameMode - 1 });
-    console.log("Game doc updated in FireStore");
+    try {
+      updateDoc(docRef, { levels: levelsArray });
+      updateDoc(docRef, { resultScore: level - gameMode - 1 });
+      console.log("Game doc updated in FireStore");
+    } catch {}
   }
 }
 questionButton.addEventListener("mousedown", function () {
