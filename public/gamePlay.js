@@ -88,7 +88,8 @@ let startTime, // Variable to store the start time of the level
   docRef,
   gameDoc,
   publicBest,
-  personalBest;
+  personalBest,
+  ifWinFlag;
 const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 const inputContainer = document.getElementById("inputContainer");
 const leftDivision = document.querySelector(".left_temp");
@@ -241,7 +242,7 @@ function setUpTable() {
           scrollToBottom(mainContainer);
           // Check if remaining chances are zero and display "You lose"
           if (chanceRemaining === 0) {
-            gameEnd(0);
+            gameEnd(false);
             return;
           }
         }
@@ -266,7 +267,7 @@ function setUpTable() {
     }
   });
 }
-function handleRecommendationButton(event) {
+function handleRecommendations(event) {
   const target = event.target; // Get the clicked element
   if (target.tagName !== "BUTTON") return; // Ensure the clicked element is a button
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
@@ -284,6 +285,7 @@ function handleRecommendationButton(event) {
         })
         .catch((error) => {
           console.error("Failed to copy text: ", error); // Handle the error, if any
+          alert("Failed to copy content. Please try again.");
         });
       slotsInLeftTemp[1].append(target);
       break;
@@ -295,17 +297,19 @@ function handleRecommendationButton(event) {
 }
 // Optimized getShareContent function
 function getShareContent() {
-  let shareContent = "https://MasterMind2-Chaotic-Evil.web.app/";
+  let shareContent = "https://MasterMind2-Chaotic-Evil.web.app/\n";
   const rows = outputTable.rows;
-  const lastRow = rows.length - gameEndRows.length;
-  const firstRow = lastRow - levelMap.guesses.length;
-  let lastLevelRows = Array.from(rows).slice(firstRow, lastRow); // Get the rows for the last level
+  const lastIndex = rows.length - gameEndRows.length;
+  const firstIndex = lastRow - levelMap.guesses.length;
+  let lastLevelRows = Array.from(rows).slice(firstIndex, lastIndex); // Get the rows for the last level
   const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Update the last row's right cell content
-  lastRowInLastLevel.cells[1].textContent = `I cracked ${
-    levelMap.level
-  } levels using ${
-    16 + levelMap.level * (levelMap.level - 1) - chanceRemaining
-  } chances`;
+  if (ifWinFlag) {
+    lastRowInLastLevel.cells[1].textContent = `I cracked ${level} levels using ${
+      16 + level * (level - 1) - chanceRemaining
+    } chances.`;
+  } else {
+    lastRowInLastLevel.cells[1].textContent = `I ran out of chance at ${levelMap.level.ordinalize} level, avenge me!`;
+  }
   shareContent += lastLevelRows // Build share content from rows
     .map((row) =>
       Array.from(row.cells)
@@ -324,8 +328,7 @@ function getShareContent() {
 
 // Function for Game mode buttons
 function selectGameMode(game_Mode) {
-  leftDivision.removeEventListener("click", handleRecommendationButton); // Add the event listener
-
+  leftDivision.removeEventListener("click", handleRecommendations);
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
     if (buttonValue == "3" || buttonValue == "7") {
@@ -402,7 +405,6 @@ function updateHeaderTitle() {
     .then((data) => {
       const lines = data.split("\n");
       let selectedLines = [];
-
       switch (l_Uncertainty) {
         case 0:
           selectedLines = lines.slice(1, 7); // Lines 2 to 7
@@ -579,7 +581,7 @@ function levelWon() {
     slotsInLeftTemp[i].innerHTML = directionButtons[i];
   }
   if (level === gameMode) {
-    gameEnd(1);
+    gameEnd(true);
   } else {
     if (gameMode === 3) {
       const sameOptions = [
@@ -698,6 +700,7 @@ function levelWon() {
 }
 let gameEndRows; // Add additional rows
 function gameEnd(ifWin) {
+  ifWinFlag = ifWin;
   gameEndRows = null; // Add additional rows
   if (ifWin) {
     // Calculate the sum of elapsed times
@@ -707,7 +710,7 @@ function gameEnd(ifWin) {
       }, 0) / 1000; // Convert to seconds
     let aveElapsedTime = sumElapsedTime / gameMode;
     gameEndRows = [
-      [`You win!`, `you cracked ${gameMode} levels`],
+      [`You win!`, `you complete ${gameMode} levels.`],
       [`Remaining chance(s)`, `${chanceRemaining}`],
       [
         `Time used`,
@@ -761,7 +764,10 @@ function gameEnd(ifWin) {
       }
     }
     gameEndRows = [
-      ["You lose!", `at ${level} out of ${gameMode} levels`],
+      [
+        "You lose!",
+        `use up chance at ${level.ordinalize} out of ${gameMode} levels.`,
+      ],
       [answerString, `correct answer`],
     ];
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
@@ -797,7 +803,7 @@ function gameEnd(ifWin) {
     outputTable.appendChild(newRow);
     scrollToBottom(mainContainer);
   });
-  leftDivision.addEventListener("click", handleRecommendationButton); // Add the event listener
+  leftDivision.addEventListener("click", handleRecommendations); // Add the event listener
   try {
     updateDoc(docRef, { levels: levelsArray });
     console.log("Game doc updated in FireStore");
