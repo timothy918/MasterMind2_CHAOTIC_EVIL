@@ -281,7 +281,7 @@ function handleRecommendations(event) {
       navigator.clipboard // Copy the content to the clipboard
         .writeText(shareContent)
         .then(() => {
-          alert("Share content copied to clipboard!"); // Show an alert when the content is successfully copied
+          alert("Share content copied to clipboard!"); // Show an alert message
         })
         .catch((error) => {
           console.error("Failed to copy text: ", error); // Handle the error, if any
@@ -300,9 +300,11 @@ function getShareContent() {
   let shareContent = "https://MasterMind2-Chaotic-Evil.web.app/\n";
   const rows = outputTable.rows;
   const lastIndex = rows.length - gameEndRows.length;
-  const firstIndex = lastRow - levelMap.guesses.length;
-  let lastLevelRows = Array.from(rows).slice(firstIndex, lastIndex); // Get the rows for the last level
-  const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Update the last row's right cell content
+  const firstIndex = lastIndex - levelMap.guesses.length;
+  let lastLevelRows = Array.from(rows) // Clone the rows for the last level without altering the original table content
+    .slice(firstIndex, lastIndex)
+    .map((row) => row.cloneNode(true)); // Clone each row to avoid modifying the original table  const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Update the last row's right cell content
+  const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Access the last row in the cloned rows
   if (ifWinFlag) {
     lastRowInLastLevel.cells[1].textContent = `I cracked ${level} levels using ${
       16 + level * (level - 1) - chanceRemaining
