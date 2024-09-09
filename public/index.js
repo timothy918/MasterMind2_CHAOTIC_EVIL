@@ -23,7 +23,7 @@ initializeApp(firebaseConfig); // init firebase
 const db = getFirestore(); // Initialize Firebase
 const colRef = collection(db, "GamesPlayed");
 let userIP;
-let cookieRejected = false;
+let cookieAccepted = false;
 
 export {
   db,
@@ -31,7 +31,7 @@ export {
   userIP,
   checkNSetCookie,
   getCookie,
-  cookieRejected,
+  cookieAccepted,
   timeframes,
 };
 
@@ -50,7 +50,7 @@ function getCookie(name) {
 }
 
 async function checkNSetCookie() {
-  const playerID = getCookie("MasterMind2playerID");
+  let playerID = getCookie("MasterMind2playerID");
   const expiryDate = new Date(); // Set the expiration date to 400 days from now
   expiryDate.setDate(expiryDate.getDate() + 400); // Add 400 days
   const maxLength = 20; // Set a maximum length for the player ID
@@ -73,7 +73,7 @@ async function checkNSetCookie() {
           expiryDate
         );
         playerID = customPlayerID;
-        cookieRejected = false;
+        cookieAccepted = true;
         break; // Exit the loop if the ID is successfully set
       } else {
         customPlayerID = prompt(
@@ -83,8 +83,8 @@ async function checkNSetCookie() {
     }
     userIP = "Anonymous"; // Save the user's IP to the variable
   } else {
-    cookieRejected = false;
     // If the cookie already exists, update its expiration date
+    cookieAccepted = true;
     document.cookie = `MasterMind2playerID=${playerID}; expires=${expiryDate.toUTCString()}; path=/`;
     console.log("Player ID:", playerID, "updated to expire at", expiryDate);
   }

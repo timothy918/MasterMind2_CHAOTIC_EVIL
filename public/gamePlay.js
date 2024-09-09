@@ -15,7 +15,7 @@ import {
   checkNSetCookie,
   userIP,
   timeframes,
-  cookieRejected,
+  cookieAccepted,
 } from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", setUpTable);
 
 checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
-if (!cookieRejected) {
+if (cookieAccepted && userIP !== "Anonymous") {
   personalBest = await searchBest(false, userIP); // For personal best check
 }
 
@@ -268,22 +268,60 @@ function setUpTable() {
 }
 function handleRecommendationButton(event) {
   const target = event.target; // Get the clicked element
-  // Check if the clicked element is a button
-  if (target.tagName === "BUTTON") {
-    const directionButton = target; // The clicked button
-    // Determine the next level based on the direction button clicked
-    switch (directionButton.textContent) {
-      case "<":
-        window.open("statistics.html", "_blank"); // Open the link in a new tab when the ">" button is clicked
-        break;
-      case "v":
-        break;
-      case ">":
-        window.open("https://hiretimothykwok.onrender.com/", "_blank"); // Open the link in a new tab when the ">" button is clicked
-        break;
-    }
+  if (target.tagName !== "BUTTON") return; // Ensure the clicked element is a button
+  const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
+  const shareContent = getShareContent(); // Pre-fetch share content (if needed)
+  switch (target.textContent) {
+    case "<":
+      window.open("statistics.html", "_blank"); // Open the link in a new tab when the ">" button is clicked
+      slotsInLeftTemp[0].append(target);
+      break;
+    case "v":
+      navigator.clipboard // Copy the content to the clipboard
+        .writeText(shareContent)
+        .then(() => {
+          alert("Share content copied to clipboard!"); // Show an alert when the content is successfully copied
+        })
+        .catch((error) => {
+          console.error("Failed to copy text: ", error); // Handle the error, if any
+        });
+      slotsInLeftTemp[1].append(target);
+      break;
+    case ">":
+      window.open("https://hiretimothykwok.onrender.com/", "_blank"); // Open the link in a new tab when the ">" button is clicked
+      slotsInLeftTemp[2].append(target);
+      break;
   }
 }
+// Optimized getShareContent function
+function getShareContent() {
+  let shareContent = "https://MasterMind2-Chaotic-Evil.web.app/";
+  const rows = outputTable.rows;
+  const lastRow = rows.length - gameEndRows.length;
+  const firstRow = lastRow - levelMap.guesses.length;
+  let lastLevelRows = Array.from(rows).slice(firstRow, lastRow); // Get the rows for the last level
+  const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Update the last row's right cell content
+  lastRowInLastLevel.cells[1].textContent = `I cracked ${
+    levelMap.level
+  } levels using ${
+    16 + levelMap.level * (levelMap.level - 1) - chanceRemaining
+  } chances`;
+  shareContent += lastLevelRows // Build share content from rows
+    .map((row) =>
+      Array.from(row.cells)
+        .map((cell) => cell.textContent)
+        .join(" | ")
+    )
+    .join("\n");
+  // Add end game message if present
+  gameEndRows.forEach((row) => {
+    if (row[0] === "Congratulations!") {
+      shareContent += `\n${row[1]}`;
+    }
+  });
+  return shareContent;
+}
+
 // Function for Game mode buttons
 function selectGameMode(game_Mode) {
   leftDivision.removeEventListener("click", handleRecommendationButton); // Add the event listener
@@ -316,7 +354,17 @@ function selectGameMode(game_Mode) {
       .catch((error) => {
         console.error("Error writing document: ", error);
       });
-  } catch {}
+  } catch {
+    const firstRow = document.createElement("tr"); // Create a new row in the output table
+    const leftCell = document.createElement("td"); // Insert cells in the first column of the output table
+    leftCell.textContent = "Sorry,";
+    firstRow.appendChild(leftCell);
+    const rightCell = document.createElement("td");
+    rightCell.textContent = "records writing not available.";
+    firstRow.appendChild(rightCell);
+    outputTable.appendChild(firstRow); // Append the new row to the output table
+    scrollToBottom(mainContainer);
+  }
   updateEnterButton();
   // Remove buttons from slots
   Array.from(leftDivision.querySelectorAll(".slot button")).forEach((button) =>
@@ -349,7 +397,7 @@ function updateHeaderTitle() {
     }
   }
   document.title = titleText; // Update the document's title
-  fetch("banners.txt") // Load the content of the banners.txt file
+  fetch("./banners.txt") // Load the content of the banners.txt file
     .then((response) => response.text())
     .then((data) => {
       const lines = data.split("\n");
@@ -648,8 +696,9 @@ function levelWon() {
     leftDivision.addEventListener("click", handleDirectionButtonClick); // Add the event listener
   }
 }
+let gameEndRows; // Add additional rows
 function gameEnd(ifWin) {
-  let gameEndRows; // Add additional rows
+  gameEndRows = null; // Add additional rows
   if (ifWin) {
     // Calculate the sum of elapsed times
     sumElapsedTime =
@@ -658,7 +707,7 @@ function gameEnd(ifWin) {
       }, 0) / 1000; // Convert to seconds
     let aveElapsedTime = sumElapsedTime / gameMode;
     gameEndRows = [
-      [`You win!`, `you completed ${gameMode} levels`],
+      [`You win!`, `you cracked ${gameMode} levels`],
       [`Remaining chance(s)`, `${chanceRemaining}`],
       [
         `Time used`,
@@ -689,11 +738,13 @@ function gameEnd(ifWin) {
         }
       }
     } else {
-      gameEndRows.push("Sorry", "records reading not available.");
+      gameEndRows.push("Sorry,", "records reading not available.");
     }
     try {
-      updateDoc(docRef, { resultScore: chanceRemaining });
-      updateDoc(docRef, { secondsPerLevel: sumElapsedTime / gameMode });
+      updateDoc(docRef, {
+        resultScore: chanceRemaining,
+        secondsPerLevel: sumElapsedTime / gameMode,
+      });
       console.log("Game doc updated in FireStore");
     } catch {}
   } else {
@@ -722,14 +773,16 @@ function gameEnd(ifWin) {
     levelMap.rights = feedback.map((pair) => pair[1]);
     checkLevelsArray(levelMap);
     try {
-      updateDoc(docRef, { levels: levelsArray });
-      updateDoc(docRef, { resultScore: level - gameMode - 1 });
+      updateDoc(docRef, {
+        levels: levelsArray,
+        resultScore: level - gameMode - 1,
+      });
       console.log("Game doc updated in FireStore");
     } catch {}
   }
   gameEndRows.push(
     ["<", "view statistics to see how well you did"],
-    ["v(fake)", "share so others know how well you did"],
+    ["v", "share so others know how well you did"],
     [">", "view credit page"],
     [outputNumbers[3], "3 levels"],
     [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
@@ -785,8 +838,10 @@ async function gameStopped() {
     levelMap.rights = feedback.map((pair) => pair[1]);
     checkLevelsArray(levelMap);
     try {
-      updateDoc(docRef, { levels: levelsArray });
-      updateDoc(docRef, { resultScore: level - gameMode - 1 });
+      updateDoc(docRef, {
+        levels: levelsArray,
+        resultScore: level - gameMode - 1,
+      });
       console.log("Game doc updated in FireStore");
     } catch {}
   }

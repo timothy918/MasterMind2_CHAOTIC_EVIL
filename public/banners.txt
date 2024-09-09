@@ -46,7 +46,7 @@
   \___|_||_/_/ \_\___/ |_| |___\___| |___| \_/ |___|____| 
 
 ===========================================================================================================
-MasterMind 2: Chaotic Evil
+https://MasterMind2-Chaotic-Evil.web.app/
 ①①②②|Ⓢ
 ②③③③|ⒶⒶⓊ
 ③②③④|ⓂⓅ
@@ -54,6 +54,5 @@ MasterMind 2: Chaotic Evil
 ③③①③|Beat 3 levels with 17 guesses
 it's a public daily best.
 it's a personal daily best.
-https://mastermind2-chaotic-evil.web.app/
 ===========================================================================================================
 Pictogram Chart
