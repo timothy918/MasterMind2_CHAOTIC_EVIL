@@ -50,43 +50,43 @@ function getCookie(name) {
 }
 
 async function checkNSetCookie() {
-  let playerID = getCookie("MasterMind2playerID");
+  userIP = getCookie("MasterMind2userIP");
   const expiryDate = new Date(); // Set the expiration date to 400 days from now
   expiryDate.setDate(expiryDate.getDate() + 400); // Add 400 days
   const maxLength = 20; // Set a maximum length for the player ID
-
-  if (!playerID) {
-    let customPlayerID = prompt(
+  if (!userIP) {
+    let customUserIP = prompt(
       `Enter your desired player ID (max ${maxLength} characters) to track personal result. 
       Cancel to decline cookies.`
     );
-    while (customPlayerID) {
-      let q = query(colRef, where("ipAddress", "==", customPlayerID));
+    if (customUserIP === null) {
+      userIP = "Anonymous"; // Check if the user clicked "Cancel"
+      return; // Exit the function early if the user cancels
+    }
+    // Handle empty or invalid player ID
+    while (customUserIP) {
+      let q = query(colRef, where("ipAddress", "==", customUserIP));
       const querySnapshot = await getDocs(q); // Execute the query
-      if (querySnapshot.empty && customPlayerID.length <= maxLength) {
-        // Set the cookie with the custom player ID
-        document.cookie = `MasterMind2playerID=${customPlayerID}; expires=${expiryDate.toUTCString()}; path=/`;
-        console.log(
-          "Player ID set:",
-          customPlayerID,
-          "expiring at",
-          expiryDate
-        );
-        playerID = customPlayerID;
+      if (querySnapshot.empty && customUserIP.length <= maxLength) {
+        document.cookie = `MasterMind2userIP=${customUserIP}; expires=${expiryDate.toUTCString()}; path=/`;
+        console.log("Player ID set:", customUserIP, "expiring at", expiryDate); // Set the cookie with the custom player ID
+        userIP = customUserIP;
         cookieAccepted = true;
         break; // Exit the loop if the ID is successfully set
       } else {
-        customPlayerID = prompt(
-          "Either too long or duplicate. Try a different player ID."
+        customUserIP = prompt(
+          "Either too long or taken. Try a different player ID."
         );
+        if (customUserIP === null) {
+          userIP = "Anonymous"; // If the user clicks "Cancel" in this prompt, break the loop
+          return; // Exit the function early if the user cancels again
+        }
       }
     }
-    userIP = "Anonymous"; // Save the user's IP to the variable
   } else {
-    // If the cookie already exists, update its expiration date
-    cookieAccepted = true;
-    document.cookie = `MasterMind2playerID=${playerID}; expires=${expiryDate.toUTCString()}; path=/`;
-    console.log("Player ID:", playerID, "updated to expire at", expiryDate);
+    cookieAccepted = true; // If the cookie already exists, update its expiration date
+    document.cookie = `MasterMind2userIP=${userIP}; expires=${expiryDate.toUTCString()}; path=/`;
+    console.log("Player ID:", userIP, "updated to expire at", expiryDate);
   }
 }
 // Define timeframes in seconds

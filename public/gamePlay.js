@@ -100,7 +100,6 @@ const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get al
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
 document.addEventListener("DOMContentLoaded", setUpTable);
-
 checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
 if (cookieAccepted && userIP !== "Anonymous") {
