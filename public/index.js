@@ -56,8 +56,7 @@ async function checkNSetCookie() {
   const maxLength = 20; // Set a maximum length for the player ID
   if (!userIP) {
     let customUserIP = prompt(
-      `Enter your desired player ID (max ${maxLength} characters) to track personal result. 
-      Cancel to decline cookies.`
+      `Enter your desired player ID (max ${maxLength} characters) to track personal result. Cancel to decline cookies.`
     );
     if (customUserIP === null) {
       userIP = "Anonymous"; // Check if the user clicked "Cancel"
@@ -93,9 +92,9 @@ async function checkNSetCookie() {
 const timeframes = [
   { label: "all time", duration: Infinity },
   { label: "yearly", duration: 31557600 }, // 1 year (365.25 days)
-  { label: "quarterly", duration: 7889400 }, // 3 months (approx.)
-  { label: "monthly", duration: 2629800 }, // 1 month (approx.)
-  { label: "weekly", duration: 604800 }, // 7 days
+  { label: "quarterly", duration: 7889400 }, // 3 months (365.25/4 days)
+  { label: "monthly", duration: 2629800 }, // 1 month (365.25/12 days)
+  { label: "weekly", duration: 604800 }, // 7 days (365.25/52 days)
   { label: "daily", duration: 86400 }, // 24 hours
   { label: "hourly", duration: 3600 }, // 24 hours
 ];

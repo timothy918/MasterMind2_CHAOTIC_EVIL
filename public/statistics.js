@@ -1,16 +1,16 @@
 import {
   getDocs,
-  serverTimestamp,
-  addDoc,
   query,
   where,
-  deleteDoc,
-  onSnapshot, // Import onSnapshot for real-time updates
-  limit,
   // getCountFromServer,
+  onSnapshot, // Import onSnapshot for real-time updates
+  // serverTimestamp,
+  // addDoc,
+  // deleteDoc,
+  // limit,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
-import { colRef, checkNSetCookie, getCookie } from "./index.js";
+import { colRef, getCookie } from "./index.js";
 const populationTable = document.getElementById("population");
 
 // // Get a reference to the "RemoveFake" button
@@ -102,7 +102,7 @@ const populationTable = document.getElementById("population");
 //     addDoc(colRef, gameDoc); //Add the fake game document to the collection
 //   } //end of game
 // }
-let userIP;
+let userIP = getCookie("MasterMind2userIP"); // Try to get the player's IP address and create personalized queries
 const queries = getQueries(); // Define an array of queries
 const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
 attachQueryListeners(queries, realTimeCounts); // Loop through the queries and attach onSnapshot listeners
@@ -113,8 +113,6 @@ function getQueries() {
     query(colRef, where("gameMode", "==", 7)), // GameMode 7
   ];
   try {
-    // Try to get the player's IP address and create personalized queries
-    userIP = getCookie("MasterMind2playerID");
     const personalizedQueries = [
       query(baseQueries[0], where("ipAddress", "==", userIP)), // Personal Real GameMode 3
       query(baseQueries[1], where("ipAddress", "==", userIP)), // Personal Real GameMode 7

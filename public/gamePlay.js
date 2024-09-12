@@ -6,7 +6,6 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 import {
@@ -60,7 +59,6 @@ const hints = [
   "Ⓨ",
   "Ⓩ",
 ];
-const mainContainer = document.querySelector("main");
 // Declare the variables
 const enterButton = Object.assign(document.createElement("button"), {
   textContent: "Beginning chances: 16",
@@ -91,18 +89,19 @@ let startTime, // Variable to store the start time of the level
   personalBest,
   ifWinFlag;
 const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
+const mainContainer = document.querySelector("main");
 const inputContainer = document.getElementById("inputContainer");
+const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
 const leftDivision = document.querySelector(".left_temp");
 const rightDivision = document.querySelector(".right_temp");
 const header = document.querySelector(".header");
 const outputTable = document.querySelector("main.output table");
-const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
 document.addEventListener("DOMContentLoaded", setUpTable);
 checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
-if (cookieAccepted && userIP !== "Anonymous") {
+if (cookieAccepted) {
   personalBest = await searchBest(false, userIP); // For personal best check
 }
 
@@ -725,7 +724,8 @@ function gameEnd(ifWin) {
         chanceRemaining,
         aveElapsedTime,
         publicBest,
-        true
+        true,
+        gameMode
       );
       if (congratulations) {
         gameEndRows.push(congratulations);
@@ -735,7 +735,8 @@ function gameEnd(ifWin) {
           chanceRemaining,
           aveElapsedTime,
           personalBest,
-          false
+          false,
+          gameMode
         );
         if (congratulations) {
           gameEndRows.push(congratulations);
@@ -882,70 +883,93 @@ function checkLevelsArray(levelMap) {
   }
 }
 async function searchBest(isPublic = true, userIP = null) {
-  const results = [];
+  const results = { gameMode3: [], gameMode7: [] }; // Store results for both game modes
   const now = Timestamp.now();
-  let lastRecordHold = null;
-  for (const timeframe of timeframes) {
-    // If the record hold is less than the current timeframe duration, skip the loop
-    if (lastRecordHold !== null && lastRecordHold <= timeframe.duration) {
-      results.push(results[results.length - 1]); // Push the last result since it's the same record
-      continue;
-    }
-    const lastDuration =
-      timeframe.duration === Infinity ? 0 : now.seconds - timeframe.duration;
-    const lastTimestamp = new Timestamp(lastDuration, 0);
-    // Build the query based on whether it's a public check or personal best
-    let q = query(
-      colRef,
-      where("isReal", "==", true),
-      where("dateTime", ">=", lastTimestamp)
-    );
-    if (!isPublic && userIP) {
-      q = query(q, where("ipAddress", "==", userIP));
-    }
-    try {
-      const querySnapshot = await getDocs(q); // Execute the query
-      if (!querySnapshot.empty) {
-        const sortedQ = querySnapshot.docs // Extract data and sort the results manually
-          .map((doc) => doc.data())
-          .sort((a, b) =>
-            a.resultScore !== b.resultScore
-              ? b.resultScore - a.resultScore
-              : a.secondsPerLevel - b.secondsPerLevel
-          );
-        // Get the highest score and lowest secondsPerLevel from the first document
-        const data = sortedQ[0];
-        const highestScore = data.resultScore;
-        const lowestSecondsPerLevel =
-          data.secondsPerLevel !== undefined ? data.secondsPerLevel : null;
-        lastRecordHold = now.seconds - data.dateTime.seconds; // Calculate record hold in seconds
-        results.push([highestScore, lowestSecondsPerLevel]);
-      } else {
-        results.push([null, null]); // No documents found within the timeframe
+  const gameModes = [
+    { mode: 3, lastRecordHold: null, key: "gameMode3" },
+    { mode: 7, lastRecordHold: null, key: "gameMode7" },
+  ]; // Loop through both game modes
+  for (const { mode, key } of gameModes) {
+    for (const timeframe of timeframes) {
+      const lastRecordHold = gameModes.find(
+        (gm) => gm.mode === mode
+      ).lastRecordHold;
+      // Skip if the record hold is less than the current timeframe duration
+      if (lastRecordHold !== null && lastRecordHold <= timeframe.duration) {
+        results[key].push(results[key][results[key].length - 1]); // Push the last result
+        continue;
       }
-    } catch (error) {
-      console.error(
-        `Error retrieving documents for ${timeframe.label}: `,
-        error
+      const lastDuration =
+        timeframe.duration === Infinity ? 0 : now.seconds - timeframe.duration;
+      const lastTimestamp = new Timestamp(lastDuration, 0);
+      // Build query with common conditions, adding IP filter for personal bests if needed
+      let q = query(
+        colRef,
+        where("gameMode", "==", mode), // Filter by game mode
+        where("dateTime", ">=", lastTimestamp),
+        ...(isPublic || !userIP ? [] : [where("ipAddress", "==", userIP)]) // Conditionally add IP filter
       );
+      try {
+        const querySnapshot = await getDocs(q); // Execute the query
+        if (!querySnapshot.empty) {
+          const { resultScore, secondsPerLevel, dateTime } = querySnapshot.docs
+            .map((doc) => doc.data())
+            .sort((a, b) =>
+              b.resultScore !== a.resultScore
+                ? b.resultScore - a.resultScore
+                : a.secondsPerLevel - b.secondsPerLevel
+            )[0]; // Get best result based on score & time per level
+          const highestScore = resultScore;
+          const lowestSecondsPerLevel = secondsPerLevel || null;
+          gameModes.find((gm) => gm.mode === mode).lastRecordHold =
+            now.seconds - dateTime.seconds; // Update record hold
+
+          results[key].push([highestScore, lowestSecondsPerLevel]);
+        } else {
+          results[key].push([null, null]); // No results found for this timeframe
+        }
+      } catch (error) {
+        console.error(
+          `Error retrieving documents for ${timeframe.label} in game mode ${mode}: `,
+          error
+        );
+      }
     }
   }
-  console.log("Results:", isPublic ? "Public" : `for IP ${userIP}`, results);
-  return results; // Return a two-dimensional array with results for each timeframe
+  console.log(
+    "Results 3:",
+    isPublic ? "Public" : `for IP ${userIP}`,
+    results.gameMode3
+  );
+  console.log(
+    "Results 7:",
+    isPublic ? "Public" : `for IP ${userIP}`,
+    results.gameMode7
+  );
+  return results; // Return results for both game modes
 }
-function checkBest(chanceRemaining, aveElapsedTime, bestResults, isPublic) {
-  for (let i = 0; i < bestResults.length; i++) {
-    const [highestScore, lowestSecondsPerLevel] = bestResults[i];
+function checkBest(
+  chanceRemaining,
+  aveElapsedTime,
+  bestResults,
+  isPublic,
+  gameMode
+) {
+  const results =
+    gameMode === 3 ? bestResults.gameMode3 : bestResults.gameMode7; // Check if bestResults has data for both game modes
+  for (let i = 0; i < results.length; i++) {
+    const [highestScore, lowestSecondsPerLevel] = results[i];
     // Compare chanceRemaining with the highestScore
     if (
       highestScore == null ||
       chanceRemaining > highestScore ||
-      (chanceRemaining = highestScore && aveElapsedTime < lowestSecondsPerLevel)
+      (chanceRemaining === highestScore &&
+        aveElapsedTime < lowestSecondsPerLevel)
     ) {
       const bestType = isPublic ? "public" : "personal";
       return [
         "Congratulations!",
-        `it's a ${bestType} ${timeframes[i].label} best.`,
+        `It's a ${bestType} ${timeframes[i].label} best.`,
       ];
     }
   }
