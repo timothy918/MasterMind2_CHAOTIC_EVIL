@@ -65,14 +65,13 @@ const enterButton = Object.assign(document.createElement("button"), {
 });
 const fullName = ["MasterMind II", ": CHAOTIC", "EVIL"];
 // Declare the variables
-let inputEnable = 1;
-let l_Uncertainty = 0;
-let availableHints = [];
-let levelsArray = [];
+let inputEnable = true;
+let l_Uncertainty = 0; //for header
+let availableHints = [...hints];
 let guesses = [];
-// let elapsedTimeList = []; // List to store elapsed times
 let startTime, // Variable to store the start time of the level
   n_Slots,
+  levelsArray,
   n_Choices,
   currentIndex,
   chanceRemaining,
@@ -87,7 +86,9 @@ let startTime, // Variable to store the start time of the level
   gameDoc,
   publicBest,
   personalBest,
-  ifWinFlag;
+  ifWinFlag,
+  rightHint,
+  wrongHint;
 const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 const mainContainer = document.querySelector("main");
 const inputContainer = document.getElementById("inputContainer");
@@ -148,9 +149,7 @@ function setUpTable() {
           updateSlotBorders();
           break;
         case 13: // Trigger the click event on the Start or Enter button
-          if (enterButton && event.target === document.body) {
-            enterButton.click();
-          }
+          enterButton.click();
           break;
         case 32: // Check if the pressed key is the Space bar
           const currentSlot =
@@ -205,10 +204,10 @@ function setUpTable() {
           firstColumnCell.innerHTML = buttonElement;
         });
         newRow.appendChild(firstColumnCell);
+        if (availableHints.length < 2) {
+          availableHints = [...hints];
+        } // Check if availableHints is empty, reset it to hints
         if (l_Uncertainty === 2) {
-          if (availableHints.length === 0) {
-            availableHints = [...hints];
-          } // Check if availableHints is empty, reset it to hints
           randomRight = Math.floor(Math.random() * availableHints.length); // Use availableHints instead of hints for randomRight and randomWrong
           do {
             randomWrong = Math.floor(Math.random() * availableHints.length);
@@ -308,7 +307,7 @@ function getShareContent() {
       16 + level * (level - 1) - chanceRemaining
     } chances.`;
   } else {
-    lastRowInLastLevel.cells[1].textContent = `I ran out of chance at ${levelMap.level.ordinalize} level, avenge me!`;
+    lastRowInLastLevel.cells[1].textContent = `I ran out of chance at ${level.ordinalize} level, avenge me!`;
   }
   shareContent += lastLevelRows // Build share content from rows
     .map((row) =>
@@ -457,9 +456,8 @@ function findNextEmptySlot() {
 
 function levelStart() {
   updateHeaderTitle();
-  availableHints = [...hints];
   startTime = performance.now(); // Store the current time
-  inputEnable = 1;
+  inputEnable = true;
   guesses = [];
   leftDivision.innerHTML = ""; // Create the slots dynamically based on n_Slots
   for (let i = 1; i <= n_Slots; i++) {
@@ -503,9 +501,6 @@ function levelStart() {
     do {
       randomWrong = Math.floor(Math.random() * hints.length); // Generate another random index within the length of hints as random_wrong
     } while (randomWrong === randomRight); // Ensure they are different
-  } else if (l_Uncertainty === 0) {
-    const randomRight = 1;
-    const randomWrong = 0;
   }
 }
 function turnCount(randomAnswer, guess) {
@@ -544,22 +539,21 @@ function displayFeedback(
       wrongs
     )}<span class="rightHint">${"Ⓡ".repeat(rights)}</span>`;
   } else {
-    const rightHint = availableHints[randomRight]; // Handle the case where l_Uncertainty is not 0
-    const wrongHint = availableHints[randomWrong];
-    if (randomRight < randomWrong) {
-      secondColumnCell.innerHTML = `<span>${rightHint.repeat(
-        rights
-      )}</span>${wrongHint.repeat(wrongs)}`;
-    } else {
-      secondColumnCell.innerHTML = `${wrongHint.repeat(
-        wrongs
-      )}<span>${rightHint.repeat(rights)}</span>`;
-    }
+    rightHint = availableHints[randomRight]; // Handle the case where l_Uncertainty is not 0
+    wrongHint = availableHints[randomWrong];
+    // Handle the order of hints based on random values
+    const orderedHints =
+      randomRight < randomWrong
+        ? `<span>${rightHint.repeat(rights)}</span>${wrongHint.repeat(wrongs)}`
+        : `${wrongHint.repeat(wrongs)}<span>${rightHint.repeat(rights)}</span>`;
+    secondColumnCell.innerHTML = orderedHints;
     if (l_Uncertainty === 2) {
-      // Remove wrongHint and rightHint from availableHints
-      availableHints = availableHints.filter(
-        (hint) => hint !== wrongHint && hint !== rightHint
-      );
+      if (rights !== 0) {
+        availableHints = availableHints.filter((hint) => hint !== rightHint); // Remove rightHint from availableHints
+      }
+      if (wrongs !== 0) {
+        availableHints = availableHints.filter((hint) => hint !== wrongHint); // Remove wrongHint from availableHints
+      }
     }
   }
   return secondColumnCell;
@@ -569,11 +563,10 @@ function levelWon() {
   levelMap.wrongs = feedback.map((pair) => pair[0]);
   levelMap.rights = feedback.map((pair) => pair[1]);
   checkLevelsArray(levelMap);
-  inputEnable = null; // Disable number buttons in input section
+  inputEnable = false; // Disable number buttons in input section
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
-  // Loop through the <span> elements and add the rightHint class
   spanElements.forEach((spanElement) => {
-    spanElement.classList.add("rightHint");
+    spanElement.classList.add("rightHint"); // Loop through the <span> elements and add the rightHint class
   });
 
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
@@ -665,10 +658,12 @@ function levelWon() {
       // Check if the clicked element is a button
       if (target.tagName === "BUTTON") {
         const directionButton = target; // The clicked button
-
         // Determine the next level based on the direction button clicked
         if (directionButton.textContent === "v" || gameMode === 3) {
           if (l_Uncertainty < 2) {
+            availableHints = availableHints.filter(
+              (hint) => hint !== wrongHint && hint !== rightHint
+            ); // Remove wrongHint and rightHint from availableHints
             l_Uncertainty++;
             difficultyLeftCell.textContent = `Level of uncertainty`;
             difficultyRightCell.textContent = `${
@@ -939,9 +934,7 @@ async function searchBest(isPublic = true, userIP = null) {
   console.log(
     "Results 3:",
     isPublic ? "Public" : `for IP ${userIP}`,
-    results.gameMode3
-  );
-  console.log(
+    results.gameMode3,
     "Results 7:",
     isPublic ? "Public" : `for IP ${userIP}`,
     results.gameMode7
