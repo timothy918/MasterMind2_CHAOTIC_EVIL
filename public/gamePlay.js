@@ -140,12 +140,12 @@ function setUpTable() {
           break;
         case 8: // Check if the pressed key is the Backspace key
           currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex back by 1, wrapping around if necessary
-          const currentMinus1Slot =
+          const slotMinus1Slot =
             leftDivision.querySelectorAll(".slot")[currentIndex];
-          const buttonInSlotMinus1 = currentMinus1Slot.querySelector("button");
+          const buttonMinus1 = slotMinus1Slot.querySelector("button");
           // Remove the button from the targeted slot
-          if (buttonInSlotMinus1) {
-            buttonInSlotMinus1.remove();
+          if (buttonMinus1) {
+            buttonMinus1.click();
           }
           updateSlotBorders();
           break;
@@ -321,7 +321,7 @@ function getShareContent() {
   // Add end game message if present
   gameEndRows.forEach((row) => {
     if (row[0].content === "Congratulations!") {
-      shareContent += `\n${row[1]}`;
+      shareContent += `\n${row[1].content}`;
     }
   });
   return shareContent;
@@ -460,6 +460,9 @@ function levelStart() {
   updateHeaderTitle();
   startTime = performance.now(); // Store the current time
   inputEnable = true;
+  inputButtons.forEach((button) => {
+    button.classList.remove("disabled");
+  });
   guesses = [];
   leftDivision.innerHTML = ""; // Create the slots dynamically based on n_Slots
   for (let i = 1; i <= n_Slots; i++) {
@@ -567,6 +570,10 @@ function levelWon() {
   levelMap.rights = feedback.map((pair) => pair[1]);
   checkLevelsArray(levelMap);
   inputEnable = false; // Disable number buttons in input section
+  inputButtons.forEach((button) => {
+    button.classList.remove("disabled");
+    button.classList.add("disabled");
+  });
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
   spanElements.forEach((spanElement) => {
     spanElement.classList.add("rightHint"); // Loop through the <span> elements and add the rightHint class
@@ -601,7 +608,7 @@ function levelWon() {
         spanElement.classList.add("rightHint");
       });
       const difficultyOptions = [
-        ["<", "number of Colours +=2 (max 10)"],
+        ["<", "number of colours +=2 (max 10)"],
         ["v", "level of uncertainty +=1 (max 2)"],
         [">", "number of slots +=1 (max 6)"],
       ];
@@ -677,7 +684,7 @@ function levelWon() {
         } else if (directionButton.textContent === "<") {
           if (n_Choices < 10) {
             n_Choices += 2;
-            difficultyLeftCell.textContent = `number of colours`;
+            difficultyLeftCell.textContent = `Number of colours`;
             difficultyRightCell.textContent = `${
               n_Choices - 2
             } => ${n_Choices}`;
@@ -686,7 +693,7 @@ function levelWon() {
         } else if (directionButton.textContent === ">") {
           if (n_Slots < 6) {
             n_Slots++;
-            difficultyLeftCell.textContent = `number of slots`;
+            difficultyLeftCell.textContent = `Number of slots`;
             difficultyRightCell.textContent = `${n_Slots - 1} => ${n_Slots}`;
             vaildDirectionButtonClick();
           }
@@ -872,24 +879,23 @@ async function gameStopped() {
   }
 }
 // Add event listeners for mouse and touch events
-questionButton.addEventListener("mousedown", handleMouseOrTouchStart);
-questionButton.addEventListener("mouseup", handleMouseOrTouchEnd);
+questionButton.addEventListener("mousedown", overlayAppear);
+questionButton.addEventListener("mouseup", overlayDisappear);
 // Mobile touch events
-questionButton.addEventListener("touchstart", handleMouseOrTouchStart);
-questionButton.addEventListener("touchend", handleMouseOrTouchEnd);
-// Handle overlay visibility when button is pressed (mousedown or touchstart)
-function handleMouseOrTouchStart(event) {
+questionButton.addEventListener("touchstart", overlayAppear);
+questionButton.addEventListener("touchend", overlayDisappear);
+function overlayAppear(event) {
   event.preventDefault(); // Prevents default behavior like scrolling or zooming (optional)
-  overlay.classList.add("overlay-visible");
-  const buttonRect = questionButton.getBoundingClientRect(); // Get the button's position
-  // Position the overlay
+  overlay.classList.add("overlay-visible"); // Show the overlay
+  const buttonRect = questionButton.getBoundingClientRect(); // Get the position of the button relative to the viewport
+  // Set the overlay position and width
   overlay.style.top = `0px`; // Align the top of the overlay with the top of the window
-  overlay.style.left = `${
-    buttonRect.left + window.scrollX - overlay.offsetWidth
-  }px`; // Align the right border of the overlay to the left of the button
+  overlay.style.left = `0px`; // Align the overlay's left border with the left edge of the window
+  // Set the width of the overlay to span from the left edge of the browser to the left edge of the button
+  const overlayWidth = buttonRect.left + window.scrollX; // Distance from the left edge of the viewport to the left edge of the button
+  overlay.style.width = `${overlayWidth}px`;
 }
-// Handle overlay removal when button is released (mouseup or touchend)
-function handleMouseOrTouchEnd(event) {
+function overlayDisappear(event) {
   event.preventDefault(); // Prevents default behavior if needed
   overlay.classList.remove("overlay-visible");
 }

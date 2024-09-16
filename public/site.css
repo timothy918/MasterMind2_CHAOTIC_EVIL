@@ -183,9 +183,8 @@ figure figcaption {
   padding: 10px;
   border-radius: 5px;
   z-index: 1000;
-  /* Set width for better alignment, adjust as necessary */
-  width: 500px;
   font-family: "Lucida Console", Monaco, monospace;
+  right: auto; /* Ensure this is not set to interfere */
 }
 .overlay-visible {
   display: block; /* Show overlay when visible */
