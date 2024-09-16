@@ -88,15 +88,16 @@ let startTime, // Variable to store the start time of the level
   personalBest,
   ifWinFlag,
   rightHint,
-  wrongHint;
+  wrongHint,
+  gameEndRows; // Add additional rows
 const feedback = [[], []]; // Declare a list to store feedback: [wrongs, rights]
 const mainContainer = document.querySelector("main");
 const inputContainer = document.getElementById("inputContainer");
 const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
-const leftDivision = document.querySelector(".left_temp");
-const rightDivision = document.querySelector(".right_temp");
+const leftDivision = document.getElementById("left_temp");
+const rightDivision = document.getElementById("right_temp");
 const header = document.querySelector(".header");
-const outputTable = document.querySelector("main.output table");
+const outputTable = document.getElementById("output");
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
 document.addEventListener("DOMContentLoaded", setUpTable);
@@ -198,6 +199,7 @@ function setUpTable() {
         const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
         feedback.push([wrongs, rights]);
         const firstColumnCell = document.createElement("td"); // Append the guess to the first column
+        firstColumnCell.classList.add("large");
         let buttonElement = "";
         buttonsInSlots.forEach((button) => {
           buttonElement += outputNumbers[button.textContent];
@@ -307,7 +309,7 @@ function getShareContent() {
       16 + level * (level - 1) - chanceRemaining
     } chances.`;
   } else {
-    lastRowInLastLevel.cells[1].textContent = `I ran out of chance at ${level.ordinalize} level, avenge me!`;
+    lastRowInLastLevel.cells[1].textContent = `I ran out of chance at ${level} level, avenge me!`;
   }
   shareContent += lastLevelRows // Build share content from rows
     .map((row) =>
@@ -318,7 +320,7 @@ function getShareContent() {
     .join("\n");
   // Add end game message if present
   gameEndRows.forEach((row) => {
-    if (row[0] === "Congratulations!") {
+    if (row[0].content === "Congratulations!") {
       shareContent += `\n${row[1]}`;
     }
   });
@@ -422,7 +424,7 @@ function updateHeaderTitle() {
     .catch((error) => {
       console.error("Error fetching or parsing banners.txt:", error);
     });
-  window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll the user back to the top of the page with a smooth effect
+  // window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll the user back to the top of the page with a smooth effect
 }
 // Function to update slot borders
 function updateSlotBorders() {
@@ -534,6 +536,7 @@ function displayFeedback(
   randomRight
 ) {
   const secondColumnCell = document.createElement("td");
+  secondColumnCell.classList.add("large");
   if (l_Uncertainty === 0) {
     secondColumnCell.innerHTML = `${"Ⓦ".repeat(
       wrongs
@@ -693,7 +696,6 @@ function levelWon() {
     leftDivision.addEventListener("click", handleDirectionButtonClick); // Add the event listener
   }
 }
-let gameEndRows; // Add additional rows
 function gameEnd(ifWin) {
   ifWinFlag = ifWin;
   gameEndRows = null; // Add additional rows
@@ -705,13 +707,18 @@ function gameEnd(ifWin) {
       }, 0) / 1000; // Convert to seconds
     let aveElapsedTime = sumElapsedTime / gameMode;
     gameEndRows = [
-      [`You win!`, `you complete ${gameMode} levels.`],
-      [`Remaining chance(s)`, `${chanceRemaining}`],
       [
-        `Time used`,
-        `${Math.floor(sumElapsedTime / 60)} mins ${(
-          sumElapsedTime % 60
-        ).toFixed(3)} seconds`,
+        { content: "You win!" },
+        { content: `you complete ${gameMode} levels.` },
+      ],
+      [{ content: "Remaining chance(s)" }, { content: `${chanceRemaining}` }],
+      [
+        { content: "Time used" },
+        {
+          content: `${Math.floor(sumElapsedTime / 60)} mins ${(
+            sumElapsedTime % 60
+          ).toFixed(3)} seconds`,
+        },
       ],
     ];
     if (publicBest) {
@@ -738,7 +745,10 @@ function gameEnd(ifWin) {
         }
       }
     } else {
-      gameEndRows.push("Sorry,", "records reading not available.");
+      gameEndRows.push([
+        { content: "Sorry," },
+        { content: "records reading not available." },
+      ]);
     }
     try {
       updateDoc(docRef, {
@@ -762,10 +772,13 @@ function gameEnd(ifWin) {
     }
     gameEndRows = [
       [
-        "You lose!",
-        `use up chance at ${level.ordinalize} out of ${gameMode} levels.`,
+        { content: "You lose!" },
+        { content: `use up chance at ${level} out of ${gameMode} levels.` },
       ],
-      [answerString, `correct answer`],
+      [
+        { content: answerString, className: "large" },
+        { content: "correct answer" },
+      ],
     ];
     const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
     for (let i = 0; i < directionButtons.length; i++) {
@@ -784,17 +797,26 @@ function gameEnd(ifWin) {
     } catch {}
   }
   gameEndRows.push(
-    ["<", "view statistics to see how well you did"],
-    ["v", "share so others know how well you did"],
-    [">", "view credit page"],
-    [outputNumbers[3], "3 levels"],
-    [outputNumbers[7], "2+5 (chossible out of 25 optional) levels"]
+    [{ content: "<" }, { content: "view statistics to see how well you did" }],
+    [{ content: "v" }, { content: "share so others know how well you did" }],
+    [{ content: ">" }, { content: "view credit page" }],
+    [
+      { content: outputNumbers[3], className: "large" },
+      { content: "3 levels" },
+    ],
+    [
+      { content: outputNumbers[7], className: "large" },
+      { content: "2+5 (chossible out of 25 optional) levels" },
+    ]
   );
   gameEndRows.forEach((rowContent) => {
     const newRow = document.createElement("tr");
-    rowContent.forEach((cellContent) => {
+    rowContent.forEach((cellData) => {
       const cell = document.createElement("td");
-      cell.innerHTML = cellContent;
+      if (cellData.className) {
+        cell.classList.add(cellData.className); // Check if className exists and add it
+      }
+      cell.innerHTML = cellData.content;
       newRow.appendChild(cell);
     });
     outputTable.appendChild(newRow);
@@ -849,7 +871,15 @@ async function gameStopped() {
     } catch {}
   }
 }
-questionButton.addEventListener("mousedown", function () {
+// Add event listeners for mouse and touch events
+questionButton.addEventListener("mousedown", handleMouseOrTouchStart);
+questionButton.addEventListener("mouseup", handleMouseOrTouchEnd);
+// Mobile touch events
+questionButton.addEventListener("touchstart", handleMouseOrTouchStart);
+questionButton.addEventListener("touchend", handleMouseOrTouchEnd);
+// Handle overlay visibility when button is pressed (mousedown or touchstart)
+function handleMouseOrTouchStart(event) {
+  event.preventDefault(); // Prevents default behavior like scrolling or zooming (optional)
   overlay.classList.add("overlay-visible");
   const buttonRect = questionButton.getBoundingClientRect(); // Get the button's position
   // Position the overlay
@@ -857,10 +887,13 @@ questionButton.addEventListener("mousedown", function () {
   overlay.style.left = `${
     buttonRect.left + window.scrollX - overlay.offsetWidth
   }px`; // Align the right border of the overlay to the left of the button
-});
-questionButton.addEventListener("mouseup", function () {
+}
+// Handle overlay removal when button is released (mouseup or touchend)
+function handleMouseOrTouchEnd(event) {
+  event.preventDefault(); // Prevents default behavior if needed
   overlay.classList.remove("overlay-visible");
-});
+}
+
 function updateEnterButton() {
   enterButton.textContent = `Remaining`; // Update the text content of the enterButton
   enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
@@ -961,8 +994,8 @@ function checkBest(
     ) {
       const bestType = isPublic ? "public" : "personal";
       return [
-        "Congratulations!",
-        `It's a ${bestType} ${timeframes[i].label} best.`,
+        { content: "Congratulations!" },
+        { content: `It's a ${bestType} ${timeframes[i].label} best.` },
       ];
     }
   }

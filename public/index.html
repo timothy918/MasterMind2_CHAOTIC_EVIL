@@ -10,21 +10,23 @@
   </head>
   <body>
     <header class="header"></header>
-    <main class="output">
+    <main>
       <table>
-        <tr>
-          <td><span class="red">③</span></td>
-          <td>3 levels</td>
-        </tr>
-        <tr>
-          <td><span class="lime">⑦</span></td>
-          <td>2+5 (chossible out of 25 optional) levels</td>
-        </tr>
+        <tbody id="output">
+          <tr>
+            <td class="large"><span class="red">③</span></td>
+            <td>3 levels</td>
+          </tr>
+          <tr>
+            <td class="large"><span class="lime">⑦</span></td>
+            <td>2+5 (chossible out of 25 optional) levels</td>
+          </tr>
+        </tbody>
       </table>
     </main>
     <div class="temp">
-      <div class="left_temp"></div>
-      <div class="right_temp">
+      <div id="left_temp"></div>
+      <div id="right_temp">
         <button
           id="question"
           value="?"

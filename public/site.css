@@ -89,7 +89,7 @@ body {
   justify-content: center; /* Horizontally center */
   align-items: center; /* Vertically center */
 }
-.left_temp {
+#left_temp {
   display: flex;
   flex: 1;
   padding: 10px;
@@ -111,22 +111,25 @@ main.dashboard {
 td,
 th {
   border: 1px dashed white;
-  vertical-align: bottom;
+  vertical-align: middle;
 }
 td:first-child {
   text-align: center;
 }
+td.large {
+  font-size: large;
+}
 table {
   border-collapse: collapse;
   font-family: "Lucida Console", Monaco, monospace;
-  font-size: large;
+  font-size: medium;
 }
 #population {
   border-collapse: collapse;
   font-family: "Lucida Console", Monaco, monospace;
   font-size: small;
 }
-.right_temp {
+#right_temp {
   display: flex;
   flex-direction: row; /* Aligns children horizontally */
   align-items: center; /* Centers content horizontally */
@@ -151,6 +154,8 @@ p {
 header {
   font-size: 5px;
   flex-shrink: 0; /* Prevents shrinking when the main section is scrolled */
+  white-space: pre-wrap; /* This keeps the preformatted text look but allows wrapping */
+  word-wrap: break-word; /* Ensure long words don't overflow */
 }
 /*credit page*/
 figure figcaption {
