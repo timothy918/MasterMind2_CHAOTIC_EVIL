@@ -8,9 +8,13 @@ import {
   // addDoc,
   // deleteDoc,
   // limit,
+  // FieldValue,
+  // doc,
+  // updateDoc,
+  // deleteField,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
-import { colRef, getCookie } from "./index.js";
+import { colRef, getCookie, db } from "./index.js";
 const populationTable = document.getElementById("population");
 
 // // Get a reference to the "RemoveFake" button
@@ -102,12 +106,29 @@ const populationTable = document.getElementById("population");
 //     addDoc(colRef, gameDoc); //Add the fake game document to the collection
 //   } //end of game
 // }
+// document.getElementById("RemoveFake").addEventListener("click", deleteIsReal);
+// // Function to delete the 'isReal' field from all documents in a collection
+// async function deleteIsReal() {
+//   try {
+//     const querySnapshot = await getDocs(colRef); // Get all documents in the collection
+//     // Iterate through all documents
+//     querySnapshot.forEach(async (documentSnapshot) => {
+//       const docRef = doc(db, "GamesPlayed", documentSnapshot.id);
+//       // Update each document, removing the 'isReal' field
+//       await updateDoc(docRef, {
+//         isReal: deleteField(), // This will delete the 'isReal' field
+//       });
+//       console.log(`Deleted 'isReal' from document: ${documentSnapshot.id}`);
+//     });
+//     console.log("Field 'isReal' deleted from all documents.");
+//   } catch (error) {
+//     console.error("Error deleting 'isReal' field: ", error);
+//   }
+// }
+
 let userIP = getCookie("MasterMind2userIP"); // Try to get the player's IP address and create personalized queries
-const queries = getQueries(); // Define an array of queries
-const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
-attachQueryListeners(queries, realTimeCounts); // Loop through the queries and attach onSnapshot listeners
-// Function to define and return queries
-function getQueries() {
+
+function getPopulationQueries() {
   const baseQueries = [
     query(colRef, where("gameMode", "==", 3)), // GameMode 3
     query(colRef, where("gameMode", "==", 7)), // GameMode 7
@@ -123,39 +144,50 @@ function getQueries() {
     return baseQueries; // Return only base queries if no user IP
   }
 }
+
 // Function to attach onSnapshot listeners
-function attachQueryListeners(queries, realTimeCounts) {
+function attachQueryListeners(queries, realTimeCounts, uniqueIPs) {
   queries.forEach((query, index) => {
     const unsubscribe = onSnapshot(query, (snapshot) => {
       realTimeCounts[index] = snapshot.size;
-      updateCountDisplay(realTimeCounts);
+      // Update unique IPs based on document changes
+      snapshot.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        if (data.ipAddress) {
+          if (change.type === "added") {
+            uniqueIPs.add(data.ipAddress);
+          } else if (change.type === "removed") {
+            uniqueIPs.delete(data.ipAddress);
+          }
+        }
+      });
+      updatePopulationDisplay(realTimeCounts); // Call both update functions
+      updateUniqueIPDisplay(uniqueIPs);
     });
     // You can store the unsubscribe function if you need it later
   });
 }
-async function countUniqueIPAddresses() {
-  const querySnapshot = await getDocs(colRef); // Get all documents in the collection
-  const uniqueIPs = new Set(); // Use a Set to store unique IP addresses
-  querySnapshot.forEach((doc) => {
-    const data = doc.data(); // Get document data
-    if (data.ipAddress) {
-      uniqueIPs.add(data.ipAddress); // Add each IP address to the Set
-    }
-  });
+
+// Function to update the display for the unique IP count
+function updateUniqueIPDisplay(uniqueIPs) {
   let countPlayers = uniqueIPs.size;
   if (userIP) {
-    countPlayers -= 1;
+    countPlayers -= 1; // Exclude the user's own IP from the count if necessary
   }
   const headerRow = populationTable.rows[0];
   headerRow.cells[2].textContent = `${countPlayers} `;
   headerRow.cells[2].insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
   headerRow.cells[2].insertAdjacentText("beforeend", `others`);
-  return countPlayers; // The size of the Set represents the count of unique IPs
 }
-await countUniqueIPAddresses();
+
+// Initialize the queries, counts, and unique IP tracking
+const queries = getPopulationQueries(); // Define an array of queries
+const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
+const uniqueIPs = new Set(); // Use a Set to store unique IP addresses
+attachQueryListeners(queries, realTimeCounts, uniqueIPs); // Attach the onSnapshot listeners for real-time updates
 
 // Function to update the table display
-function updateCountDisplay(realTimeCounts) {
+function updatePopulationDisplay(realTimeCounts) {
   const gameMode3Row = populationTable.rows[1]; // Row for GameMode 3
   gameMode3Row.cells[3].textContent = realTimeCounts[0]; // Total count
   const gameMode7Row = populationTable.rows[2]; // Row for GameMode 7

@@ -65,7 +65,6 @@ const enterButton = Object.assign(document.createElement("button"), {
 });
 const fullName = ["MasterMind II", ": CHAOTIC", "EVIL"];
 // Declare the variables
-let inputEnable = true;
 let l_Uncertainty = 0; //for header
 let availableHints = [...hints];
 let guesses = [];
@@ -115,8 +114,7 @@ function setUpTable() {
     if (keyCode >= 48 && keyCode <= 57) {
       // Number keys 0-9
       const number = keyCode - 48; // Convert key code to number
-      const numberButtons = inputContainer.querySelectorAll(".numberButton"); // Loop through the number buttons to find the matching button by textContent
-      for (const button of numberButtons) {
+      for (const button of inputButtons) {
         if (
           button.textContent === String(number) &&
           event.target === document.body
@@ -174,7 +172,7 @@ function setUpTable() {
   }
   document.addEventListener("keydown", handleKeybroad); // Event listener for keydown events
 
-  resetGameModeButton();
+  resetGameModeButtons();
 
   rightDivision.prepend(enterButton); // Put Enter button in position
 
@@ -343,7 +341,6 @@ function selectGameMode(game_Mode) {
   l_Uncertainty = 0;
   levelsArray = [];
   gameDoc = {
-    isReal: true,
     ipAddress: userIP,
     gameMode: game_Mode,
     dateTime: serverTimestamp(),
@@ -424,7 +421,6 @@ function updateHeaderTitle() {
     .catch((error) => {
       console.error("Error fetching or parsing banners.txt:", error);
     });
-  // window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll the user back to the top of the page with a smooth effect
 }
 // Function to update slot borders
 function updateSlotBorders() {
@@ -434,7 +430,6 @@ function updateSlotBorders() {
 }
 function handleInputButtonClick(event) {
   const clickedButton = event.target;
-  if (!inputEnable) return;
   const buttonClone = clickedButton.cloneNode(true);
   const currentSlot = leftDivision.querySelectorAll(".slot")[currentIndex];
   // Replace existing button or append the clone if the slot is empty
@@ -459,10 +454,6 @@ function findNextEmptySlot() {
 function levelStart() {
   updateHeaderTitle();
   startTime = performance.now(); // Store the current time
-  inputEnable = true;
-  inputButtons.forEach((button) => {
-    button.classList.remove("disabled");
-  });
   guesses = [];
   leftDivision.innerHTML = ""; // Create the slots dynamically based on n_Slots
   for (let i = 1; i <= n_Slots; i++) {
@@ -474,16 +465,13 @@ function levelStart() {
   currentIndex = 0;
   updateSlotBorders();
 
-  const numberButtons = inputContainer.querySelectorAll(".numberButton");
-  numberButtons.forEach((button, index) => {
+  inputButtons.forEach((button, index) => {
     button.removeEventListener("click", handleInputButtonClick);
     if (index >= n_Choices) {
       button.classList.add("disabled"); // Add the "disabled" class to buttons beyond the limit
     } else {
       button.addEventListener("click", handleInputButtonClick);
-      if (button.classList.contains("disabled")) {
-        button.classList.remove("disabled"); // Remove the "disabled" class only if it exists
-      }
+      button.classList.remove("disabled"); // Remove the "disabled" class only if it exists
     }
   });
 
@@ -569,9 +557,8 @@ function levelWon() {
   levelMap.wrongs = feedback.map((pair) => pair[0]);
   levelMap.rights = feedback.map((pair) => pair[1]);
   checkLevelsArray(levelMap);
-  inputEnable = false; // Disable number buttons in input section
   inputButtons.forEach((button) => {
-    button.classList.remove("disabled");
+    button.removeEventListener("click", handleInputButtonClick);
     button.classList.add("disabled");
   });
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
@@ -835,9 +822,9 @@ function gameEnd(ifWin) {
     console.log("Game doc updated in FireStore");
   } catch {}
   gameMode = null;
-  resetGameModeButton();
+  resetGameModeButtons();
 }
-function resetGameModeButton() {
+function resetGameModeButtons() {
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
     if (buttonValue == "3" || buttonValue == "7") {
@@ -953,12 +940,10 @@ async function searchBest(isPublic = true, userIP = null) {
                 ? b.resultScore - a.resultScore
                 : a.secondsPerLevel - b.secondsPerLevel
             )[0]; // Get best result based on score & time per level
-          const highestScore = resultScore;
           const lowestSecondsPerLevel = secondsPerLevel || null;
           gameModes.find((gm) => gm.mode === mode).lastRecordHold =
             now.seconds - dateTime.seconds; // Update record hold
-
-          results[key].push([highestScore, lowestSecondsPerLevel]);
+          results[key].push([resultScore, lowestSecondsPerLevel]);
         } else {
           results[key].push([null, null]); // No results found for this timeframe
         }
