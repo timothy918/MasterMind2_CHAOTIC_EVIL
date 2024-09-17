@@ -2,6 +2,7 @@ import {
   getDocs,
   query,
   where,
+  Timestamp,
   // getCountFromServer,
   onSnapshot, // Import onSnapshot for real-time updates
   // serverTimestamp,
@@ -14,7 +15,7 @@ import {
   // deleteField,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
-import { colRef, getCookie, db } from "./index.js";
+import { colRef, getCookie, db, timeframes } from "./index.js";
 const populationTable = document.getElementById("population");
 
 // // Get a reference to the "RemoveFake" button
@@ -127,6 +128,13 @@ const populationTable = document.getElementById("population");
 // }
 
 let userIP = getCookie("MasterMind2userIP"); // Try to get the player's IP address and create personalized queries
+const gamesIfUserCheckbox = document.getElementById("gamesIfUser"); // Get checkbox elements
+const levelsIfUserCheckbox = document.getElementById("levelsIfUser"); // Get checkbox elements
+// Disable checkboxes if userIP is null
+if (userIP === null) {
+  gamesIfUserCheckbox.disabled = true;
+  levelsIfUserCheckbox.disabled = true;
+}
 
 function getPopulationQueries() {
   const baseQueries = [
@@ -202,5 +210,54 @@ function updatePopulationDisplay(realTimeCounts) {
     gameMode3Row.cells[2].textContent = realTimeCounts[0]; // others = real
     gameMode7Row.cells[1].textContent = "NaN"; // "yours" real count
     gameMode7Row.cells[2].textContent = realTimeCounts[1]; // others = real
+  }
+}
+
+document.getElementById("queryGames").addEventListener("click", queryGames);
+// Function to query Firestore based on the form inputs and return a count by resultScore
+async function queryGames() {
+  // Get form inputs
+  const mode = document.getElementById("mode").value; // Game mode (3 or 7)
+  const timeRange = document.getElementById("time").value; // Time range (e.g., "daily")
+  const isUserOnly = gamesIfUserCheckbox.checked; // Checkbox for user records only
+  const selectedTimeframe = timeframes.find(
+    (frame) => frame.label === timeRange
+  );
+  const duration = selectedTimeframe.duration; // Get the duration from the selected time range
+  const [baseQuery3, baseQuery7] = queries; // Get the existing queries for gameMode 3 and 7
+  let gameQuery; // Initialize gameQuery based on mode and user input
+  if (mode == 3) {
+    gameQuery = isUserOnly && queries[2] ? queries[2] : baseQuery3; // Use personalizedQuery3 if exists
+  } else if (mode == 7) {
+    gameQuery = isUserOnly && queries[3] ? queries[3] : baseQuery7; // Use personalizedQuery7 if exists
+  }
+  // Add a time filter if the selected time is not "all time"
+  if (duration !== Infinity) {
+    const now = Timestamp.now(); // Get the current timestamp (Firestore Timestamp)
+    const cutoffTimestamp = new Timestamp(now.seconds - duration, 0); // Calculate the cutoff timestamp
+    gameQuery = query(gameQuery, where("dateTime", ">=", cutoffTimestamp));
+  }
+  try {
+    const querySnapshot = await getDocs(gameQuery); // Execute the query
+    const scoreCounts = {}; // Object to hold counts of each resultScore
+    // Iterate through each document
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Check if resultScore exists and count it
+      if (data.resultScore !== undefined) {
+        scoreCounts[data.resultScore] =
+          (scoreCounts[data.resultScore] || 0) + 1; // Increment the count for this resultScore
+      }
+    });
+    // Convert the scoreCounts object to an array of resultScore-count pairs
+    const resultArray = Object.entries(scoreCounts).map(([score, count]) => ({
+      resultScore: parseInt(score),
+      count: count,
+    }));
+    resultArray.sort((a, b) => a.resultScore - b.resultScore); // Sort the resultArray by resultScore in ascending order
+    console.log(resultArray); // Return or process the sorted array
+    return resultArray; // Return the sorted array with counts
+  } catch (error) {
+    console.error("Error querying documents: ", error);
   }
 }

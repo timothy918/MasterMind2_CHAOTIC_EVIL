@@ -1,2 +1,8 @@
-firebase
+# Firebase related files
+firebase.json
+.firebaserc
+
+# Environment variables
+.env
+
 node_modules

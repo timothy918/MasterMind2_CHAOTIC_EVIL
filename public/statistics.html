@@ -80,7 +80,7 @@
           <ul>
             <li>
               <label for="user">My records only:</label>
-              <input type="checkbox" name="user" />
+              <input type="checkbox" id="gamesIfUser" />
             </li>
             <li>
               <label for="mode">Game mode:</label>
@@ -92,7 +92,7 @@
             <li>
               <label for="time">Within:</label>
               <select name="time" id="time">
-                <option value="*">all time</option>
+                <option value="all time">all time</option>
                 <option value="yearly">last 12 months</option>
                 <option value="quarterly">last 3 months</option>
                 <option value="monthly">last 30 days</option>
@@ -102,7 +102,7 @@
               </select>
             </li>
             <li>
-              <button type="button">Query (fake)</button>
+              <button type="button" id="queryGames">Query</button>
             </li>
           </ul>
         </fieldset>
@@ -111,7 +111,7 @@
           <ul>
             <li>
               <label for="user">My records only:</label>
-              <input type="checkbox" name="user" />
+              <input type="checkbox" id="levelsIfUser" />
             </li>
             <li>
               <label for="l_Uncertainty">Level of uncertainty:</label>
@@ -142,10 +142,10 @@
             </li>
             <li>
               <label for="answer">Answer:</label>
-              <input type="number" name="answer" min="0" max="999999" />
+              <input type="number" id="answer" min="0" max="999999" />
             </li>
             <li>
-              <button type="button">Query (fake)</button>
+              <button type="button" id="queryLevels">Query (fake)</button>
             </li>
           </ul>
         </fieldset>
