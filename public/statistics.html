@@ -10,6 +10,7 @@
       href="node_modules/bootstrap/dist/css/bootstrap.min.css"
     /> -->
     <link rel="stylesheet" href="site.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="index.js"></script>
     <script type="module" src="statistics.js"></script>
   </head>
@@ -38,7 +39,7 @@
       out my <a>personal website</a> for other work of mine.
     </p>
     <main class="dashboard">
-      <div id="DonutChart">Loading...</div>
+      <canvas id="pictogramChart" width="500" height="400">Loading...</canvas>
       <form class="query">
         <fieldset>
           <legend>Population size</legend>
@@ -62,18 +63,6 @@
               <td></td>
             </tr>
           </table>
-          <!-- <ul>
-            <li>
-              <label for="n_Games">Number of games:</label>
-              <input type="number" name="n_Games" id="n_Games" min="1" />
-            </li>
-            <li>
-              <button type="button" id="Fabricate">Fabricate fakes</button>
-            </li>
-            <li>
-              <button type="button" id="RemoveFake">Remove all fakes</button>
-            </li>
-          </ul> -->
         </fieldset>
         <fieldset>
           <legend>View games</legend>

@@ -14,119 +14,9 @@ import {
   // updateDoc,
   // deleteField,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-
 import { colRef, getCookie, db, timeframes } from "./index.js";
+
 const populationTable = document.getElementById("population");
-
-// // Get a reference to the "RemoveFake" button
-// document.getElementById("RemoveFake").addEventListener("click", async () => {
-//   try {
-//     // Query the Firestore collection to find all documents with isReal = true
-//     const querySnapshot = await getDocs(
-//       query(colRef, where("isReal", "==", false), limit(500))
-//     );
-//     // Loop through the documents and delete them
-//     querySnapshot.forEach(async (doc) => {
-//       try {
-//         await deleteDoc(doc.ref); // Delete each document using its reference
-//       } catch (deleteError) {
-//         console.error("Error deleting document:", deleteError);
-//       }
-//     });
-//     // Provide feedback to the user (optional)
-//     alert("All fake data has been removed from Firestore.");
-//   } catch (error) {
-//     console.error("Error removing fake data:", error);
-//   }
-// });
-// document.getElementById("Fabricate").addEventListener("click", function () {
-//   var n_Games = document.getElementById("n_Games");
-//   generateFakeData(n_Games.value);
-// });
-// function generateFakeData(n_Games) {
-//   for (let i = 0; i < n_Games; i++) {
-//     //Create a fake game document
-//     var gameDoc = {
-//       ipAddress: "Anonymous",
-//       gameMode: Math.random() > 0.5 ? 3 : 7,
-//       isReal: false,
-//       dateTime: serverTimestamp(),
-//     };
-//     let chanceRemaining = 16;
-//     let n_Slots = 4;
-//     let n_Choices = 6;
-//     let l_Uncertainty = 0;
-//     let levelsArray = [];
-//     let levelMap = [];
-//     for (let level = 1; level <= gameDoc.gameMode; level++) {
-//       // Generate random answer
-//       const minNumber = Math.pow(n_Choices, n_Slots);
-//       const maxNumber = 2 * minNumber - 1;
-//       const randomDecimal =
-//         Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-//       let wrongs = [];
-//       let rights = [];
-//       levelMap = {
-//         level: level,
-//         n_Choices: n_Choices,
-//         n_Slots: n_Slots,
-//         l_Uncertainty: l_Uncertainty,
-//         answer: randomDecimal.toString(n_Choices).slice(1),
-//       }; // Create an embedded document object
-//       for (chanceRemaining; chanceRemaining > 0; chanceRemaining--) {
-//         let wrong = Math.floor(Math.random() * n_Slots);
-//         let right = Math.ceil(Math.random() * (n_Slots - wrong));
-//         wrongs.push(wrong);
-//         rights.push(right);
-//         if (right === n_Slots) {
-//           chanceRemaining--;
-//           break;
-//         }
-//       } //end of turn
-//       levelMap.rights = rights;
-//       levelMap.wrongs = wrongs;
-//       levelMap.time = rights.length * 5000;
-//       levelsArray.push(levelMap);
-//       if (chanceRemaining === 0) {
-//         gameDoc.resultScore = level - gameDoc.gameMode - 1;
-//         break;
-//       }
-//       if (level !== gameDoc.gameMode) {
-//         chanceRemaining += gameDoc.gameMode;
-//       }
-//     } //end of level
-//     gameDoc.levels = levelsArray;
-//     if (levelsArray.length === gameDoc.gameMode && !gameDoc.resultScore) {
-//       gameDoc.resultScore = chanceRemaining;
-//       let sumElapsedTime =
-//         levelsArray.reduce((sum, levelMap) => {
-//           return sum + levelMap.time;
-//         }, 0) / 1000; // Convert to seconds
-//       gameDoc.secondsPerLevel = sumElapsedTime / gameDoc.gameMode;
-//     }
-//     addDoc(colRef, gameDoc); //Add the fake game document to the collection
-//   } //end of game
-// }
-// document.getElementById("RemoveFake").addEventListener("click", deleteIsReal);
-// // Function to delete the 'isReal' field from all documents in a collection
-// async function deleteIsReal() {
-//   try {
-//     const querySnapshot = await getDocs(colRef); // Get all documents in the collection
-//     // Iterate through all documents
-//     querySnapshot.forEach(async (documentSnapshot) => {
-//       const docRef = doc(db, "GamesPlayed", documentSnapshot.id);
-//       // Update each document, removing the 'isReal' field
-//       await updateDoc(docRef, {
-//         isReal: deleteField(), // This will delete the 'isReal' field
-//       });
-//       console.log(`Deleted 'isReal' from document: ${documentSnapshot.id}`);
-//     });
-//     console.log("Field 'isReal' deleted from all documents.");
-//   } catch (error) {
-//     console.error("Error deleting 'isReal' field: ", error);
-//   }
-// }
-
 let userIP = getCookie("MasterMind2userIP"); // Try to get the player's IP address and create personalized queries
 const gamesIfUserCheckbox = document.getElementById("gamesIfUser"); // Get checkbox elements
 const levelsIfUserCheckbox = document.getElementById("levelsIfUser"); // Get checkbox elements
@@ -213,7 +103,16 @@ function updatePopulationDisplay(realTimeCounts) {
   }
 }
 
-document.getElementById("queryGames").addEventListener("click", queryGames);
+document
+  .getElementById("queryGames")
+  .addEventListener("click", async function () {
+    const resultArray = await queryGames(); // Await the result of the async function
+    if (resultArray) {
+      // Check if resultArray is not null
+      drawPictogram(resultArray); // Call the pictogram drawing function
+    }
+  });
+
 // Function to query Firestore based on the form inputs and return a count by resultScore
 async function queryGames() {
   // Get form inputs
@@ -228,7 +127,7 @@ async function queryGames() {
   let gameQuery; // Initialize gameQuery based on mode and user input
   if (mode == 3) {
     gameQuery = isUserOnly && queries[2] ? queries[2] : baseQuery3; // Use personalizedQuery3 if exists
-  } else if (mode == 7) {
+  } else {
     gameQuery = isUserOnly && queries[3] ? queries[3] : baseQuery7; // Use personalizedQuery7 if exists
   }
   // Add a time filter if the selected time is not "all time"
@@ -260,4 +159,59 @@ async function queryGames() {
   } catch (error) {
     console.error("Error querying documents: ", error);
   }
+}
+async function drawPictogram(resultArray) {
+  const canvas = document.getElementById("pictogramChart");
+  const ctx = canvas.getContext("2d");
+  const symbolImage = new Image(); // Load the PNG image
+  symbolImage.src = "./dot.png"; // Replace with your actual image path
+
+  // Wait for the image to load before continuing
+  symbolImage.onload = () => {
+    const chartWidth = canvas.width - 50; // Available width after axis padding
+    const chartHeight = canvas.height - 50; // Available height after axis padding
+    const columnWidth = chartWidth / resultArray.length; // Width of each bar/column
+    const symbolSize = Math.min(columnWidth / 5, 20); // Set image size dynamically
+    const symbolHeight = symbolSize * 2; // Height of each symbol including spacing
+    const maxSymbolCount = Math.floor(chartHeight / symbolHeight); // Max number of symbols vertically
+    console.log(`maxSymbolCount${maxSymbolCount}`);
+    const baseX = 50; // Starting X position for the X-axis and chart
+    const baseY = canvas.height - 30; // Starting Y position (bottom of the canvas)
+    const axisPadding = 10; // Padding for axes
+    const ctxFontSize = 14;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+    ctx.fillStyle = "white"; // Set text color
+    ctx.beginPath(); // Draw X-axis (horizontal line)
+    ctx.moveTo(baseX - axisPadding, baseY);
+    ctx.lineTo(baseX + chartWidth, baseY);
+    ctx.strokeStyle = "white"; // Color of the axis
+    ctx.stroke();
+    // Add the "Result Score" label to the Y-axis (left-hand side of the X-axis)
+    ctx.font = `${ctxFontSize}px Arial`; // Set font size and style for the label
+    ctx.fillText("Result", 0, baseY + axisPadding); // First line of the label
+    ctx.fillText("Score", 0, baseY + axisPadding + ctxFontSize); // Second line of the label (15 pixels down)
+
+    // Loop over the resultArray and draw the images for each value
+    resultArray.forEach((item, index) => {
+      const xPosition =
+        baseX + index * columnWidth + columnWidth / 2 - symbolSize / 2; // Center image in the column
+      const resultScore = item.resultScore;
+      const count = item.count;
+      const symbolCount = Math.min(count, maxSymbolCount); // Limit symbols to fit the canvas height
+      ctx.fillText(resultScore, xPosition, baseY + axisPadding * 2); // Draw resultScore label below the X-axis
+
+      // Draw the PNG images, stacking them vertically
+      for (let i = 0; i < symbolCount; i++) {
+        const yPosition = baseY - (i + 1) * symbolHeight; // Calculate Y position for each image
+        ctx.drawImage(
+          symbolImage,
+          xPosition,
+          yPosition,
+          symbolSize,
+          symbolSize
+        ); // Draw the image
+      }
+    });
+  };
 }

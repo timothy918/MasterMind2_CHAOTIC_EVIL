@@ -300,7 +300,7 @@ function getShareContent() {
   const firstIndex = lastIndex - levelMap.guesses.length;
   let lastLevelRows = Array.from(rows) // Clone the rows for the last level without altering the original table content
     .slice(firstIndex, lastIndex)
-    .map((row) => row.cloneNode(true)); // Clone each row to avoid modifying the original table  const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Update the last row's right cell content
+    .map((row) => row.cloneNode(true)); // Clone each row to avoid modifying the original table
   const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Access the last row in the cloned rows
   if (ifWinFlag) {
     lastRowInLastLevel.cells[1].textContent = `I cracked ${level} levels using ${
@@ -367,9 +367,8 @@ function selectGameMode(game_Mode) {
     scrollToBottom(mainContainer);
   }
   updateEnterButton();
-  // Remove buttons from slots
-  Array.from(leftDivision.querySelectorAll(".slot button")).forEach((button) =>
-    button.remove()
+  Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
+    (button) => button.remove() // Remove buttons from slots
   );
   gameMode = game_Mode; // Set the game mode
   const firstRow = document.createElement("tr"); // Create a new row in the output table

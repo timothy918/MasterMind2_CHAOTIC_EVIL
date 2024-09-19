@@ -189,3 +189,6 @@ figure figcaption {
 .overlay-visible {
   display: block; /* Show overlay when visible */
 }
+ul {
+  padding-inline-start: 10px;
+}
