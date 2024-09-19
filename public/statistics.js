@@ -165,21 +165,22 @@ async function drawPictogram(resultArray) {
   const ctx = canvas.getContext("2d");
   const symbolImage = new Image(); // Load the PNG image
   symbolImage.src = "./dot.png"; // Replace with your actual image path
+  const totalGames = resultArray.reduce((acc, item) => acc + item.count, 0); // Calculate the total number of games
 
-  // Wait for the image to load before continuing
   symbolImage.onload = () => {
     const chartWidth = canvas.width - 50; // Available width after axis padding
     const chartHeight = canvas.height - 50; // Available height after axis padding
-    const columnWidth = chartWidth / resultArray.length; // Width of each bar/column
-    const symbolSize = Math.min(columnWidth / 5, 20); // Set image size dynamically
+    const symbolSize = Math.min(chartWidth / (resultArray.length * 5), 20); // Set image size dynamically
     const symbolHeight = symbolSize * 2; // Height of each symbol including spacing
     const maxSymbolCount = Math.floor(chartHeight / symbolHeight); // Max number of symbols vertically
-    console.log(`maxSymbolCount${maxSymbolCount}`);
     const baseX = 50; // Starting X position for the X-axis and chart
     const baseY = canvas.height - 30; // Starting Y position (bottom of the canvas)
     const axisPadding = 10; // Padding for axes
     const ctxFontSize = 14;
 
+    const gamesPerSymbol = Math.ceil(
+      totalGames / (resultArray.length * maxSymbolCount)
+    ); // Calculate gamesPerSymbol dynamically based on total games and available space
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
     ctx.fillStyle = "white"; // Set text color
     ctx.beginPath(); // Draw X-axis (horizontal line)
@@ -187,31 +188,79 @@ async function drawPictogram(resultArray) {
     ctx.lineTo(baseX + chartWidth, baseY);
     ctx.strokeStyle = "white"; // Color of the axis
     ctx.stroke();
+
     // Add the "Result Score" label to the Y-axis (left-hand side of the X-axis)
     ctx.font = `${ctxFontSize}px Arial`; // Set font size and style for the label
     ctx.fillText("Result", 0, baseY + axisPadding); // First line of the label
     ctx.fillText("Score", 0, baseY + axisPadding + ctxFontSize); // Second line of the label (15 pixels down)
 
+    // Draw the key (legend) for how many games each symbol represents
+    ctx.save(); // Save the current state of the canvas
+    ctx.translate(30, canvas.height / 2); // Move the origin point for the key
+    ctx.rotate(-Math.PI / 2); // Rotate the canvas 90 degrees counterclockwise
+    ctx.font = `${ctxFontSize}px Arial`; // Set font size for the key
+    ctx.fillText(
+      `Each dot represents ${gamesPerSymbol} game(s)`,
+      baseY - canvas.height,
+      0
+    ); // Draw key text
+    ctx.restore(); // Restore the canvas to its previous state
+
+    const totalColumns = resultArray.reduce((acc, item) => {
+      return acc + Math.ceil(item.count / maxSymbolCount);
+    }, 0); // Calculate total number of columns required
+
+    // Calculate spacing between different resultScores
+    const totalColumnWidth = totalColumns * symbolSize; // Total width occupied by all columns
+    const remainingWidth = chartWidth - totalColumnWidth; // Space left for spacing between resultScores
+    const spacingBetweenResultScores =
+      remainingWidth / (resultArray.length - 1); // Divide the remaining width by the number of gaps between resultScores
+    let currentXPosition = baseX; // Running counter to track the X position of the last drawn column
+
+    // Define spacing between columns within the same resultScore
+    const spacingBetweenColumns = symbolSize * 0.75; // Spacing between columns of the same resultScore
+
     // Loop over the resultArray and draw the images for each value
-    resultArray.forEach((item, index) => {
-      const xPosition =
-        baseX + index * columnWidth + columnWidth / 2 - symbolSize / 2; // Center image in the column
+    resultArray.forEach((item) => {
       const resultScore = item.resultScore;
       const count = item.count;
-      const symbolCount = Math.min(count, maxSymbolCount); // Limit symbols to fit the canvas height
-      ctx.fillText(resultScore, xPosition, baseY + axisPadding * 2); // Draw resultScore label below the X-axis
+      const numColumns = Math.ceil(count / maxSymbolCount); // Calculate the number of columns needed if the count exceeds maxSymbolCount
+      const symbolsPerColumn = Math.min(count, maxSymbolCount); // Limit symbols per column
 
-      // Draw the PNG images, stacking them vertically
-      for (let i = 0; i < symbolCount; i++) {
-        const yPosition = baseY - (i + 1) * symbolHeight; // Calculate Y position for each image
-        ctx.drawImage(
-          symbolImage,
-          xPosition,
-          yPosition,
-          symbolSize,
-          symbolSize
-        ); // Draw the image
+      // Draw the resultScore label below the X-axis
+      ctx.fillText(
+        resultScore,
+        currentXPosition +
+          (numColumns * spacingBetweenColumns) / 2 -
+          symbolSize / 2,
+        baseY + axisPadding * 2
+      );
+
+      // Draw multiple columns of symbol images, starting from currentXPosition
+      for (let col = 0; col < numColumns; col++) {
+        const xPosition = currentXPosition + col * spacingBetweenColumns; // Adjust the X position for each column within the same resultScore
+
+        const symbolsInCurrentColumn = Math.min(
+          symbolsPerColumn,
+          count - col * maxSymbolCount
+        ); // Determine how many symbols to draw in the current column
+
+        // Draw the symbols, stacking them vertically in each column
+        for (let i = 0; i < symbolsInCurrentColumn; i++) {
+          const yPosition = baseY - (i + 1) * symbolHeight; // Calculate Y position for each image
+          ctx.drawImage(
+            symbolImage,
+            xPosition,
+            yPosition,
+            symbolSize,
+            symbolSize
+          ); // Draw the image
+        }
       }
+
+      // Update currentXPosition by adding the width of the columns within the resultScore plus the calculated spacing between resultScores
+      currentXPosition +=
+        numColumns * spacingBetweenColumns + spacingBetweenResultScores;
     });
   };
 }
