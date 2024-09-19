@@ -15,28 +15,41 @@
     <script type="module" src="statistics.js"></script>
   </head>
   <body>
-    <h2 class="title">Welcome to MasterMind 2: Chaotic Evil</h2>
-    <p>
+    <h2 class="title" onclick="toggleParagraph('welcome-paragraph')">
+      Welcome to MasterMind 2: Chaotic Evil
+    </h2>
+    <p id="welcome-paragraph" style="display: none">
       Whether you appreciate the challenging gameplay of MasterMind, the
-      inventive spirit of Not Tetris, or the addictive difficulty of Flappy
-      Bird, you're sure to find something to love in this game. MasterMind,
-      originally introduced by Mordecai MEIROWITZ in 1970, became a classic
-      puzzle game. However, after beating it countless times, I found the
-      challenge to wane. Many mobile games have attempted to ramp up the
-      difficulty by increasing the number of slots or colors, but this often
-      turns the gameplay into a tedious experience. My approach in designing
-      this game was to introduce a bit of chaos, compelling players to hone
-      their judgment amidst uncertainty. This game isn't just about solving
+      inventive spirit of
+      <a href="https://stabyourself.net/nottetris2/">Not Tetris</a>, or the
+      addictive difficulty of <a href="https://flappybird.io/"> Flappy Bird</a>,
+      you're sure to find something to love in this game. MasterMind, originally
+      introduced by
+      <a href="https://en.wikipedia.org/wiki/Mastermind_(board_game)/"
+        >Mordecai MEIROWITZ in 1970</a
+      >, became a classic puzzle game. However, after beating it countless
+      times, I found the challenge to wane. Many mobile games have attempted to
+      ramp up the difficulty by increasing the number of slots or colors, but
+      this often turns the gameplay into a tedious experience. My approach in
+      designing this game was to introduce a bit of chaos, compelling players to
+      hone their judgment amidst uncertainty. This game isn't just about solving
       puzzles—it's about mastering the unpredictable.
     </p>
-    <h4 class="title">THE MAKING-OF</h4>
-    <p>
-      This project, crafted in JavaScript and powered by Firebase, offers an
-      immersive gaming experience. It boasts a real-time no-SQL database that
-      meticulously records game data and a dynamic dashboard for query and
-      analysis (coming soon). Here is the <a>schema</a> of database. This is a
-      personal project developed under try and error model. Feel free to check
-      out my <a>personal website</a> for other work of mine.
+    <h4 class="title" onclick="toggleParagraph('making-of-paragraph')">
+      THE MAKING-OF
+    </h4>
+    <p id="making-of-paragraph" style="display: none">
+      This project, crafted in JavaScript and hosted on Firebase, offers a retro
+      gaming experience. It features a real-time no-SQL database that
+      meticulously records game data, allowing for seamless interactions with
+      user queries through a dynamic pictogram chart created with Chart.js. The
+      game also tracks users' personal best records, provided they accept
+      cookies, and includes a competitive ranking board (coming soon) to foster
+      engagement among players. Developed under a trial-and-error software
+      development model, this project showcases my dedication to creating
+      engaging and functional gaming experiences. Feel free to check out
+      <a href="https://hiretimothykwok.onrender.com/">my personal website</a>
+      for other work of mine.
     </p>
     <main class="dashboard">
       <canvas id="pictogramChart" width="500" height="400">Loading...</canvas>
@@ -134,7 +147,9 @@
               <input type="number" id="answer" min="0" max="999999" />
             </li>
             <li>
-              <button type="button" id="queryLevels">Query (fake)</button>
+              <button type="button" id="queryLevels">
+                Query (coming soon)
+              </button>
             </li>
           </ul>
         </fieldset>
@@ -145,5 +160,16 @@
         <a href="https://hiretimothykwok.onrender.com/">&copy; credit page</a>
       </p>
     </footer>
+    <script>
+      // Function to toggle the visibility of the paragraphs
+      function toggleParagraph(id) {
+        const paragraph = document.getElementById(id);
+        if (paragraph.style.display === "none") {
+          paragraph.style.display = "block"; // Show the paragraph
+        } else {
+          paragraph.style.display = "none"; // Hide the paragraph
+        }
+      }
+    </script>
   </body>
 </html>
