@@ -174,7 +174,7 @@ async function drawPictogram(resultArray) {
     const baseX = 50; // Starting X position for the X-axis and chart
     const baseY = canvas.height - 30; // Starting Y position (bottom of the canvas)
     const axisPadding = 10; // Padding for axes
-    const ctxFontSize = 14;
+    const ctxFontSize = 12;
     const gamesPerSymbol = Math.ceil(
       totalGames / (resultArray.length * maxSymbolCount)
     ); // Calculate gamesPerSymbol dynamically based on total games and available space
@@ -186,7 +186,7 @@ async function drawPictogram(resultArray) {
     ctx.strokeStyle = "white"; // Color of the axis
     ctx.stroke();
     // Add the "Result Score" label to the Y-axis (left-hand side of the X-axis)
-    ctx.font = `${ctxFontSize}px Arial`; // Set font size and style for the label
+    ctx.font = `${ctxFontSize}px Monaco`; // Set font size and style for the label
     ctx.fillText("Result", 0, baseY + axisPadding); // First line of the label
     ctx.fillText("Score", 0, baseY + axisPadding + ctxFontSize); // Second line of the label (15 pixels down)
     // Draw the key (legend) for how many games each symbol represents

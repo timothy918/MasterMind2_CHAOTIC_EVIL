@@ -99,7 +99,10 @@ const header = document.querySelector(".header");
 const outputTable = document.getElementById("output");
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
-document.addEventListener("DOMContentLoaded", setUpTable);
+document.addEventListener("DOMContentLoaded", function () {
+  overlayAppear();
+  setUpTable();
+});
 checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
 if (cookieAccepted) {
@@ -327,6 +330,7 @@ function getShareContent() {
 
 // Function for Game mode buttons
 function selectGameMode(game_Mode) {
+  overlayDisappear();
   leftDivision.removeEventListener("click", handleRecommendations);
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
@@ -864,19 +868,14 @@ async function gameStopped() {
     } catch {}
   }
 }
-// Add event listeners for mouse and touch events
-questionButton.addEventListener("mousedown", overlayAppear);
-questionButton.addEventListener("mouseup", overlayDisappear);
-// Mobile touch events
-questionButton.addEventListener("touchstart", overlayAppear);
-questionButton.addEventListener("touchend", overlayDisappear);
+questionButton.addEventListener("mousedown", overlayAppear); // Add event listeners for mouse and touch events
+questionButton.addEventListener("mouseup", overlayDisappear); // Add event listeners for mouse and touch events
+questionButton.addEventListener("touchstart", overlayAppear); // Mobile touch events
+questionButton.addEventListener("touchend", overlayDisappear); // Mobile touch events
 function overlayAppear(event) {
-  event.preventDefault(); // Prevents default behavior like scrolling or zooming (optional)
+  // event.preventDefault(); // Prevents default behavior like scrolling or zooming (optional)
   overlay.classList.add("overlay-visible"); // Show the overlay
   const buttonRect = questionButton.getBoundingClientRect(); // Get the position of the button relative to the viewport
-  // Set the overlay position and width
-  overlay.style.top = `0px`; // Align the top of the overlay with the top of the window
-  overlay.style.left = `0px`; // Align the overlay's left border with the left edge of the window
   // Set the width of the overlay to span from the left edge of the browser to the left edge of the button
   const overlayWidth = buttonRect.left + window.scrollX; // Distance from the left edge of the viewport to the left edge of the button
   overlay.style.width = `${overlayWidth}px`;

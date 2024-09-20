@@ -7,6 +7,7 @@ body {
   align-items: center; /* Center content horizontally */
   justify-content: flex-end; /* Align content to the bottom */
   color: white;
+  font-family: "Lucida Console", Monaco, monospace;
 }
 .rightHint {
   color: green;
@@ -113,6 +114,10 @@ th {
   border: 1px dashed white;
   vertical-align: middle;
 }
+th {
+  font-weight: bold;
+  text-decoration: underline;
+}
 td:first-child {
   text-align: center;
 }
@@ -121,12 +126,10 @@ td.large {
 }
 table {
   border-collapse: collapse;
-  font-family: "Lucida Console", Monaco, monospace;
   font-size: medium;
 }
 #population {
   border-collapse: collapse;
-  font-family: "Lucida Console", Monaco, monospace;
   font-size: small;
 }
 #right_temp {
@@ -183,8 +186,11 @@ figure figcaption {
   padding: 10px;
   border-radius: 5px;
   z-index: 1000;
-  font-family: "Lucida Console", Monaco, monospace;
   right: auto; /* Ensure this is not set to interfere */
+  top: 0px; /* Align the top of the overlay with the top of the window*/
+  left: 0px; /* Align the overlay's left border with the left edge of the window*/
+  max-height: 100vh; /* Overlay won't grow larger than the viewport height */
+  overflow-y: auto; /* Enable scrolling when content exceeds the height */
 }
 .overlay-visible {
   display: block; /* Show overlay when visible */
