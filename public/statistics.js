@@ -20,12 +20,27 @@ const populationTable = document.getElementById("population");
 let userIP = getCookie("MasterMind2userIP"); // Try to get the player's IP address and create personalized queries
 const gamesIfUserCheckbox = document.getElementById("gamesIfUser"); // Get checkbox elements
 const levelsIfUserCheckbox = document.getElementById("levelsIfUser"); // Get checkbox elements
+const canvas = document.getElementById("pictogramChart");
+
 // Disable checkboxes if userIP is null
 if (userIP === null) {
   gamesIfUserCheckbox.disabled = true;
   levelsIfUserCheckbox.disabled = true;
 }
-
+// Initialize the queries, counts, and unique IP tracking
+const queries = getPopulationQueries(); // Define an array of queries
+const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
+const uniqueIPs = new Set(); // Use a Set to store unique IP addresses
+attachQueryListeners(queries, realTimeCounts, uniqueIPs); // Attach the onSnapshot listeners for real-time updates
+const queryGamesButton = document.getElementById("queryGames");
+queryGamesButton.addEventListener("click", async function () {
+  const resultArray = await queryGames(); // Await the result of the async function
+  if (resultArray) {
+    // Check if resultArray is not null
+    drawPictogram(resultArray); // Call the pictogram drawing function
+  }
+});
+queryGamesButton.click();
 function getPopulationQueries() {
   const baseQueries = [
     query(colRef, where("gameMode", "==", 3)), // GameMode 3
@@ -42,7 +57,6 @@ function getPopulationQueries() {
     return baseQueries; // Return only base queries if no user IP
   }
 }
-
 // Function to attach onSnapshot listeners
 function attachQueryListeners(queries, realTimeCounts, uniqueIPs) {
   queries.forEach((query, index) => {
@@ -65,7 +79,6 @@ function attachQueryListeners(queries, realTimeCounts, uniqueIPs) {
     // You can store the unsubscribe function if you need it later
   });
 }
-
 // Function to update the display for the unique IP count
 function updateUniqueIPDisplay(uniqueIPs) {
   let countPlayers = uniqueIPs.size;
@@ -77,13 +90,6 @@ function updateUniqueIPDisplay(uniqueIPs) {
   headerRow.cells[2].insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
   headerRow.cells[2].insertAdjacentText("beforeend", `others`);
 }
-
-// Initialize the queries, counts, and unique IP tracking
-const queries = getPopulationQueries(); // Define an array of queries
-const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
-const uniqueIPs = new Set(); // Use a Set to store unique IP addresses
-attachQueryListeners(queries, realTimeCounts, uniqueIPs); // Attach the onSnapshot listeners for real-time updates
-
 // Function to update the table display
 function updatePopulationDisplay(realTimeCounts) {
   const gameMode3Row = populationTable.rows[1]; // Row for GameMode 3
@@ -102,17 +108,6 @@ function updatePopulationDisplay(realTimeCounts) {
     gameMode7Row.cells[2].textContent = realTimeCounts[1]; // others = real
   }
 }
-
-document
-  .getElementById("queryGames")
-  .addEventListener("click", async function () {
-    const resultArray = await queryGames(); // Await the result of the async function
-    if (resultArray) {
-      // Check if resultArray is not null
-      drawPictogram(resultArray); // Call the pictogram drawing function
-    }
-  });
-
 // Function to query Firestore based on the form inputs and return a count by resultScore
 async function queryGames() {
   // Get form inputs
@@ -148,11 +143,10 @@ async function queryGames() {
           (scoreCounts[data.resultScore] || 0) + 1; // Increment the count for this resultScore
       }
     });
-    // Convert the scoreCounts object to an array of resultScore-count pairs
     const resultArray = Object.entries(scoreCounts).map(([score, count]) => ({
       resultScore: parseInt(score),
       count: count,
-    }));
+    })); // Convert the scoreCounts object to an array of resultScore-count pairs
     resultArray.sort((a, b) => a.resultScore - b.resultScore); // Sort the resultArray by resultScore in ascending order
     console.log(resultArray); // Return or process the sorted array
     return resultArray; // Return the sorted array with counts
@@ -160,86 +154,105 @@ async function queryGames() {
     console.error("Error querying documents: ", error);
   }
 }
+const symbolImage = new Image(); // Cache the image outside to avoid reloading it each time
+symbolImage.src = "./dot.png"; // Replace with your actual image path
+let currentXPositionArray = []; // Store X positions
+let resultArrayGlobal = []; // Store resultArray globally
+let spacingBtwResultScores; // Spacing between result scores
+// symbolImage.onload = () => {
+//   console.log("Symbol image loaded");
+// };// Ensure the image is loaded once
 async function drawPictogram(resultArray) {
   const canvas = document.getElementById("pictogramChart");
   const ctx = canvas.getContext("2d");
-  const symbolImage = new Image(); // Load the PNG image
-  symbolImage.src = "./dot.png"; // Replace with your actual image path
-  const totalGames = resultArray.reduce((acc, item) => acc + item.count, 0); // Calculate the total number of games
-  symbolImage.onload = () => {
-    const chartWidth = canvas.width - 50; // Available width after axis padding
-    const chartHeight = canvas.height - 30; // Available height after axis padding
-    const symbolSize = Math.min(chartWidth / (resultArray.length * 5), 20); // Set image size dynamically
-    const maxSymbolCount = Math.floor(chartHeight / symbolSize); // Max number of symbols vertically
-    const baseX = 50; // Starting X position for the X-axis and chart
-    const baseY = canvas.height - 30; // Starting Y position (bottom of the canvas)
-    const axisPadding = 10; // Padding for axes
-    const ctxFontSize = 12;
-    const gamesPerSymbol = Math.ceil(
-      totalGames / (resultArray.length * maxSymbolCount)
-    ); // Calculate gamesPerSymbol dynamically based on total games and available space
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    ctx.fillStyle = "white"; // Set text color
-    ctx.beginPath(); // Draw X-axis (horizontal line)
-    ctx.moveTo(baseX - axisPadding, baseY);
-    ctx.lineTo(baseX + chartWidth, baseY);
-    ctx.strokeStyle = "white"; // Color of the axis
-    ctx.stroke();
-    // Add the "Result Score" label to the Y-axis (left-hand side of the X-axis)
-    ctx.font = `${ctxFontSize}px Monaco`; // Set font size and style for the label
-    ctx.fillText("Result", 0, baseY + axisPadding); // First line of the label
-    ctx.fillText("Score", 0, baseY + axisPadding + ctxFontSize); // Second line of the label (15 pixels down)
-    // Draw the key (legend) for how many games each symbol represents
-    ctx.save(); // Save the current state of the canvas
-    ctx.translate(15, (canvas.height * 2) / 3); // Move the origin point for the key
-    ctx.rotate(-Math.PI / 2); // Rotate the canvas 90 degrees counterclockwise
-    ctx.font = `${ctxFontSize}px Arial`; // Set font size for the key
-    ctx.fillText(`Each bead represents ${gamesPerSymbol} game(s)`, 0, 0); // Draw key text
-    ctx.restore(); // Restore the canvas to its previous state
-    const totalColumns = resultArray.reduce((acc, item) => {
-      return acc + Math.ceil(item.count / maxSymbolCount);
-    }, 0); // Calculate total number of columns required
-    // Calculate spacing between different resultScores
-    const spacingBetweenColumns = symbolSize * 0.75; // Spacing between columns of the same resultScore
-    const totalColumnWidth = totalColumns * spacingBetweenColumns; // Total width occupied by all columns
-    const remainingWidth = chartWidth - totalColumnWidth; // Space left for spacing between resultScores
-    const spacingBetweenResultScores =
-      (remainingWidth - 10) / (resultArray.length - 1); // Divide the remaining width by the number of gaps between resultScores
-    let currentXPosition = baseX; // Running counter to track the X position of the last drawn column
-    // Loop over the resultArray and draw the images for each value
-    resultArray.forEach((item) => {
-      const resultScore = item.resultScore;
-      const count = item.count;
-      const numColumns = Math.ceil(count / maxSymbolCount); // Calculate the number of columns needed if the count exceeds maxSymbolCount
-      const symbolsPerColumn = Math.min(count, maxSymbolCount); // Limit symbols per column
-      ctx.fillText(
-        resultScore,
-        currentXPosition +
-          (numColumns * spacingBetweenColumns) / 2 -
-          symbolSize / 2,
-        baseY + axisPadding * 2
-      ); // Draw the resultScore label below the X-axis
-      // Draw multiple columns of symbol images, starting from currentXPosition
-      for (let col = 0; col < numColumns; col++) {
-        const xPosition = currentXPosition + col * spacingBetweenColumns; // Adjust the X position for each column within the same resultScore
-        const symbolsInCurrentColumn = Math.min(
-          symbolsPerColumn,
-          count - col * maxSymbolCount
-        ); // Determine how many symbols to draw in the current column
-        // Draw the symbols, stacking them vertically in each column
-        for (let i = 0; i < symbolsInCurrentColumn; i++) {
-          const yPosition = baseY - (i + 1) * symbolSize; // Calculate Y position for each image
-          ctx.drawImage(
-            symbolImage,
-            xPosition,
-            yPosition,
-            symbolSize,
-            symbolSize
-          ); // Draw the image
-        }
+  const totalGames = resultArray.reduce((acc, item) => acc + item.count, 0);
+  const chartWidth = canvas.width - 50;
+  const chartHeight = canvas.height - 30;
+  const symbolSize = Math.min(chartWidth / (resultArray.length * 5), 20);
+  const maxSymbolCount = Math.floor(chartHeight / symbolSize);
+  const baseX = 50;
+  const baseY = canvas.height - 30;
+  const axisPadding = 10;
+  const ctxFontSize = 12;
+  const gamesPerSymbol = Math.ceil(
+    totalGames / (resultArray.length * maxSymbolCount)
+  );
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas and set text style
+  ctx.fillStyle = "white";
+  ctx.beginPath(); // Draw X-axis
+  ctx.moveTo(baseX - axisPadding, baseY);
+  ctx.lineTo(baseX + chartWidth, baseY);
+  ctx.strokeStyle = "white";
+  ctx.stroke();
+  ctx.font = `${ctxFontSize}px Monaco`;
+  ctx.fillText("Result", 0, baseY + axisPadding);
+  ctx.fillText("Score", 0, baseY + axisPadding + ctxFontSize);
+  ctx.save(); // Draw the legend (Key)
+  ctx.translate(15, (canvas.height * 2) / 3);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = `${ctxFontSize}px Arial`;
+  ctx.fillText(`Each bead represents ${gamesPerSymbol} game(s)`, 0, 0);
+  ctx.restore();
+  const totalColumns = resultArray.reduce(
+    (acc, item) => acc + Math.ceil(item.count / maxSymbolCount),
+    0
+  );
+  const spacingBtwColumns = symbolSize * 0.75;
+  const totalColumnWidth = totalColumns * spacingBtwColumns;
+  const remainingWidth = chartWidth - totalColumnWidth;
+  spacingBtwResultScores = (remainingWidth - 10) / (resultArray.length - 1);
+  let currentXPosition = baseX;
+  currentXPositionArray = []; // Reset X positions
+  resultArrayGlobal = resultArray; // Store resultArray globally
+  resultArray.forEach((item) => {
+    const resultScore = item.resultScore;
+    const count = item.count;
+    const numColumns = Math.ceil(count / maxSymbolCount);
+    const symbolsPerColumn = Math.min(count, maxSymbolCount);
+    ctx.fillText(
+      resultScore,
+      currentXPosition + (numColumns * spacingBtwColumns) / 2 - symbolSize / 2,
+      baseY + axisPadding * 2
+    ); // Draw the result score label
+    currentXPositionArray.push(currentXPosition); // Store the X position
+    // Draw symbols for each result score
+    for (let col = 0; col < numColumns; col++) {
+      const xPosition = currentXPosition + col * spacingBtwColumns;
+      const symbolsInCurrentColumn = Math.min(
+        symbolsPerColumn,
+        count - col * maxSymbolCount
+      );
+      for (let i = 0; i < symbolsInCurrentColumn; i++) {
+        const yPosition = baseY - (i + 1) * symbolSize;
+        ctx.drawImage(
+          symbolImage,
+          xPosition,
+          yPosition,
+          symbolSize,
+          symbolSize
+        );
       }
-      currentXPosition +=
-        numColumns * spacingBetweenColumns + spacingBetweenResultScores;
-    }); // Update currentXPosition by adding the width of the columns within the resultScore plus the calculated spacing between resultScores
-  };
+    }
+    currentXPosition += numColumns * spacingBtwColumns + spacingBtwResultScores;
+  });
+  canvas.removeEventListener("click", handleClickOnCanvas); // Remove old listener
+  canvas.addEventListener("click", handleClickOnCanvas); // Attach new one
+}
+function handleClickOnCanvas(event) {
+  const canvas = document.getElementById("pictogramChart");
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const mouseX = (event.clientX - rect.left) * scaleX;
+  // Check if the click falls within a column
+  resultArrayGlobal.forEach((item, index) => {
+    const columnStartX =
+      currentXPositionArray[index] - spacingBtwResultScores / 3;
+    const columnEndX =
+      currentXPositionArray[index + 1] !== undefined
+        ? currentXPositionArray[index + 1] - spacingBtwResultScores * (2 / 3)
+        : canvas.width; // If it's the last one, end is canvas width
+    if (mouseX >= columnStartX && mouseX <= columnEndX) {
+      console.log(`You clicked on resultScore: ${item.resultScore}`);
+    }
+  });
 }

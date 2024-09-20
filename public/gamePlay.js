@@ -881,7 +881,7 @@ function overlayAppear(event) {
   overlay.style.width = `${overlayWidth}px`;
 }
 function overlayDisappear(event) {
-  event.preventDefault(); // Prevents default behavior if needed
+  // event.preventDefault(); // Prevents default behavior if needed
   overlay.classList.remove("overlay-visible");
 }
 
