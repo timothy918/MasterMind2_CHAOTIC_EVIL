@@ -21,7 +21,6 @@ let userIP = getCookie("MasterMind2userIP"); // Try to get the player's IP addre
 const gamesIfUserCheckbox = document.getElementById("gamesIfUser"); // Get checkbox elements
 const levelsIfUserCheckbox = document.getElementById("levelsIfUser"); // Get checkbox elements
 const canvas = document.getElementById("pictogramChart");
-
 // Disable checkboxes if userIP is null
 if (userIP === null) {
   gamesIfUserCheckbox.disabled = true;
@@ -32,6 +31,16 @@ const queries = getPopulationQueries(); // Define an array of queries
 const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
 const uniqueIPs = new Set(); // Use a Set to store unique IP addresses
 attachQueryListeners(queries, realTimeCounts, uniqueIPs); // Attach the onSnapshot listeners for real-time updates
+let querySnapshot;
+const symbolImage = new Image(); // Cache the image outside to avoid reloading it each time
+symbolImage.src = "./dot.png"; // Replace with your actual image path
+let currentXPositionArray = []; // Store X positions
+let resultArrayGlobal = []; // Store resultArray globally
+let spacingBtwResultScores; // Spacing between result scores
+// symbolImage.onload = () => {
+//   console.log("Symbol image loaded");
+// };// Ensure the image is loaded once
+
 const queryGamesButton = document.getElementById("queryGames");
 queryGamesButton.addEventListener("click", async function () {
   const resultArray = await queryGames(); // Await the result of the async function
@@ -132,7 +141,7 @@ async function queryGames() {
     gameQuery = query(gameQuery, where("dateTime", ">=", cutoffTimestamp));
   }
   try {
-    const querySnapshot = await getDocs(gameQuery); // Execute the query
+    querySnapshot = await getDocs(gameQuery); // Execute the query
     const scoreCounts = {}; // Object to hold counts of each resultScore
     // Iterate through each document
     querySnapshot.forEach((doc) => {
@@ -154,16 +163,7 @@ async function queryGames() {
     console.error("Error querying documents: ", error);
   }
 }
-const symbolImage = new Image(); // Cache the image outside to avoid reloading it each time
-symbolImage.src = "./dot.png"; // Replace with your actual image path
-let currentXPositionArray = []; // Store X positions
-let resultArrayGlobal = []; // Store resultArray globally
-let spacingBtwResultScores; // Spacing between result scores
-// symbolImage.onload = () => {
-//   console.log("Symbol image loaded");
-// };// Ensure the image is loaded once
 async function drawPictogram(resultArray) {
-  const canvas = document.getElementById("pictogramChart");
   const ctx = canvas.getContext("2d");
   const totalGames = resultArray.reduce((acc, item) => acc + item.count, 0);
   const chartWidth = canvas.width - 50;
@@ -239,7 +239,6 @@ async function drawPictogram(resultArray) {
   canvas.addEventListener("click", handleClickOnCanvas); // Attach new one
 }
 function handleClickOnCanvas(event) {
-  const canvas = document.getElementById("pictogramChart");
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const mouseX = (event.clientX - rect.left) * scaleX;
@@ -252,7 +251,65 @@ function handleClickOnCanvas(event) {
         ? currentXPositionArray[index + 1] - spacingBtwResultScores * (2 / 3)
         : canvas.width; // If it's the last one, end is canvas width
     if (mouseX >= columnStartX && mouseX <= columnEndX) {
-      console.log(`You clicked on resultScore: ${item.resultScore}`);
+      createRankingBoard(item.resultScore);
     }
   });
+}
+
+// const rankingBoardContainer = document.getElementById("rankingBoard");
+async function createRankingBoard(resultScoreFilter) {
+  try {
+    let filteredResults = []; // Array to store filtered results
+    // Filter and collect relevant documents
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Adjust based on the resultScoreFilter
+      if (data.resultScore === resultScoreFilter) {
+        filteredResults.push({
+          resultScore: data.resultScore,
+          secondsPerLevel: data.secondsPerLevel, // This might be undefined if resultScoreFilter < 0
+          ipAddress: data.ipAddress, // Added IP address and dateTime for table
+          dateTime: data.dateTime,
+        });
+      }
+    });
+    // Sort the results only if secondsPerLevel is available (resultScoreFilter >= 0)
+    if (resultScoreFilter >= 0) {
+      filteredResults.sort((a, b) => a.secondsPerLevel - b.secondsPerLevel); // Sort by secondsPerLevel if applicable
+    }
+    // const topResults = filteredResults.slice(0, 9); // Only display top 9 entries
+    rankingBoardContainer.innerHTML = ""; // Clear previous entries
+    const table = document.createElement("table"); // Create a table element
+    table.classList.add("ranking-table");
+    let headerRow = `<thead><tr>
+          <th>Rank</th>
+          <th>User Name</th>
+          <th>Date Time</th>`; // Define the table headers
+    // Add "Seconds per levels" column if resultScoreFilter >= 0
+    if (resultScoreFilter >= 0) {
+      headerRow += `<th>Seconds per Levels</th>`;
+    }
+    headerRow += `</tr></thead>`;
+    table.innerHTML = headerRow; // Add the header row to the table
+    const tableBody = document.createElement("tbody"); // Create the body of the table
+    topResults.forEach((result, index) => {
+      let row = `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${result.ipAddress}</td>
+          <td>${result.dateTime}</td>
+      `; // Populate the table with top 9 results
+      // Conditionally display secondsPerLevel if available
+      if (resultScoreFilter >= 0) {
+        row += `<td>${result.secondsPerLevel || "N/A"}</td>`;
+      }
+      row += `</tr>`;
+      tableBody.innerHTML += row; // Add each row to the table body
+    });
+    table.appendChild(tableBody); // Append the table body to the table
+    console.log(table);
+    // rankingBoardContainer.appendChild(table); // Append the table to the ranking board container
+  } catch (error) {
+    console.error("Error creating ranking board:", error);
+  }
 }

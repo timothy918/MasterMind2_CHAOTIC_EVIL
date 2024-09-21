@@ -178,6 +178,7 @@ figure figcaption {
 #query {
   float: right;
 }
+/* Desktop styles (default) */
 .overlay {
   display: none; /* Hidden by default */
   position: absolute;
@@ -186,15 +187,28 @@ figure figcaption {
   padding: 10px;
   border-radius: 5px;
   z-index: 1000;
-  right: auto; /* Ensure this is not set to interfere */
-  top: 0px; /* Align the top of the overlay with the top of the window*/
-  left: 0px; /* Align the overlay's left border with the left edge of the window*/
+  right: auto;
+  top: 0px; /* Align the top of the overlay with the top of the window */
+  left: 0px; /* Align the overlay's left border with the left edge of the window */
   max-height: 100vh; /* Overlay won't grow larger than the viewport height */
   overflow-y: auto; /* Enable scrolling when content exceeds the height */
+  width: auto; /* Ensure the width is automatically calculated */
 }
 .overlay-visible {
   display: block; /* Show overlay when visible */
 }
+/* Mobile styles (phones, smaller screens) */
+@media (max-width: 768px) {
+  .overlay {
+    top: 0;
+    bottom: auto; /* Remove any influence of desktop styles */
+    left: 0;
+    right: 0; /* Ensure the overlay spans the full width of the screen */
+    height: auto; /* Let height adjust automatically */
+    max-width: 100vw; /* Overlay shouldn't exceed the viewport width */
+  }
+}
+
 ul {
   padding-inline-start: 10px;
 }

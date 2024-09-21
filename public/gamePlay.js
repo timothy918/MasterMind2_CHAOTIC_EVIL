@@ -129,7 +129,7 @@ function setUpTable() {
     } else {
       switch (keyCode) {
         case 188: // Comma (<),
-        case 86: //Caret (v),
+        case 86: // (v),
         case 190: // or Period (>)
           // Find the direction button with the corresponding value in leftDivision
           const directionButton = leftDivision.querySelector(
@@ -141,19 +141,19 @@ function setUpTable() {
           break;
         case 8: // Check if the pressed key is the Backspace key
           currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex back by 1, wrapping around if necessary
-          const slotMinus1Slot =
+          const slotMinus1 =
             leftDivision.querySelectorAll(".slot")[currentIndex];
-          const buttonMinus1 = slotMinus1Slot.querySelector("button");
+          const buttonMinus1 = slotMinus1.querySelector("button");
           // Remove the button from the targeted slot
           if (buttonMinus1) {
             buttonMinus1.click();
           }
           updateSlotBorders();
           break;
-        case 13: // Trigger the click event on the Start or Enter button
+        case 13: // Enter button
           enterButton.click();
           break;
-        case 32: // Check if the pressed key is the Space bar
+        case 32: // Space bar
           const currentSlot =
             leftDivision.querySelectorAll(".slot")[currentIndex];
           const buttonInSlot = currentSlot.querySelector("button");
@@ -162,18 +162,38 @@ function setUpTable() {
             buttonInSlot.click();
           }
           break;
-        case 37: // Check if the pressed key is the Left arrow key
+        case 37: // Left arrow key
           currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex left by 1, wrapping around if necessary
           updateSlotBorders();
           break;
-        case 39: // Check if the pressed key is the Right arrow key
+        case 39: // Right arrow key
           currentIndex = (currentIndex + 1) % n_Slots; // Move currentIndex right by 1, wrapping around if necessary
           updateSlotBorders();
+          break;
+        case 191: // question mark (?)
+          overlayAppear();
+          break;
+        case 38: // Up arrow key (↑)
+          mainContainer.scrollBy({
+            top: -50, // Scroll up
+            behavior: "smooth", // Smooth scrolling
+          });
+          break;
+        case 40: // Down arrow key (↓)
+          mainContainer.scrollBy({
+            top: 50, // Scroll down
+            behavior: "smooth", // Smooth scrolling
+          });
           break;
       }
     }
   }
   document.addEventListener("keydown", handleKeybroad); // Event listener for keydown events
+  document.addEventListener("keyup", (event) => {
+    if (event.key === "/") {
+      overlayDisappear(); // question mark (?)
+    }
+  });
 
   resetGameModeButtons();
 
@@ -873,16 +893,22 @@ questionButton.addEventListener("mouseup", overlayDisappear); // Add event liste
 questionButton.addEventListener("touchstart", overlayAppear); // Mobile touch events
 questionButton.addEventListener("touchend", overlayDisappear); // Mobile touch events
 function overlayAppear(event) {
-  // event.preventDefault(); // Prevents default behavior like scrolling or zooming (optional)
-  overlay.classList.add("overlay-visible"); // Show the overlay
   const buttonRect = questionButton.getBoundingClientRect(); // Get the position of the button relative to the viewport
-  // Set the width of the overlay to span from the left edge of the browser to the left edge of the button
-  const overlayWidth = buttonRect.left + window.scrollX; // Distance from the left edge of the viewport to the left edge of the button
-  overlay.style.width = `${overlayWidth}px`;
+  overlay.classList.add("overlay-visible"); // Show the overlay
+  if (window.innerWidth <= 768) {
+    // For phone browsers (width <= 768px)
+    const overlayHeight = buttonRect.top + window.scrollY; // Distance from the top edge of the viewport to the top edge of the button
+    overlay.style.height = `${overlayHeight}px`; // Set height from top to button
+    overlay.style.width = "100vw"; // Full viewport width
+  } else {
+    // For desktop browsers
+    const overlayWidth = buttonRect.left + window.scrollX; // Distance from the left edge of the viewport to the left edge of the button
+    overlay.style.width = `${overlayWidth}px`; // Set width from left to button
+    overlay.style.height = "100vh"; // Full viewport height
+  }
 }
 function overlayDisappear(event) {
-  // event.preventDefault(); // Prevents default behavior if needed
-  overlay.classList.remove("overlay-visible");
+  overlay.classList.remove("overlay-visible"); // Hide the overlay
 }
 
 function updateEnterButton() {
