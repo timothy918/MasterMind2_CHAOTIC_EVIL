@@ -5,14 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MasterMind II- Statistics</title>
-    <!-- <link
-      rel="stylesheet"
-      href="node_modules/bootstrap/dist/css/bootstrap.min.css"
-    /> -->
     <link rel="stylesheet" href="site.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="index.js"></script>
     <script type="module" src="statistics.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
   </head>
   <body>
     <h2 class="title" onclick="toggleParagraph('welcome-paragraph')">
@@ -42,13 +40,17 @@
       This project, crafted in JavaScript and hosted on Firebase, offers a retro
       gaming experience. It features a real-time no-SQL database that
       meticulously records game data, allowing for seamless interactions with
-      user queries through a dynamic pictogram chart created with Chart.js. The
-      game also tracks users' personal best records, provided they accept
-      cookies, and includes a competitive ranking board (coming soon) to foster
-      engagement among players. Developed under a trial-and-error software
+      user queries through a dynamic pictogram chart created with Chart.js.
+      Clicking on any columns in pictogram chart will visualize a Scatter Plot
+      for more details. You can view the
+      <a href="schema.png" target="_blank">schema</a> of the database, if
+      interested. The game also tracks users' personal best records, provided
+      they accept cookies. Developed under a trial-and-error software
       development model, this project showcases my dedication to creating
       engaging and functional gaming experiences. Feel free to check out
-      <a href="https://hiretimothykwok.onrender.com/">my personal website</a>
+      <a href="https://hiretimothykwok.onrender.com/" target="_blank"
+        >my personal website</a
+      >
       for other work of mine.
     </p>
     <main class="dashboard">

@@ -37,9 +37,6 @@ symbolImage.src = "./dot.png"; // Replace with your actual image path
 let currentXPositionArray = []; // Store X positions
 let resultArrayGlobal = []; // Store resultArray globally
 let spacingBtwResultScores; // Spacing between result scores
-// symbolImage.onload = () => {
-//   console.log("Symbol image loaded");
-// };// Ensure the image is loaded once
 
 const queryGamesButton = document.getElementById("queryGames");
 queryGamesButton.addEventListener("click", async function () {
@@ -190,7 +187,6 @@ async function drawPictogram(resultArray) {
   ctx.save(); // Draw the legend (Key)
   ctx.translate(15, (canvas.height * 2) / 3);
   ctx.rotate(-Math.PI / 2);
-  ctx.font = `${ctxFontSize}px Arial`;
   ctx.fillText(`Each bead represents ${gamesPerSymbol} game(s)`, 0, 0);
   ctx.restore();
   const totalColumns = resultArray.reduce(
@@ -251,65 +247,98 @@ function handleClickOnCanvas(event) {
         ? currentXPositionArray[index + 1] - spacingBtwResultScores * (2 / 3)
         : canvas.width; // If it's the last one, end is canvas width
     if (mouseX >= columnStartX && mouseX <= columnEndX) {
-      createRankingBoard(item.resultScore);
+      drawScatterPort(item.resultScore);
     }
   });
 }
+async function drawScatterPort(resultScoreFilter) {
+  let filteredResults = []; // Array to store filtered results
+  // Filter and collect relevant documents
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    // Adjust based on the resultScoreFilter
+    if (data.resultScore === resultScoreFilter) {
+      filteredResults.push({
+        resultScore: data.resultScore,
+        secondsPerLevel: data.secondsPerLevel, // This might be undefined if resultScoreFilter < 0
+        ipAddress: data.ipAddress,
+        dateTime: data.dateTime ? data.dateTime.toDate() : new Date(), // Convert Firestore timestamp to Date object
+      });
+    }
+  });
+  // Create data for the scatter plot with ln(secondsPerLevel)
+  const scatterData = filteredResults.map((result) => {
+    const secondsPerLevel = result.secondsPerLevel || 1; // Avoid ln(0), treat undefined or 0 as 1
+    return {
+      x: result.dateTime, // Use dateTime as the x-axis value
+      y: Math.log(secondsPerLevel), // Apply ln transformation to secondsPerLevel
+      label: result.ipAddress,
+      dateTime: result.dateTime, // Already converted to Date object
+    };
+  });
 
-// const rankingBoardContainer = document.getElementById("rankingBoard");
-async function createRankingBoard(resultScoreFilter) {
-  try {
-    let filteredResults = []; // Array to store filtered results
-    // Filter and collect relevant documents
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      // Adjust based on the resultScoreFilter
-      if (data.resultScore === resultScoreFilter) {
-        filteredResults.push({
-          resultScore: data.resultScore,
-          secondsPerLevel: data.secondsPerLevel, // This might be undefined if resultScoreFilter < 0
-          ipAddress: data.ipAddress, // Added IP address and dateTime for table
-          dateTime: data.dateTime,
-        });
-      }
-    });
-    // Sort the results only if secondsPerLevel is available (resultScoreFilter >= 0)
-    if (resultScoreFilter >= 0) {
-      filteredResults.sort((a, b) => a.secondsPerLevel - b.secondsPerLevel); // Sort by secondsPerLevel if applicable
-    }
-    // const topResults = filteredResults.slice(0, 9); // Only display top 9 entries
-    rankingBoardContainer.innerHTML = ""; // Clear previous entries
-    const table = document.createElement("table"); // Create a table element
-    table.classList.add("ranking-table");
-    let headerRow = `<thead><tr>
-          <th>Rank</th>
-          <th>User Name</th>
-          <th>Date Time</th>`; // Define the table headers
-    // Add "Seconds per levels" column if resultScoreFilter >= 0
-    if (resultScoreFilter >= 0) {
-      headerRow += `<th>Seconds per Levels</th>`;
-    }
-    headerRow += `</tr></thead>`;
-    table.innerHTML = headerRow; // Add the header row to the table
-    const tableBody = document.createElement("tbody"); // Create the body of the table
-    topResults.forEach((result, index) => {
-      let row = `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${result.ipAddress}</td>
-          <td>${result.dateTime}</td>
-      `; // Populate the table with top 9 results
-      // Conditionally display secondsPerLevel if available
-      if (resultScoreFilter >= 0) {
-        row += `<td>${result.secondsPerLevel || "N/A"}</td>`;
-      }
-      row += `</tr>`;
-      tableBody.innerHTML += row; // Add each row to the table body
-    });
-    table.appendChild(tableBody); // Append the table body to the table
-    console.log(table);
-    // rankingBoardContainer.appendChild(table); // Append the table to the ranking board container
-  } catch (error) {
-    console.error("Error creating ranking board:", error);
-  }
+  const ctx = canvas.getContext("2d");
+  const scatterChart = new Chart(ctx, {
+    type: "scatter", // Scatter chart type
+    data: {
+      datasets: [
+        {
+          label: `Result Score = ${resultScoreFilter}`,
+          data: scatterData,
+          borderColor: "rgba(54, 162, 235, 1)",
+          pointRadius: 5, // Customize point size
+          pointHoverRadius: 7, // Customize hover point size
+          showLine: false, // Do not show lines between points
+        },
+      ],
+    },
+    options: {
+      scales: {
+        x: {
+          type: "time", // Use time as the x-axis type for dateTime
+          time: {
+            unit: "day", // Group data points by day
+            tooltipFormat: "MMM D, YYYY h:mm a", // Format tooltips as 'Month Day, Year Hour:Minute AM/PM'
+            displayFormats: {
+              day: "MMM D", // Format X axis ticks as 'Month Day'
+            },
+          },
+          title: {
+            display: true,
+            text: "Date",
+          },
+          max: new Date(), // Get today's date
+        },
+        y: {
+          ticks: {
+            callback: function (value) {
+              return Math.round(Math.exp(value) * 1000) / 1000; // Reverse the ln transformation for axis labels
+            },
+          },
+          title: {
+            display: true,
+            text: "Seconds per Level", // Indicate original values in the label
+          },
+          reverse: true, // Reverse the Y axis to have lower values at the top
+        },
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const dataPoint = scatterData[context.dataIndex];
+              const formattedDate = dataPoint.dateTime.toLocaleDateString(); // Format the date part
+              const formattedTime = dataPoint.dateTime.toLocaleTimeString(); // Format the time part
+              const originalSecondsPerLevel = Math.exp(dataPoint.y); // Reverse the ln transformation for the tooltip
+              return `${
+                Math.round(originalSecondsPerLevel * 1000) / 1000 || "N/A"
+              } seconds per level by ${
+                dataPoint.label
+              } on ${formattedDate} at ${formattedTime}`;
+            },
+          },
+        },
+      },
+    },
+  });
 }
