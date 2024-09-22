@@ -161,6 +161,8 @@ async function queryGames() {
   }
 }
 async function drawPictogram(resultArray) {
+  canvas.width = 500; // Set your desired width
+  canvas.height = 400; // Set your desired height
   const ctx = canvas.getContext("2d");
   const totalGames = resultArray.reduce((acc, item) => acc + item.count, 0);
   const chartWidth = canvas.width - 50;
@@ -251,7 +253,11 @@ function handleClickOnCanvas(event) {
     }
   });
 }
+let scatterChart = null; // Global variable to store chart instance
 async function drawScatterPort(resultScoreFilter) {
+  if (scatterChart) {
+    scatterChart.destroy(); // If a chart already exists, destroy it before creating a new one
+  }
   let filteredResults = []; // Array to store filtered results
   // Filter and collect relevant documents
   querySnapshot.forEach((doc) => {
@@ -276,9 +282,8 @@ async function drawScatterPort(resultScoreFilter) {
       dateTime: result.dateTime, // Already converted to Date object
     };
   });
-
   const ctx = canvas.getContext("2d");
-  const scatterChart = new Chart(ctx, {
+  scatterChart = new Chart(ctx, {
     type: "scatter", // Scatter chart type
     data: {
       datasets: [
@@ -310,14 +315,15 @@ async function drawScatterPort(resultScoreFilter) {
           max: new Date(), // Get today's date
         },
         y: {
+          position: "right", // Move Y-axis to the right
           ticks: {
             callback: function (value) {
-              return Math.round(Math.exp(value) * 1000) / 1000; // Reverse the ln transformation for axis labels
+              return Math.round(Math.exp(value)); // Reverse the ln transformation for axis labels
             },
           },
           title: {
             display: true,
-            text: "Seconds per Level", // Indicate original values in the label
+            text: "Seconds per level", // Indicate original values in the label
           },
           reverse: true, // Reverse the Y axis to have lower values at the top
         },
@@ -329,12 +335,13 @@ async function drawScatterPort(resultScoreFilter) {
               const dataPoint = scatterData[context.dataIndex];
               const formattedDate = dataPoint.dateTime.toLocaleDateString(); // Format the date part
               const formattedTime = dataPoint.dateTime.toLocaleTimeString(); // Format the time part
-              const originalSecondsPerLevel = Math.exp(dataPoint.y); // Reverse the ln transformation for the tooltip
-              return `${
-                Math.round(originalSecondsPerLevel * 1000) / 1000 || "N/A"
-              } seconds per level by ${
-                dataPoint.label
-              } on ${formattedDate} at ${formattedTime}`;
+              const showSecondsPerLevel =
+                Math.round(Math.exp(dataPoint.y) * 1000) / 1000;
+              if (resultScoreFilter < 0) {
+                return `By ${dataPoint.label} on ${formattedDate} at ${formattedTime}`;
+              } else {
+                return `${showSecondsPerLevel} seconds per level by ${dataPoint.label} on ${formattedDate} at ${formattedTime}`;
+              }
             },
           },
         },
