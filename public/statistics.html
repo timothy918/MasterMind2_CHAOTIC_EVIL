@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MasterMind II- Statistics</title>
     <link rel="stylesheet" href="site.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="index.js"></script>
     <script type="module" src="statistics.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
   </head>
@@ -56,12 +56,14 @@
     </p>
     <p>
       On the right hand side, there are the population count and number of
-      players. Below that you can query the database with different criterias.
+      players.<br />
+      Below that you can query the database with different criterias.<br />
       If you click on the columns in our pictogram chart below, you can see
-      further details in the form of a scatter port.<br />Result score means the
-      number of chance(s) remaining when player wins the game. In cases where
-      player failed, result score will be negative and reflect how many level(s)
-      left uncracked.
+      further details in the form of a scatter port.<br />
+      Result score means the number of chance(s) remaining when player wins the
+      game.<br />
+      In cases where player failed, result score will be negative and reflect
+      how many level(s) left uncracked.
     </p>
     <main class="dashboard">
       <canvas id="pictogramChart" width="500" height="400">Loading...</canvas>

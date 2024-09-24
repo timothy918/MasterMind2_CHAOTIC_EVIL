@@ -190,7 +190,7 @@ function setUpTable() {
   document.addEventListener("keydown", handleKeybroad); // Event listener for keydown events
   document.addEventListener("keyup", (event) => {
     if (event.key === "/") {
-      overlayDisappear(); // question mark (?)
+      overlayDisappear();
     }
   });
 
@@ -211,7 +211,7 @@ function setUpTable() {
         const guess = buttonsInSlots.map((button) => button.textContent);
         guesses.push(guess.join(""));
         buttonsInSlots.forEach((button) => button.remove()); // Remove buttons from slots and update chanceRemaining
-        updateEnterButton();
+        enterRight.innerHTML = chanceRemaining;
         currentIndex = 0; // Reset the currentIndex and update slot borders
         updateSlotBorders();
         const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
@@ -243,7 +243,7 @@ function setUpTable() {
           ).toFixed(3)} seconds`;
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow);
-          scrollToBottom(mainContainer);
+          mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
           levelWon();
         } else {
           // Append the wrongs and rights values to the second column
@@ -256,7 +256,7 @@ function setUpTable() {
           );
           newRow.appendChild(secondColumnCell);
           outputTable.appendChild(newRow); // Append the new row to the output table
-          scrollToBottom(mainContainer);
+          mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
           // Check if remaining chances are zero and display "You lose"
           if (chanceRemaining === 0) {
             gameEnd(false);
@@ -385,9 +385,10 @@ function selectGameMode(game_Mode) {
     rightCell.textContent = "records writing not available.";
     firstRow.appendChild(rightCell);
     outputTable.appendChild(firstRow); // Append the new row to the output table
-    scrollToBottom(mainContainer);
+    mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
   }
-  updateEnterButton();
+  enterLeft.innerHTML = `Remaining<br/>chance(s):`; // Update the text content of the enterButton
+  enterRight.innerHTML = chanceRemaining;
   Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
     (button) => button.remove() // Remove buttons from slots
   );
@@ -400,7 +401,7 @@ function selectGameMode(game_Mode) {
   rightCell.textContent = `${level - 1} => ${level}`;
   firstRow.appendChild(rightCell);
   outputTable.appendChild(firstRow); // Append the new row to the output table
-  scrollToBottom(mainContainer);
+  mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
   levelStart();
 }
 // Function to handle button clicks in inputContainer
@@ -607,7 +608,7 @@ function levelWon() {
           newRow.appendChild(cell);
         });
         outputTable.appendChild(newRow);
-        scrollToBottom(mainContainer);
+        mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
       });
     } else {
       // Loop through the <span> elements and add the rightHint class
@@ -627,7 +628,7 @@ function levelWon() {
           newRow.appendChild(cell);
         });
         outputTable.appendChild(newRow);
-        scrollToBottom(mainContainer);
+        mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
       });
     }
     const difficultyLeftCell = document.createElement("td");
@@ -639,7 +640,7 @@ function levelWon() {
       });
       // Increment chanceRemaining, l_Uncertainty, and level
       chanceRemaining += gameMode;
-      updateEnterButton();
+      enterRight.innerHTML = chanceRemaining;
       level++;
       const firstRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
       const left1Cell = Object.assign(document.createElement("td"), {
@@ -665,7 +666,7 @@ function levelWon() {
       thridRow.appendChild(difficultyLeftCell);
       thridRow.appendChild(difficultyRightCell);
       outputTable.appendChild(thridRow); // Append the new row to the output table
-      scrollToBottom(mainContainer);
+      mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
       leftDivision.removeEventListener("click", handleDirectionButtonClick); // Later, if you need to remove the event listener
       levelStart(); // Call the levelStart() function to set up the next level
     }
@@ -834,7 +835,7 @@ function gameEnd(ifWin) {
       newRow.appendChild(cell);
     });
     outputTable.appendChild(newRow);
-    scrollToBottom(mainContainer);
+    mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
   });
   leftDivision.addEventListener("click", handleRecommendations); // Add the event listener
   try {
@@ -906,11 +907,6 @@ function overlayAppear(event) {
 }
 function overlayDisappear(event) {
   overlay.classList.remove("overlay-visible"); // Hide the overlay
-}
-
-function updateEnterButton() {
-  enterLeft.innerHTML = `Remaining<br/>chance(s):`; // Update the text content of the enterButton
-  enterRight.innerHTML = chanceRemaining;
 }
 function scrollToBottom(container) {
   container.scrollTop = container.scrollHeight;

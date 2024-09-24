@@ -111,8 +111,9 @@ main.dashboard {
 }
 td,
 th {
-  border: 1px dashed white;
+  border: 2px dashed white;
   vertical-align: middle;
+  padding: 5px;
 }
 th {
   font-weight: bold;
@@ -127,6 +128,8 @@ td.large {
 table {
   border-collapse: collapse;
   font-size: medium;
+  margin-left: auto;
+  margin-right: auto;
 }
 #population {
   border-collapse: collapse;

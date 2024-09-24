@@ -62,8 +62,8 @@ Female: 'W' (for wrongs) represents a correct color in the wrong slot.
 Female: If you complete all levels in the game mode you choose, the result will be ranked by the number of chances remaining, then by time taken per level.
 
 Male: For controls, we have:  
-Female: Number buttons below or 0-9 on the keyboard to input the corresponding color into the current slot.  
-Female: Number buttons in slots or the space bar on the keyboard to remove the target button from the slot.  
+Female: Number buttons below or zero to nine on the keyboard to input the corresponding color into the current slot.  
+Female: Number buttons in slots or the space bar on the keyboard to trigger and remove the target button from the slot.  
 Female: Remaining chances button or Enter on the keyboard to check your guess.  
 Female: Direction buttons in slots or 'v', '<', and '>' on the keyboard to choose options as instructed.  
 Female: Question mark button on the screen or on the keyboard to summon/dismiss the instructions.  
