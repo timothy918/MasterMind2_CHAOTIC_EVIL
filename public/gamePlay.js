@@ -59,10 +59,6 @@ const hints = [
   "Ⓨ",
   "Ⓩ",
 ];
-// Declare the variables
-const enterButton = Object.assign(document.createElement("button"), {
-  textContent: "Beginning chances: 16",
-});
 const fullName = ["MasterMind II", ": CHAOTIC", "EVIL"];
 // Declare the variables
 let l_Uncertainty = 0; //for header
@@ -99,6 +95,9 @@ const header = document.querySelector(".header");
 const outputTable = document.getElementById("output");
 const questionButton = document.getElementById("question");
 const overlay = document.getElementById("overlay");
+const enterButton = document.getElementById("enter");
+const enterLeft = document.getElementById("enterLeft");
+const enterRight = document.getElementById("enterRight");
 document.addEventListener("DOMContentLoaded", function () {
   overlayAppear();
   setUpTable();
@@ -196,8 +195,6 @@ function setUpTable() {
   });
 
   resetGameModeButtons();
-
-  rightDivision.prepend(enterButton); // Put Enter button in position
 
   // Event listener for the Enter button
   enterButton.addEventListener("click", function () {
@@ -513,9 +510,9 @@ function levelStart() {
   feedback.length = 0; // Clear the feedback array
   // If l_Uncertainty is 1
   if (l_Uncertainty === 1) {
-    randomRight = Math.floor(Math.random() * hints.length); // Generate a random index within the length of hints as randomRight
+    randomRight = Math.floor(Math.random() * availableHints.length); // Generate a random index within the length of hints as randomRight
     do {
-      randomWrong = Math.floor(Math.random() * hints.length); // Generate another random index within the length of hints as random_wrong
+      randomWrong = Math.floor(Math.random() * availableHints.length); // Generate another random index within the length of hints as random_wrong
     } while (randomWrong === randomRight); // Ensure they are different
   }
 }
@@ -816,7 +813,7 @@ function gameEnd(ifWin) {
   gameEndRows.push(
     [{ content: "<" }, { content: "view statistics to see how well you did" }],
     [{ content: "v" }, { content: "share so others know how well you did" }],
-    [{ content: ">" }, { content: "view credit page" }],
+    [{ content: ">" }, { content: "view credit" }],
     [
       { content: outputNumbers[3], className: "large" },
       { content: "3 levels" },
@@ -912,9 +909,8 @@ function overlayDisappear(event) {
 }
 
 function updateEnterButton() {
-  enterButton.textContent = `Remaining`; // Update the text content of the enterButton
-  enterButton.insertAdjacentHTML("beforeend", "<br>"); // Insert the line break as HTML
-  enterButton.insertAdjacentText("beforeend", `${chanceRemaining} chance(s)`);
+  enterLeft.innerHTML = `Remaining<br/>chance(s):`; // Update the text content of the enterButton
+  enterRight.innerHTML = chanceRemaining;
 }
 function scrollToBottom(container) {
   container.scrollTop = container.scrollHeight;

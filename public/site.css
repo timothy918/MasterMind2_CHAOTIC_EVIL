@@ -137,6 +137,19 @@ table {
   flex-direction: row; /* Aligns children horizontally */
   align-items: center; /* Centers content horizontally */
 }
+#enter {
+  display: flex;
+  flex-direction: row; /* Aligns children horizontally */
+  align-items: center; /* Centers content horizontally */
+}
+#enterLeft {
+  text-align: left;
+  margin-right: 3px;
+}
+#enterRight {
+  margin-left: 3px;
+  font-size: 30px;
+}
 pre {
   margin: 0;
 }

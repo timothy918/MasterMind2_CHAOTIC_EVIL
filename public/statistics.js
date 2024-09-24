@@ -21,6 +21,7 @@ let userIP = getCookie("MasterMind2userIP"); // Try to get the player's IP addre
 const gamesIfUserCheckbox = document.getElementById("gamesIfUser"); // Get checkbox elements
 const levelsIfUserCheckbox = document.getElementById("levelsIfUser"); // Get checkbox elements
 const canvas = document.getElementById("pictogramChart");
+const ctx = canvas.getContext("2d");
 // Disable checkboxes if userIP is null
 if (userIP === null) {
   gamesIfUserCheckbox.disabled = true;
@@ -113,6 +114,16 @@ function updatePopulationDisplay(realTimeCounts) {
     gameMode7Row.cells[1].textContent = "NaN"; // "yours" real count
     gameMode7Row.cells[2].textContent = realTimeCounts[1]; // others = real
   }
+  const totalRow = populationTable.rows[3];
+  totalRow.cells[1].textContent =
+    Number(gameMode3Row.cells[1].textContent) +
+    Number(gameMode7Row.cells[1].textContent);
+  totalRow.cells[2].textContent =
+    Number(gameMode3Row.cells[2].textContent) +
+    Number(gameMode7Row.cells[2].textContent);
+  totalRow.cells[3].textContent =
+    Number(gameMode3Row.cells[3].textContent) +
+    Number(gameMode7Row.cells[3].textContent);
 }
 // Function to query Firestore based on the form inputs and return a count by resultScore
 async function queryGames() {
@@ -163,7 +174,6 @@ async function queryGames() {
 async function drawPictogram(resultArray) {
   canvas.width = 500; // Set your desired width
   canvas.height = 400; // Set your desired height
-  const ctx = canvas.getContext("2d");
   const totalGames = resultArray.reduce((acc, item) => acc + item.count, 0);
   const chartWidth = canvas.width - 50;
   const chartHeight = canvas.height - 30;
@@ -253,36 +263,27 @@ function handleClickOnCanvas(event) {
     }
   });
 }
-let scatterChart = null; // Global variable to store chart instance
+let scatterChart = null; // Global variable to store the chart instance
 async function drawScatterPort(resultScoreFilter) {
-  if (scatterChart) {
-    scatterChart.destroy(); // If a chart already exists, destroy it before creating a new one
-  }
-  let filteredResults = []; // Array to store filtered results
-  // Filter and collect relevant documents
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    // Adjust based on the resultScoreFilter
-    if (data.resultScore === resultScoreFilter) {
-      filteredResults.push({
-        resultScore: data.resultScore,
-        secondsPerLevel: data.secondsPerLevel, // This might be undefined if resultScoreFilter < 0
-        ipAddress: data.ipAddress,
-        dateTime: data.dateTime ? data.dateTime.toDate() : new Date(), // Convert Firestore timestamp to Date object
-      });
-    }
-  });
-  // Create data for the scatter plot with ln(secondsPerLevel)
-  const scatterData = filteredResults.map((result) => {
-    const secondsPerLevel = result.secondsPerLevel || 1; // Avoid ln(0), treat undefined or 0 as 1
-    return {
-      x: result.dateTime, // Use dateTime as the x-axis value
-      y: Math.log(secondsPerLevel), // Apply ln transformation to secondsPerLevel
-      label: result.ipAddress,
-      dateTime: result.dateTime, // Already converted to Date object
-    };
-  });
-  const ctx = canvas.getContext("2d");
+  if (scatterChart) scatterChart.destroy(); // Destroy any existing chart instance before creating a new one
+  // Collect and filter relevant documents based on the resultScoreFilter
+  const filteredResults = querySnapshot.docs
+    .map((doc) => doc.data())
+    .filter((data) => data.resultScore === resultScoreFilter)
+    .map((data) => ({
+      resultScore: data.resultScore,
+      secondsPerLevel: data.secondsPerLevel || 1, // Avoid ln(0) by defaulting to 1
+      ipAddress: data.ipAddress,
+      dateTime: data.dateTime ? data.dateTime.toDate() : new Date(), // Convert Firestore timestamp to Date object
+    }));
+  // Create data for the scatter plot by applying ln(secondsPerLevel)
+  const scatterData = filteredResults.map((result) => ({
+    x: result.dateTime, // Use dateTime as the x-axis value
+    y: Math.log(result.secondsPerLevel), // Apply ln transformation to secondsPerLevel
+    label: result.ipAddress,
+    roundedSeconds: Math.round(result.secondsPerLevel * 100) / 100,
+  }));
+  // Create a new scatter chart
   scatterChart = new Chart(ctx, {
     type: "scatter", // Scatter chart type
     data: {
@@ -291,41 +292,41 @@ async function drawScatterPort(resultScoreFilter) {
           label: `Result Score = ${resultScoreFilter}`,
           data: scatterData,
           borderColor: "rgba(54, 162, 235, 1)",
-          pointRadius: 5, // Customize point size
-          pointHoverRadius: 7, // Customize hover point size
-          showLine: false, // Do not show lines between points
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          showLine: false, // No line between points
         },
       ],
     },
     options: {
       scales: {
         x: {
-          type: "time", // Use time as the x-axis type for dateTime
+          type: "time",
           time: {
             unit: "day", // Group data points by day
-            tooltipFormat: "MMM D, YYYY h:mm a", // Format tooltips as 'Month Day, Year Hour:Minute AM/PM'
+            tooltipFormat: "MMM D, YYYY h:mm a", // Format tooltip as 'Month Day, Year Hour:Minute AM/PM'
             displayFormats: {
-              day: "MMM D", // Format X axis ticks as 'Month Day'
+              day: "MMM D", // Format X-axis ticks as 'Month Day'
             },
           },
           title: {
             display: true,
             text: "Date",
           },
-          max: new Date(), // Get today's date
+          max: new Date(), // Set the max range of x-axis to today
         },
         y: {
           position: "right", // Move Y-axis to the right
           ticks: {
             callback: function (value) {
-              return Math.round(Math.exp(value)); // Reverse the ln transformation for axis labels
+              return Math.round(Math.exp(value)); // Reverse ln transformation for Y-axis labels
             },
           },
           title: {
             display: true,
-            text: "Seconds per level", // Indicate original values in the label
+            text: "Seconds per level",
           },
-          reverse: true, // Reverse the Y axis to have lower values at the top
+          reverse: true, // Reverse Y-axis to have lower values at the top
         },
       },
       plugins: {
@@ -333,15 +334,22 @@ async function drawScatterPort(resultScoreFilter) {
           callbacks: {
             label: function (context) {
               const dataPoint = scatterData[context.dataIndex];
-              const formattedDate = dataPoint.dateTime.toLocaleDateString(); // Format the date part
-              const formattedTime = dataPoint.dateTime.toLocaleTimeString(); // Format the time part
-              const showSecondsPerLevel =
-                Math.round(Math.exp(dataPoint.y) * 1000) / 1000;
-              if (resultScoreFilter < 0) {
-                return `By ${dataPoint.label} on ${formattedDate} at ${formattedTime}`;
-              } else {
-                return `${showSecondsPerLevel} seconds per level by ${dataPoint.label} on ${formattedDate} at ${formattedTime}`;
-              }
+              // Format the date as 'MMM D, YYYY'
+              const formattedDate = dataPoint.x.toLocaleDateString("en-US", {
+                month: "short", // Abbreviated month
+                day: "numeric", // Day without leading zero
+                year: "numeric", // Full year
+              });
+              // Format the time in 24-hour format without seconds
+              const formattedTime = dataPoint.x.toLocaleTimeString("en-US", {
+                hour: "2-digit", // 2-digit hour
+                minute: "2-digit", // 2-digit minute
+                hour12: false, // 24-hour format
+              });
+              // Construct the tooltip text
+              return resultScoreFilter < 0
+                ? `By ${dataPoint.label} on ${formattedDate} at ${formattedTime}`
+                : `${dataPoint.roundedSeconds} seconds per level by ${dataPoint.label} on ${formattedDate} at ${formattedTime}`;
             },
           },
         },
