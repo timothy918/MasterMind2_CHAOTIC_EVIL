@@ -46,110 +46,115 @@
   \___|_||_/_/ \_\___/ |_| |___\___| |___| \_/ |___|____| 
 
 ===========================================================================================================
-Female: Welcome to MasterMind Two: Chaotic Evil.  
-Female: Whether you appreciate the challenging gameplay of MasterMind, the inventive spirit of Not Tetris, or the addictive difficulty of Flappy Bird, you're sure to find something to love in this game.  
-Male: Here we go~
+Welcome to MasterMind Two: Chaotic Evil.  
+Whether you appreciate the challenging gameplay of MasterMind, the inventive spirit of Not Tetris, or the addictive difficulty of Flappy Bird, you're sure to find something to love in this game.  
+Here we go~
 
-Female: Enter your desired player ID to track personal results. Max twenty characters.  
-Female: Cancel to decline cookies.  
-Male: Super Dupy Ultra Handsome  
-Female: "Either too long or taken. Try a different player ID."  
-Male: Ok. What about John Doe?
+Enter your desired player ID to track personal results. Max twenty characters.  
+Cancel to decline cookies.  
+Super Dupy Ultra Handsome  
+Either too long or taken. Try a different player ID.
+Ok. What about John Doe?
 
-Male: Here, the instructions read:  
-Female: 'R' (for rights) represents a correct color in the correct slot.  
-Female: 'W' (for wrongs) represents a correct color in the wrong slot.  
-Female: If you complete all levels in the game mode you choose, the result will be ranked by the number of chances remaining, then by time taken per level.
+Here, the instructions read:  
+Classic mastermind. There are 4 slots and 6 possible colours for each slot. Your goal is to guess the correct combination within a limited number of chances. Every time you make a guess, the machine will provide hints based on your guess:
+'R' (for rights) represents a correct color in the correct slot.  
+'W' (for wrongs) represents a correct color in the wrong slot.  
+If you complete all levels in the game mode you choose, the result will be ranked by the number of chances remaining, then by time taken per level.
 
-Male: For controls, we have:  
-Female: Number buttons below or zero to nine on the keyboard to input the corresponding color into the current slot.  
-Female: Number buttons in slots or the space bar on the keyboard to trigger and remove the target button from the slot.  
-Female: Remaining chances button or Enter on the keyboard to check your guess.  
-Female: Direction buttons in slots or 'v', '<', and '>' on the keyboard to choose options as instructed.  
-Female: Question mark button on the screen or on the keyboard to summon/dismiss the instructions.  
-Female: Click on a slot or use left and right on the keyboard to move the current slot accordingly.  
-Female: Use up and down on the keyboard to scroll the table.  
-Female: Backspace on the keyboard to move the current slot to the left and trigger the button within.
+For controls, we have:  
+Number buttons below or zero to nine on the keyboard to input the corresponding color into the current slot.  
+Number buttons in slots or the space bar on the keyboard to trigger and remove the target button from the slot.  
+Remaining chances button or Enter on the keyboard to check your guess.  
+Direction buttons in slots or 'v', '<', and '>' on the keyboard to choose options as instructed.  
+Question mark button on the screen or on the keyboard to summon/dismiss the instructions.  
+Click on a slot or use left and right on the keyboard to move the current slot accordingly.  
+Use up and down on the keyboard to scroll the table.  
+Backspace on the keyboard to move the current slot to the left and trigger the button within.
 
-Male: Let's start the game.  
-Male: Under the banner, we have two options: press '3' for three levels, or '7' for two plus five chosen out of twenty-five optional levels.  
-Male: Let's go with three levels first.  
-Male: I see level one has started.
+Let's start the game.  
+Under the banner, we have two options: press '3' for three levels, or '7' for two plus five chosen out of twenty-five optional levels.  
+Let's go with three levels first.  
+I see level one has started.
 
-Male: So that's the first code we cracked. Forty-two seconds? I guess they timed me.  
-Male: Any direction to the next level? Okay.  
-Male: Level two, remaining chances increased by three. That’s a good thing.  
-Male: The level of uncertainty increased from zero to one. I wonder what that means.
+So that's the first code we cracked. twelve seconds? I guess they timed me.  
+Any direction to the next level? Okay.  
+Level two, remaining chances increased by three. That’s a good thing.  
+The level of uncertainty increased from zero to one. I wonder what that means.
 
-Male: Why is the machine giving hints other than R and W?  
-Female: It's okay. After you get the correct combination, the hints for 'rights' will light up green.
+Why is the machine giving hints other than R and W?  
+It's okay. After you get the correct combination, the hints for 'rights' will light up green.
 
-Male: Wow, the hints for 'rights' do light up green after I cracked it.  
-Male: Very helpful.  
-Male: Level three, level of uncertainty increased again.
+Wow, the hints for 'rights' do light up green after I cracked it.  
+Very helpful.  
+Level three, level of uncertainty increased again.
 
-Male: Why is the machine giving different hints every turn?  
-Female: Just take a guess.  
-Male: Great.
+Why is the machine giving different hints every turn?  
+Just take a guess.  
+Great.
 
-Female: You win! You completed three levels.  
-Female: Remaining chances: six.  
-Female: Time used: three minutes, two point two six three seconds.  
-Female: Congratulations! It’s a public daily best.  
-Female: Congratulations! It’s a personal daily best.  
-Male: I see the choices for game mode are up again. We shall try seven levels this time.
+You win! You completed three levels.  
+Remaining chances: seven.  
+Time used: one minute, twenty-five point four seven two seconds.  
+Congratulations! It’s a public daily best.  
+Congratulations! It’s a personal all time best.  
+I see the choices for game mode are up again. We shall try seven levels this time.
 
-Female: You can increase the number of colors by two (max ten), increase the level of uncertainty by one (max two), or increase the number of slots by one (max six).  
-Male: What do all these mean? Whatever.
+You can increase the number of colors by two (max ten), increase the level of uncertainty by one (max two), or increase the number of slots by one (max six).  
+What do all these mean? Whatever.
 
-Male: Remaining chances increased by seven in this mode.  
-Male: Why are there more than six possible colors?  
-Female: More fun for you.  
-Male: Really?
+Remaining chances increased by seven in this mode.  
+Why are there more than six possible colors?  
+More fun for you.  
+Really?
 
-Male: The same options again. I’ll pick another one this time.
+The same options again. I’ll pick another one this time.
 
-Male: Why are there more than four slots?  
-Female: I think you know the drill.  
-Male: Damn.
+Why are there more than four slots?  
+I think you know the drill.  
+Damn.
 
-Male: Hello darkness, my old friend.
+Hello darkness, my old friend.
 
-Male: There goes my last chance.  
-Female: You used up all your chances at the fifth out of seven levels.  
-Female: You can view statistics to see how well you did, share so others know, or view the credits.  
-Male: I want to try the share option.  
-Female: Share content copied to clipboard!  
-Male: 'I ran out of chances at the fifth level. Avenge me!'  
-Male: Better send this to the nerdiest friend I have.  
-Male: Now, what about the statistics?
+There goes my last chance.  
+You lose. used up all your chances at the seventh out of seven levels.  
+The correct answer is Nine-eight-seven-nine-nine-four.
+You can view statistics to see how well you did, share so others know, or view the credits.  
 
-Female: On the right-hand side, there are the population count and number of players.  
-Female: Below that, you can query the database with different criteria.  
-Female: If you click on the columns in our pictogram chart below, you can see further details in the form of a scatter plot.  
-Female: Result score means the number of chances remaining when a player wins the game.  
-Female: In cases where a player fails, the result score will be negative and reflect how many levels were left uncracked.  
-Male: I see the population size: Two hundred and sixty games for two game modes combined.  
-Male: I contributed one, and sixteen other players contributed Two hundred and fifty-nine.  
-Male: Here, I’m querying game records of game mode three within the last twelve months.  
-Female: Each bead represents one game.  
-Male: Let’s see about the result score equal to seven.
+I want to try the share option.  
+Share content copied to clipboard!  
 
-Male: Ah, a scatter plot with seconds per level on the Y-axis and date on the X-axis.  
-Male: When hovering on the dots, there are further details.  
-Male: But the Y-axis is not proportional—some kind of logarithm is used to enhance the difference between shorter times.
+I ran out of chances at the seventh level. Avenge me!
+Better send this to the nerdiest friend I have.  
+Now, what about the statistics?
 
-Male: I think that’s all. If this were a movie, this is when the credits roll.  
-Male: MasterMind, originally introduced by Mordecai Meirowitz in 1970, became a classic puzzle game.  
-Male: However, after beating it countless times, I found the challenge to wane.  
-Male: Many mobile games have attempted to ramp up the difficulty by increasing the number of slots or colors, but this often turns the gameplay into a tedious experience.  
-Male: My approach in designing this game was to introduce a bit of chaos, compelling players to hone their judgment amidst uncertainty.  
-Male: This game isn't just about solving puzzles—it’s about mastering the unpredictable.
+On the right-hand side, there are the population count and number of players.  
+Below that, you can query the database with different criteria.  
+If you click on the columns in our pictogram chart below, you can see further details in the form of a scatter plot.  
+Result score means the number of chances remaining when a player wins the game.  
+In cases where a player fails, the result score will be negative and reflect how many levels were left uncracked.  
+I see the population size: Two hundred and sixty-seven games for two game modes combined.  
+I contributed two, and seventeen other players contributed Two hundred and sixty-five.  
+Here, I’m querying game records of game mode three within the last twelve months.  
+Each bead represents one game.  
+Let’s see about the result score equal to seven.
 
-Male: THE MAKING-OF  
-Male: This project, crafted in JavaScript and hosted on Firebase, offers a retro gaming experience.  
-Male: It features a real-time no-SQL database that meticulously records game data, allowing for seamless interactions with user queries through a dynamic pictogram chart created with Chart.js.  
-Male: Clicking on any columns in the pictogram chart will visualize a scatter plot for more details.  
-Male: You can view the schema of the database, if interested. The game also tracks users' personal best records, provided they accept cookies.  
-Male: Developed under a trial-and-error software development model, this project showcases my dedication to creating engaging and functional gaming experiences.  
-Male: Feel free to check out my personal website for other work of mine.  
+Ah, a scatter plot with seconds per level on the Y-axis and date on the X-axis.  
+When hovering on the dots, there are further details.  
+But the Y-axis is not proportional—some kind of logarithm is used to enhance the difference between shorter times.
+
+I think that’s all. If this were a movie, this is when the credits roll.  
+
+MasterMind, originally introduced by Mordecai Meirowitz in 1970, became a classic puzzle game.  
+However, after beating it countless times, I found the challenge to wane.  
+Many mobile games have attempted to ramp up the difficulty by increasing the number of slots or colors, but this often turns the gameplay into a tedious experience.  
+My approach in designing this game was to introduce a bit of chaos, compelling players to hone their judgment amidst uncertainty.  
+This game isn't just about solving puzzles—it’s about mastering the unpredictable.
+
+THE MAKING-OF  
+This project, crafted in JavaScript and hosted on Firebase, offers a retro gaming experience.  
+It features a real-time no-SQL database that meticulously records game data, allowing for seamless interactions with user queries through a dynamic pictogram chart created with Chart.js.  
+Clicking on any columns in the pictogram chart will visualize a scatter plot for more details.  
+You can view the schema of the database, if interested. The game also tracks users' personal best records, provided they accept cookies.  
+Developed under a trial-and-error software development model, this project showcases my dedication to creating engaging and functional gaming experiences.  
+Feel free to check out my personal website for other work of mine.  

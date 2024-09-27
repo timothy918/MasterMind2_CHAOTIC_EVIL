@@ -6,3 +6,6 @@ firebase.json
 .env
 
 node_modules
+
+video
+.video
