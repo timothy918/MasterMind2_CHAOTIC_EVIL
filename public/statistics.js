@@ -172,6 +172,7 @@ async function queryGames() {
   }
 }
 async function drawPictogram(resultArray) {
+  if (scatterChart) scatterChart.destroy(); // Destroy any existing chart instance before creating a new one
   canvas.width = 500; // Set your desired width
   canvas.height = 400; // Set your desired height
   const totalGames = resultArray.reduce((acc, item) => acc + item.count, 0);
@@ -259,13 +260,12 @@ function handleClickOnCanvas(event) {
         ? currentXPositionArray[index + 1] - spacingBtwResultScores * (2 / 3)
         : canvas.width; // If it's the last one, end is canvas width
     if (mouseX >= columnStartX && mouseX <= columnEndX) {
-      drawScatterPort(item.resultScore);
+      drawScatterPlot(item.resultScore);
     }
   });
 }
 let scatterChart = null; // Global variable to store the chart instance
-async function drawScatterPort(resultScoreFilter) {
-  if (scatterChart) scatterChart.destroy(); // Destroy any existing chart instance before creating a new one
+async function drawScatterPlot(resultScoreFilter) {
   // Collect and filter relevant documents based on the resultScoreFilter
   const filteredResults = querySnapshot.docs
     .map((doc) => doc.data())
