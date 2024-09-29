@@ -594,6 +594,9 @@ function levelWon() {
   if (level === gameMode) {
     gameEnd(true);
   } else {
+    availableHints = availableHints.filter(
+      (hint) => hint !== wrongHint && hint !== rightHint
+    ); // Remove wrongHint and rightHint from availableHints
     if (gameMode === 3) {
       const sameOptions = [
         ["<", "any direction to next level"],
@@ -679,9 +682,6 @@ function levelWon() {
         // Determine the next level based on the direction button clicked
         if (directionButton.textContent === "v" || gameMode === 3) {
           if (l_Uncertainty < 2) {
-            availableHints = availableHints.filter(
-              (hint) => hint !== wrongHint && hint !== rightHint
-            ); // Remove wrongHint and rightHint from availableHints
             l_Uncertainty++;
             difficultyLeftCell.textContent = `Level of uncertainty`;
             difficultyRightCell.textContent = `${

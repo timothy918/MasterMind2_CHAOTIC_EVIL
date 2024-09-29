@@ -59,26 +59,47 @@ async function checkNSetCookie() {
       `Enter your desired player ID (max ${maxLength} characters) to track personal result. Cancel to decline cookies.`
     );
     if (customUserIP === null) {
-      userIP = "Anonymous"; // Check if the user clicked "Cancel"
+      userIP = "Anonymous"; // If the user clicked "Cancel"
       return; // Exit the function early if the user cancels
     }
     // Handle empty or invalid player ID
-    while (customUserIP) {
-      let q = query(colRef, where("ipAddress", "==", customUserIP));
-      const querySnapshot = await getDocs(q); // Execute the query
-      if (querySnapshot.empty && customUserIP.length <= maxLength) {
-        document.cookie = `MasterMind2userIP=${customUserIP}; expires=${expiryDate.toUTCString()}; path=/`;
-        console.log("Player ID set:", customUserIP, "expiring at", expiryDate); // Set the cookie with the custom player ID
-        userIP = customUserIP;
-        cookieAccepted = true;
-        break; // Exit the loop if the ID is successfully set
-      } else {
+    while (
+      customUserIP === "" ||
+      customUserIP.length > maxLength ||
+      customUserIP
+    ) {
+      // If user input is empty or exceeds max length, or ID is taken
+      if (customUserIP === "" || customUserIP.length > maxLength) {
         customUserIP = prompt(
           "Either too long or taken. Try a different player ID."
         );
         if (customUserIP === null) {
-          userIP = "Anonymous"; // If the user clicks "Cancel" in this prompt, break the loop
-          return; // Exit the function early if the user cancels again
+          userIP = "Anonymous"; // If the user clicks "Cancel", exit
+          return;
+        }
+      } else {
+        let q = query(colRef, where("ipAddress", "==", customUserIP));
+        const querySnapshot = await getDocs(q); // Execute the query
+        // If the ID is not taken and length is valid, set the cookie
+        if (querySnapshot.empty) {
+          document.cookie = `MasterMind2userIP=${customUserIP}; expires=${expiryDate.toUTCString()}; path=/`;
+          console.log(
+            "Player ID set:",
+            customUserIP,
+            "expiring at",
+            expiryDate
+          ); // Set the cookie with the custom player ID
+          userIP = customUserIP;
+          cookieAccepted = true;
+          break; // Exit the loop if the ID is successfully set
+        } else {
+          customUserIP = prompt(
+            "Either too long or taken. Try a different player ID."
+          );
+          if (customUserIP === null) {
+            userIP = "Anonymous"; // If the user clicks "Cancel" in this prompt, break the loop
+            return; // Exit the function early if the user cancels again
+          }
         }
       }
     }
