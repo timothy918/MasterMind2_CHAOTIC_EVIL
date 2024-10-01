@@ -988,17 +988,23 @@ function checkBest(
   isPublic,
   gameMode
 ) {
+  // Select the correct game mode results
   const results =
-    gameMode === 3 ? bestResults.gameMode3 : bestResults.gameMode7; // Check if bestResults has data for both game modes
+    gameMode === 3 ? bestResults.gameMode3 : bestResults.gameMode7;
+  // Loop through the results to find if the new result is a best score
   for (let i = 0; i < results.length; i++) {
     const [highestScore, lowestSecondsPerLevel] = results[i];
-    // Compare chanceRemaining with the highestScore
-    if (
+    // Check if this is a new best score for the current timeframe
+    const isNewBest =
       highestScore == null ||
       chanceRemaining > highestScore ||
       (chanceRemaining === highestScore &&
-        aveElapsedTime < lowestSecondsPerLevel)
-    ) {
+        aveElapsedTime < lowestSecondsPerLevel);
+    if (isNewBest) {
+      // Update all subsequent timeframes since this is the best score
+      for (let j = i; j < results.length; j++) {
+        results[j] = [chanceRemaining, aveElapsedTime]; // Update the best result for this timeframe
+      }
       const bestType = isPublic ? "public" : "personal";
       return [
         { content: "Congratulations!" },
