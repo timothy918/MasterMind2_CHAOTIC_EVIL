@@ -98,6 +98,7 @@ Remaining chances: seven.
 Time used: one minute, twenty-five point four seven two seconds.  
 Congratulations! It’s a public daily best.  
 Congratulations! It’s a personal all time best.  
+It is my first game ever, of course it is my all time best
 I see the choices for game mode are up again. We shall try seven levels this time.
 
 You can increase the number of colors by two (max ten), increase the level of uncertainty by one (max two), or increase the number of slots by one (max six).  

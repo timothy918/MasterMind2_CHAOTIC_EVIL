@@ -8,14 +8,7 @@ import {
   getDocs,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
-import {
-  db,
-  colRef,
-  checkNSetCookie,
-  userIP,
-  timeframes,
-  cookieAccepted,
-} from "./index.js";
+import { db, colRef, checkNSetCookie, userIP, timeframes } from "./index.js";
 const outputNumbers = [
   '<span class="white">⓪</span>',
   '<span class="green">①</span>',
@@ -90,7 +83,7 @@ const mainContainer = document.querySelector("main");
 const inputContainer = document.getElementById("inputContainer");
 const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
 const leftDivision = document.getElementById("left_temp");
-const rightDivision = document.getElementById("right_temp");
+// const rightDivision = document.getElementById("right_temp");
 const header = document.querySelector(".header");
 const outputTable = document.getElementById("output");
 const questionButton = document.getElementById("question");
@@ -104,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 checkNSetCookie();
 publicBest = await searchBest(true); // For public best check
-if (cookieAccepted) {
+if (userIP !== "Anonymous") {
   personalBest = await searchBest(false, userIP); // For personal best check
 }
 

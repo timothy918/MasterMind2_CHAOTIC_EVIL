@@ -23,7 +23,7 @@ const levelsIfUserCheckbox = document.getElementById("levelsIfUser"); // Get che
 const canvas = document.getElementById("pictogramChart");
 const ctx = canvas.getContext("2d");
 // Disable checkboxes if userIP is null
-if (userIP === null) {
+if (userIP === "Anonymous") {
   gamesIfUserCheckbox.disabled = true;
   levelsIfUserCheckbox.disabled = true;
 }
@@ -53,13 +53,13 @@ function getPopulationQueries() {
     query(colRef, where("gameMode", "==", 3)), // GameMode 3
     query(colRef, where("gameMode", "==", 7)), // GameMode 7
   ];
-  try {
+  if (userIP !== "Anonymous") {
     const personalizedQueries = [
       query(baseQueries[0], where("ipAddress", "==", userIP)), // Personal Real GameMode 3
       query(baseQueries[1], where("ipAddress", "==", userIP)), // Personal Real GameMode 7
     ];
     return [...baseQueries, ...personalizedQueries]; // Return both base and personalized queries
-  } catch (error) {
+  } else {
     console.log("User's IP address not found");
     return baseQueries; // Return only base queries if no user IP
   }
@@ -89,7 +89,7 @@ function attachQueryListeners(queries, realTimeCounts, uniqueIPs) {
 // Function to update the display for the unique IP count
 function updateUniqueIPDisplay(uniqueIPs) {
   let countPlayers = uniqueIPs.size;
-  if (userIP) {
+  if (userIP !== "Anonymous") {
     countPlayers -= 1; // Exclude the user's own IP from the count if necessary
   }
   const headerRow = populationTable.rows[0];
@@ -103,7 +103,7 @@ function updatePopulationDisplay(realTimeCounts) {
   gameMode3Row.cells[3].textContent = realTimeCounts[0]; // Total count
   const gameMode7Row = populationTable.rows[2]; // Row for GameMode 7
   gameMode7Row.cells[3].textContent = realTimeCounts[1]; // Total count
-  if (userIP) {
+  if (userIP !== "Anonymous") {
     gameMode3Row.cells[1].textContent = realTimeCounts[2]; // "yours" real count
     gameMode3Row.cells[2].textContent = realTimeCounts[0] - realTimeCounts[2]; // others = real- yours count
     gameMode7Row.cells[1].textContent = realTimeCounts[3]; // "yours" real count
