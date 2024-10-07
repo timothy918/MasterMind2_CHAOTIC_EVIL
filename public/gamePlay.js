@@ -59,6 +59,7 @@ let availableHints = [...hints];
 let guesses = [];
 let startTime, // Variable to store the start time of the level
   n_Slots,
+  boundHandler,
   levelsArray,
   n_Choices,
   currentIndex,
@@ -276,7 +277,7 @@ function setUpTable() {
     }
   });
 }
-function handleRecommendations(event, ifWin) {
+function handleRecommendations(ifWin, event) {
   const target = event.target; // Get the clicked element
   if (target.tagName !== "BUTTON") return; // Ensure the clicked element is a button
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
@@ -340,7 +341,7 @@ function getShareContent(ifWin) {
 // Function for Game mode buttons
 function selectGameMode(game_Mode) {
   overlayDisappear();
-  leftDivision.removeEventListener("click", handleRecommendations);
+  leftDivision.removeEventListener("click", boundHandler);
   inputButtons.forEach((button) => {
     const buttonValue = button.textContent.trim();
     if (buttonValue == "3" || buttonValue == "7") {
@@ -359,26 +360,22 @@ function selectGameMode(game_Mode) {
     dateTime: serverTimestamp(),
     resultScore: -game_Mode,
   }; // Create an empty JavaScript object to represent the Firestore document
-  try {
-    addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
-      .then((x) => {
-        console.log("Game doc (", x.id, ") created");
-        docRef = doc(db, "GamesPlayed", x.id);
-      })
-      .catch((error) => {
-        console.error("Error writing document: ", error);
-      });
-  } catch {
-    const firstRow = document.createElement("tr"); // Create a new row in the output table
-    const leftCell = document.createElement("td"); // Insert cells in the first column of the output table
-    leftCell.textContent = "Sorry,";
-    firstRow.appendChild(leftCell);
-    const rightCell = document.createElement("td");
-    rightCell.textContent = "records writing not available.";
-    firstRow.appendChild(rightCell);
-    outputTable.appendChild(firstRow); // Append the new row to the output table
-    mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
-  }
+  addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
+    .then((x) => {
+      console.log("Game doc (", x.id, ") created");
+      docRef = doc(db, "GamesPlayed", x.id);
+    })
+    .catch((error) => {
+      const firstRow = document.createElement("tr"); // Create a new row in the output table
+      const leftCell = document.createElement("td"); // Insert cells in the first column of the output table
+      leftCell.textContent = "Sorry,";
+      firstRow.appendChild(leftCell);
+      const rightCell = document.createElement("td");
+      rightCell.textContent = "records writing not available.";
+      firstRow.appendChild(rightCell);
+      outputTable.appendChild(firstRow); // Append the new row to the output table
+      mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
+    });
   enterLeft.innerHTML = `Remaining<br/>chance(s):`; // Update the text content of the enterButton
   enterRight.innerHTML = chanceRemaining;
   Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
@@ -705,6 +702,8 @@ function levelWon() {
 }
 function gameEnd(ifWin) {
   gameEndRows = null; // Add additional rows
+  const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
+  const updateData = {}; // Object to store data for Firestore
   if (ifWin) {
     // Calculate the sum of elapsed times
     sumElapsedTime =
@@ -727,7 +726,12 @@ function gameEnd(ifWin) {
         },
       ],
     ];
-    if (publicBest) {
+    if (!publicBest) {
+      gameEndRows.push([
+        { content: "Sorry," },
+        { content: "records reading not available." },
+      ]);
+    } else {
       let congratulations = checkBest(
         chanceRemaining,
         aveElapsedTime,
@@ -750,21 +754,11 @@ function gameEnd(ifWin) {
           gameEndRows.push(congratulations);
         }
       }
-    } else {
-      gameEndRows.push([
-        { content: "Sorry," },
-        { content: "records reading not available." },
-      ]);
     }
-    try {
-      updateDoc(docRef, {
-        resultScore: chanceRemaining,
-        secondsPerLevel: sumElapsedTime / gameMode,
-      });
-      console.log("Game doc updated in FireStore");
-    } catch {}
+    updateData.resultScore = chanceRemaining;
+    updateData.secondsPerLevel = sumElapsedTime / gameMode;
   } else {
-    const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
+    //losing
     // Loop through the <span> elements and add the rightHint class
     spanElements.forEach((spanElement) => {
       spanElement.classList.add("rightHint");
@@ -786,21 +780,16 @@ function gameEnd(ifWin) {
         { content: "correct answer" },
       ],
     ];
-    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
-    for (let i = 0; i < directionButtons.length; i++) {
-      slotsInLeftTemp[i].innerHTML = directionButtons[i];
-    }
+    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
+    directionButtons.forEach((button, i) => {
+      slotsInLeftTemp[i].innerHTML = button;
+    });
     levelMap.guesses = guesses;
     levelMap.wrongs = feedback.map((pair) => pair[0]);
     levelMap.rights = feedback.map((pair) => pair[1]);
     checkLevelsArray(levelMap);
-    try {
-      updateDoc(docRef, {
-        levels: levelsArray,
-        resultScore: level - gameMode - 1,
-      });
-      console.log("Game doc updated in FireStore");
-    } catch {}
+    updateData.levels = levelsArray;
+    updateData.resultScore = level - gameMode - 1;
   }
   gameEndRows.push(
     [{ content: "<" }, { content: "view statistics to see how well you did" }],
@@ -828,13 +817,14 @@ function gameEnd(ifWin) {
     outputTable.appendChild(newRow);
     mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
   });
-  leftDivision.addEventListener("click", (event) =>
-    handleRecommendations(event, ifWin)
-  ); // Pass additional input
+  boundHandler = handleRecommendations.bind(null, ifWin);
+  leftDivision.addEventListener("click", boundHandler); // Pass additional input
   try {
-    updateDoc(docRef, { levels: levelsArray });
+    updateDoc(docRef, updateData); // Only one updateDoc call
     console.log("Game doc updated in FireStore");
-  } catch {}
+  } catch (error) {
+    console.error("Error updating document: ", error);
+  }
   gameMode = null;
   resetGameModeButtons();
 }
@@ -900,9 +890,6 @@ function overlayAppear(event) {
 }
 function overlayDisappear(event) {
   overlay.classList.remove("overlay-visible"); // Hide the overlay
-}
-function scrollToBottom(container) {
-  container.scrollTop = container.scrollHeight;
 }
 function checkLevelsArray(levelMap) {
   const index = levelsArray.findIndex((item) => item.level === levelMap.level); // Find the index of the existing item with the same level
