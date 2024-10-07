@@ -224,7 +224,10 @@ figure figcaption {
     max-width: 100vw; /* Overlay shouldn't exceed the viewport width */
   }
 }
-
 ul {
   padding-inline-start: 10px;
+}
+iframe {
+  display: block;
+  margin: auto;
 }

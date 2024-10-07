@@ -74,7 +74,6 @@ let startTime, // Variable to store the start time of the level
   gameDoc,
   publicBest,
   personalBest,
-  ifWinFlag,
   rightHint,
   wrongHint,
   gameEndRows; // Add additional rows
@@ -277,11 +276,11 @@ function setUpTable() {
     }
   });
 }
-function handleRecommendations(event) {
+function handleRecommendations(event, ifWin) {
   const target = event.target; // Get the clicked element
   if (target.tagName !== "BUTTON") return; // Ensure the clicked element is a button
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
-  const shareContent = getShareContent(); // Pre-fetch share content (if needed)
+  const shareContent = getShareContent(ifWin); // Pre-fetch share content (if needed)
   switch (target.textContent) {
     case "<":
       window.open("statistics.html", "_blank"); // Open the link in a new tab when the ">" button is clicked
@@ -306,7 +305,7 @@ function handleRecommendations(event) {
   }
 }
 // Optimized getShareContent function
-function getShareContent() {
+function getShareContent(ifWin) {
   let shareContent = "https://MasterMind2-Chaotic-Evil.web.app/\n";
   const rows = outputTable.rows;
   const lastIndex = rows.length - gameEndRows.length;
@@ -315,7 +314,7 @@ function getShareContent() {
     .slice(firstIndex, lastIndex)
     .map((row) => row.cloneNode(true)); // Clone each row to avoid modifying the original table
   const lastRowInLastLevel = lastLevelRows[lastLevelRows.length - 1]; // Access the last row in the cloned rows
-  if (ifWinFlag) {
+  if (ifWin) {
     lastRowInLastLevel.cells[1].textContent = `I cracked ${level} levels using ${
       16 + level * (level - 1) - chanceRemaining
     } chances.`;
@@ -705,7 +704,6 @@ function levelWon() {
   }
 }
 function gameEnd(ifWin) {
-  ifWinFlag = ifWin;
   gameEndRows = null; // Add additional rows
   if (ifWin) {
     // Calculate the sum of elapsed times
@@ -830,7 +828,9 @@ function gameEnd(ifWin) {
     outputTable.appendChild(newRow);
     mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
   });
-  leftDivision.addEventListener("click", handleRecommendations); // Add the event listener
+  leftDivision.addEventListener("click", (event) =>
+    handleRecommendations(event, ifWin)
+  ); // Pass additional input
   try {
     updateDoc(docRef, { levels: levelsArray });
     console.log("Game doc updated in FireStore");
@@ -857,9 +857,9 @@ window.addEventListener("beforeunload", handleBeforeUnload); // Add the event li
 function handleBeforeUnload(e) {
   gameStopped();
   if (gameMode) {
-    e.preventDefault(); // This line prevents the default behavior, which shows the dialog
     e.returnValue =
       "You have an unfinished game. Are you sure you want to leave?";
+    e.preventDefault(); // This line prevents the default behavior, which shows the dialog
   }
 }
 
@@ -988,12 +988,12 @@ function checkBest(
   for (let i = 0; i < results.length; i++) {
     const [highestScore, lowestSecondsPerLevel] = results[i];
     // Check if this is a new best score for the current timeframe
-    const isNewBest =
+    if (
       highestScore == null ||
       chanceRemaining > highestScore ||
       (chanceRemaining === highestScore &&
-        aveElapsedTime < lowestSecondsPerLevel);
-    if (isNewBest) {
+        aveElapsedTime < lowestSecondsPerLevel)
+    ) {
       // Update all subsequent timeframes since this is the best score
       for (let j = i; j < results.length; j++) {
         results[j] = [chanceRemaining, aveElapsedTime]; // Update the best result for this timeframe
