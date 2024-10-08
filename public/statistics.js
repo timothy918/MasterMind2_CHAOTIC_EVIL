@@ -3,16 +3,8 @@ import {
   query,
   where,
   Timestamp,
-  // getCountFromServer,
   onSnapshot, // Import onSnapshot for real-time updates
-  // serverTimestamp,
-  // addDoc,
-  // deleteDoc,
-  // limit,
-  // FieldValue,
-  // doc,
-  // updateDoc,
-  // deleteField,
+  // writeBatch,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 import { colRef, getCookie, db, timeframes } from "./index.js";
 
@@ -357,3 +349,22 @@ async function drawScatterPlot(resultScoreFilter) {
     },
   });
 }
+
+// const queryLevels = document.getElementById("queryLevels");
+// queryLevels.addEventListener("click", addIsRealField); // Attach new one
+// async function addIsRealField() {
+//   const snapshot = await getDocs(colRef); // Correctly fetch documents
+//   // Check if the collection is empty
+//   if (snapshot.empty) {
+//     console.log("No documents found in GamesPlayed collection.");
+//     return;
+//   }
+//   const batch = writeBatch(db); // Use a batch write for efficiency
+//   snapshot.forEach((doc) => {
+//     const docRef = doc.ref;
+//     batch.update(docRef, { isReal: true }); // Set isReal to true
+//   });
+//   // Commit the batch write
+//   await batch.commit();
+//   console.log("isReal field added to all documents in GamesPlayed collection.");
+// }

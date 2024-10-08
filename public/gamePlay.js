@@ -72,7 +72,6 @@ let startTime, // Variable to store the start time of the level
   sumElapsedTime,
   levelMap,
   docRef,
-  gameDoc,
   publicBest,
   personalBest,
   rightHint,
@@ -83,7 +82,6 @@ const mainContainer = document.querySelector("main");
 const inputContainer = document.getElementById("inputContainer");
 const inputButtons = inputContainer.querySelectorAll(".numberButton"); // Get all the button elements within inputContainer
 const leftDivision = document.getElementById("left_temp");
-// const rightDivision = document.getElementById("right_temp");
 const header = document.querySelector(".header");
 const outputTable = document.getElementById("output");
 const questionButton = document.getElementById("question");
@@ -221,10 +219,7 @@ function setUpTable() {
           availableHints = [...hints];
         } // Check if availableHints is empty, reset it to hints
         if (l_Uncertainty === 2) {
-          randomRight = Math.floor(Math.random() * availableHints.length); // Use availableHints instead of hints for randomRight and randomWrong
-          do {
-            randomWrong = Math.floor(Math.random() * availableHints.length);
-          } while (randomWrong === randomRight);
+          randomSigns();
         }
         if (rights === n_Slots) {
           const endTime = performance.now();
@@ -354,15 +349,14 @@ function selectGameMode(game_Mode) {
   n_Choices = 6;
   l_Uncertainty = 0;
   levelsArray = [];
-  gameDoc = {
+  addDoc(colRef, {
     ipAddress: userIP,
     gameMode: game_Mode,
     dateTime: serverTimestamp(),
     resultScore: -game_Mode,
-  }; // Create an empty JavaScript object to represent the Firestore document
-  addDoc(colRef, gameDoc) // Add the gameDoc to Firebase and get the document reference
+  }) // Add the gameDoc to Firebase and get the document reference
     .then((x) => {
-      console.log("Game doc (", x.id, ") created");
+      console.log("Game doc created");
       docRef = doc(db, "GamesPlayed", x.id);
     })
     .catch((error) => {
@@ -500,11 +494,14 @@ function levelStart() {
   feedback.length = 0; // Clear the feedback array
   // If l_Uncertainty is 1
   if (l_Uncertainty === 1) {
-    randomRight = Math.floor(Math.random() * availableHints.length); // Generate a random index within the length of hints as randomRight
-    do {
-      randomWrong = Math.floor(Math.random() * availableHints.length); // Generate another random index within the length of hints as random_wrong
-    } while (randomWrong === randomRight); // Ensure they are different
+    randomSigns();
   }
+}
+function randomSigns() {
+  randomRight = Math.floor(Math.random() * availableHints.length); // Generate a random index within the length of hints as randomRight
+  do {
+    randomWrong = Math.floor(Math.random() * availableHints.length); // Generate another random index within the length of hints as random_wrong
+  } while (randomWrong === randomRight); // Ensure they are different
 }
 function turnCount(randomAnswer, guess) {
   let rights = 0;
@@ -577,11 +574,12 @@ function levelWon() {
   });
 
   const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
-  for (let i = 0; i < directionButtons.length; i++) {
-    slotsInLeftTemp[i].innerHTML = directionButtons[i];
-  }
+  directionButtons.forEach((button, i) => {
+    slotsInLeftTemp[i].innerHTML = button;
+  });
   if (level === gameMode) {
     gameEnd(true);
+    return;
   } else {
     availableHints = availableHints.filter(
       (hint) => hint !== wrongHint && hint !== rightHint
@@ -703,7 +701,7 @@ function levelWon() {
 function gameEnd(ifWin) {
   gameEndRows = null; // Add additional rows
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
-  const updateData = {}; // Object to store data for Firestore
+  const updateData = { isReal: true }; // Object to store data for Firestore
   if (ifWin) {
     // Calculate the sum of elapsed times
     sumElapsedTime =
@@ -866,7 +864,9 @@ async function gameStopped() {
         resultScore: level - gameMode - 1,
       });
       console.log("Game doc updated in FireStore");
-    } catch {}
+    } catch {
+      console.error("Error updating document: ", error);
+    }
   }
 }
 questionButton.addEventListener("mousedown", overlayAppear); // Add event listeners for mouse and touch events
@@ -968,9 +968,8 @@ function checkBest(
   isPublic,
   gameMode
 ) {
-  // Select the correct game mode results
   const results =
-    gameMode === 3 ? bestResults.gameMode3 : bestResults.gameMode7;
+    gameMode === 3 ? bestResults.gameMode3 : bestResults.gameMode7; // Select the correct game mode results
   // Loop through the results to find if the new result is a best score
   for (let i = 0; i < results.length; i++) {
     const [highestScore, lowestSecondsPerLevel] = results[i];
