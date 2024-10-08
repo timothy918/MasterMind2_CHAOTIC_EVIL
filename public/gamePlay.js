@@ -189,87 +189,82 @@ function setUpTable() {
 
   // Event listener for the Enter button
   enterButton.addEventListener("click", function () {
-    if (gameMode) {
-      const slotsFilled = Array.from(
-        leftDivision.querySelectorAll(".slot")
-      ).every((slot) => slot.children.length > 0);
-      if (slotsFilled) {
-        chanceRemaining--;
-        const newRow = document.createElement("tr"); // Create a new row in the output table
-        const buttonsInSlots = Array.from(
-          leftDivision.querySelectorAll(".slot button")
-        ); // Get the values of buttons in the slots as the guess
-        const guess = buttonsInSlots.map((button) => button.textContent);
-        guesses.push(guess.join(""));
-        buttonsInSlots.forEach((button) => button.remove()); // Remove buttons from slots and update chanceRemaining
-        enterRight.innerHTML = chanceRemaining;
-        currentIndex = 0; // Reset the currentIndex and update slot borders
-        updateSlotBorders();
-        const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
-        feedback.push([wrongs, rights]);
-        const firstColumnCell = document.createElement("td"); // Append the guess to the first column
-        firstColumnCell.classList.add("large");
-        let buttonElement = "";
-        buttonsInSlots.forEach((button) => {
-          buttonElement += outputNumbers[button.textContent];
-          firstColumnCell.innerHTML = buttonElement;
-        });
-        newRow.appendChild(firstColumnCell);
-        if (availableHints.length < 2) {
-          availableHints = [...hints];
-        } // Check if availableHints is empty, reset it to hints
-        if (l_Uncertainty === 2) {
-          randomSigns();
-        }
-        if (rights === n_Slots) {
-          const endTime = performance.now();
-          const elapsedTimeInMilliseconds = endTime - startTime;
-          levelMap.time = elapsedTimeInMilliseconds;
-          const secondColumnCell = document.createElement("td");
-          secondColumnCell.innerHTML = `${(
-            elapsedTimeInMilliseconds / 1000
-          ).toFixed(3)} seconds`;
-          newRow.appendChild(secondColumnCell);
-          outputTable.appendChild(newRow);
-          mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
-          levelWon();
-        } else {
-          // Append the wrongs and rights values to the second column
-          let secondColumnCell = displayFeedback(
-            wrongs,
-            rights,
-            l_Uncertainty,
-            randomWrong,
-            randomRight
-          );
-          newRow.appendChild(secondColumnCell);
-          outputTable.appendChild(newRow); // Append the new row to the output table
-          mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
-          // Check if remaining chances are zero and display "You lose"
-          if (chanceRemaining === 0) {
-            gameEnd(false);
-            return;
-          }
-        }
+    if (!gameMode) return;
+    const slotsFilled = Array.from(
+      leftDivision.querySelectorAll(".slot")
+    ).every((slot) => slot.children.length > 0);
+    if (!slotsFilled) return;
+    chanceRemaining--;
+    const newRow = document.createElement("tr"); // Create a new row in the output table
+    const buttonsInSlots = Array.from(
+      leftDivision.querySelectorAll(".slot button")
+    ); // Get the values of buttons in the slots as the guess
+    const guess = buttonsInSlots.map((button) => button.textContent);
+    guesses.push(guess.join(""));
+    buttonsInSlots.forEach((button) => button.remove()); // Remove buttons from slots and update chanceRemaining
+    enterRight.innerHTML = chanceRemaining;
+    currentIndex = 0; // Reset the currentIndex and update slot borders
+    updateSlotBorders();
+    const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
+    feedback.push([wrongs, rights]);
+    const firstColumnCell = document.createElement("td"); // Append the guess to the first column
+    firstColumnCell.classList.add("large");
+    let buttonElement = "";
+    buttonsInSlots.forEach((button) => {
+      buttonElement += outputNumbers[button.textContent];
+      firstColumnCell.innerHTML = buttonElement;
+    });
+    newRow.appendChild(firstColumnCell);
+    if (availableHints.length < 2) {
+      availableHints = [...hints];
+    } // Check if availableHints is empty, reset it to hints
+    if (l_Uncertainty === 2) {
+      randomSigns();
+    }
+    if (rights === n_Slots) {
+      const endTime = performance.now();
+      const elapsedTimeInMilliseconds = endTime - startTime;
+      levelMap.time = elapsedTimeInMilliseconds;
+      const secondColumnCell = document.createElement("td");
+      secondColumnCell.innerHTML = `${(
+        elapsedTimeInMilliseconds / 1000
+      ).toFixed(3)} seconds`;
+      newRow.appendChild(secondColumnCell);
+      outputTable.appendChild(newRow);
+      mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
+      levelWon();
+    } else {
+      // Append the wrongs and rights values to the second column
+      const secondColumnCell = displayFeedback(
+        wrongs,
+        rights,
+        l_Uncertainty,
+        randomWrong,
+        randomRight
+      );
+      newRow.appendChild(secondColumnCell);
+      outputTable.appendChild(newRow); // Append the new row to the output table
+      mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
+      // Check if remaining chances are zero and display "You lose"
+      if (chanceRemaining === 0) {
+        gameEnd(false);
+        return;
       }
     }
   });
   // Attach click event listener to the left division (using event delegation)
   leftDivision.addEventListener("click", function (event) {
     const clickedSlot = event.target.closest(".slot");
-    if (clickedSlot) {
-      // Get the index of the clicked slot and set it as the current target slot
-      const clickedSlotIndex = Array.from(
-        leftDivision.querySelectorAll(".slot")
-      ).indexOf(clickedSlot);
-      currentIndex = clickedSlotIndex;
-      const clickedButton = clickedSlot.querySelector("button");
-      // Remove the button from the clicked slot
-      if (clickedButton) {
-        clickedButton.remove();
-      }
-      updateSlotBorders(); // Update slot borders based on currentIndex
+    if (!clickedSlot) return;
+    const clickedSlotIndex = Array.from(
+      leftDivision.querySelectorAll(".slot")
+    ).indexOf(clickedSlot); // Get the index of the clicked slot and set it as the current target slot
+    currentIndex = clickedSlotIndex;
+    const clickedButton = clickedSlot.querySelector("button");
+    if (clickedButton) {
+      clickedButton.remove(); // Remove the button from the clicked slot
     }
+    updateSlotBorders(); // Update slot borders based on currentIndex
   });
 }
 function handleRecommendations(ifWin, event) {
