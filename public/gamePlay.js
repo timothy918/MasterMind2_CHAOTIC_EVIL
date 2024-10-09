@@ -130,15 +130,13 @@ function setUpTable() {
           }
           break;
         case 8: // Check if the pressed key is the Backspace key
-          currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex back by 1, wrapping around if necessary
+          updateSlotBorders((currentIndex + n_Slots - 1) % n_Slots); // Move currentIndex back by 1, wrapping around if necessary
           const slotMinus1 =
             leftDivision.querySelectorAll(".slot")[currentIndex];
           const buttonMinus1 = slotMinus1.querySelector("button");
-          // Remove the button from the targeted slot
           if (buttonMinus1) {
-            buttonMinus1.click();
+            buttonMinus1.click(); // Remove the button from the targeted slot
           }
-          updateSlotBorders();
           break;
         case 13: // Enter button
           enterButton.click();
@@ -147,18 +145,15 @@ function setUpTable() {
           const currentSlot =
             leftDivision.querySelectorAll(".slot")[currentIndex];
           const buttonInSlot = currentSlot.querySelector("button");
-          // Trigger the click event on the button in the target slot
           if (buttonInSlot) {
-            buttonInSlot.click();
+            buttonInSlot.click(); // Trigger the click event on the button in the target slot
           }
           break;
         case 37: // Left arrow key
-          currentIndex = (currentIndex + n_Slots - 1) % n_Slots; // Move currentIndex left by 1, wrapping around if necessary
-          updateSlotBorders();
+          updateSlotBorders((currentIndex + n_Slots - 1) % n_Slots); // Move currentIndex left by 1, wrapping around if necessary
           break;
         case 39: // Right arrow key
-          currentIndex = (currentIndex + 1) % n_Slots; // Move currentIndex right by 1, wrapping around if necessary
-          updateSlotBorders();
+          updateSlotBorders((currentIndex + 1) % n_Slots); // Move currentIndex right by 1, wrapping around if necessary
           break;
         case 191: // question mark (?)
           overlayAppear();
@@ -195,18 +190,17 @@ function setUpTable() {
     ).every((slot) => slot.children.length > 0);
     if (!slotsFilled) return;
     chanceRemaining--;
-    const newRow = document.createElement("tr"); // Create a new row in the output table
+    enterRight.innerHTML = chanceRemaining;
     const buttonsInSlots = Array.from(
       leftDivision.querySelectorAll(".slot button")
     ); // Get the values of buttons in the slots as the guess
     const guess = buttonsInSlots.map((button) => button.textContent);
     guesses.push(guess.join(""));
     buttonsInSlots.forEach((button) => button.remove()); // Remove buttons from slots and update chanceRemaining
-    enterRight.innerHTML = chanceRemaining;
-    currentIndex = 0; // Reset the currentIndex and update slot borders
-    updateSlotBorders();
+    updateSlotBorders(); // Reset the currentIndex and update slot borders
     const [wrongs, rights] = turnCount(randomAnswer, guess); // Call the turnCount function with randomAnswer and guess
     feedback.push([wrongs, rights]);
+    const newRow = document.createElement("tr"); // Create a new row in the output table
     const firstColumnCell = document.createElement("td"); // Append the guess to the first column
     firstColumnCell.classList.add("large");
     let buttonElement = "";
@@ -248,7 +242,6 @@ function setUpTable() {
       // Check if remaining chances are zero and display "You lose"
       if (chanceRemaining === 0) {
         gameEnd(false);
-        return;
       }
     }
   });
@@ -259,12 +252,11 @@ function setUpTable() {
     const clickedSlotIndex = Array.from(
       leftDivision.querySelectorAll(".slot")
     ).indexOf(clickedSlot); // Get the index of the clicked slot and set it as the current target slot
-    currentIndex = clickedSlotIndex;
+    updateSlotBorders(clickedSlotIndex); // Update slot borders based on currentIndex
     const clickedButton = clickedSlot.querySelector("button");
     if (clickedButton) {
       clickedButton.remove(); // Remove the button from the clicked slot
     }
-    updateSlotBorders(); // Update slot borders based on currentIndex
   });
 }
 function handleRecommendations(ifWin, event) {
@@ -422,7 +414,8 @@ function updateHeaderTitle() {
     });
 }
 // Function to update slot borders
-function updateSlotBorders() {
+function updateSlotBorders(newIndex = 0) {
+  currentIndex = newIndex;
   leftDivision.querySelectorAll(".slot").forEach((slot, index) => {
     slot.classList.toggle("current", index === currentIndex);
   });
@@ -434,8 +427,7 @@ function handleInputButtonClick(event) {
   // Replace existing button or append the clone if the slot is empty
   currentSlot.innerHTML = ""; // Clear the current slot content (if any)
   currentSlot.appendChild(buttonClone);
-  currentIndex = findNextEmptySlot(); // Move to the next available empty slot
-  updateSlotBorders(); // Update the slot borders based on the new currentIndex
+  updateSlotBorders(findNextEmptySlot()); // Move to the next available empty slot & Update the slot borders
 }
 function findNextEmptySlot() {
   const slots = Array.from(leftDivision.querySelectorAll(".slot"));
@@ -461,7 +453,6 @@ function levelStart() {
     slotElement.id = `slot${i}`;
     leftDivision.appendChild(slotElement);
   }
-  currentIndex = 0;
   updateSlotBorders();
 
   inputButtons.forEach((button, index) => {
