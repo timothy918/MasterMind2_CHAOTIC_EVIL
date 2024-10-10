@@ -88,4 +88,3 @@ const timeframes = [
   { label: "daily", duration: 86400 }, // 24 hours
   { label: "hourly", duration: 3600 }, // 1 hour
 ];
-console.log(window.location.href);

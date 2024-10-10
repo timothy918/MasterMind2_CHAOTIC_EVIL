@@ -311,10 +311,9 @@ function getShareContent(ifWin) {
         .join(" | ")
     )
     .join("\n");
-  // Add end game message if present
   gameEndRows.forEach((row) => {
     if (row[0].content === "Congratulations!") {
-      shareContent += `\n${row[1].content}`;
+      shareContent += `\n${row[1].content}`; // Add end game message if present
     }
   });
   return shareContent;
@@ -336,6 +335,7 @@ function selectGameMode(game_Mode) {
   n_Choices = 6;
   l_Uncertainty = 0;
   levelsArray = [];
+  gameMode = game_Mode; // Set the game mode
   addDoc(colRef, {
     ipAddress: userIP,
     gameMode: game_Mode,
@@ -362,7 +362,6 @@ function selectGameMode(game_Mode) {
   Array.from(leftDivision.querySelectorAll(".slot button")).forEach(
     (button) => button.remove() // Remove buttons from slots
   );
-  gameMode = game_Mode; // Set the game mode
   const firstRow = document.createElement("tr"); // Create a new row in the output table
   const leftCell = document.createElement("td"); // Insert cells in the first column of the output table
   leftCell.textContent = `Level`;
@@ -558,10 +557,13 @@ function levelWon() {
   spanElements.forEach((spanElement) => {
     spanElement.classList.add("rightHint"); // Loop through the <span> elements and add the rightHint class
   });
-
-  const slotsInLeftTemp = leftDivision.querySelectorAll(".slot"); // Append direction buttons to the first 3 slots in left temp div
+  leftDivision.innerHTML = ""; // Create the slots dynamically based on n_Slots
   directionButtons.forEach((button, i) => {
-    slotsInLeftTemp[i].innerHTML = button;
+    const slotElement = document.createElement("div");
+    slotElement.innerHTML = button;
+    slotElement.classList.add("slot");
+    slotElement.id = `slot${i}`;
+    leftDivision.appendChild(slotElement);
   });
   if (level === gameMode) {
     gameEnd(true);
@@ -607,45 +609,9 @@ function levelWon() {
         mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
       });
     }
-    const difficultyLeftCell = document.createElement("td");
-    const difficultyRightCell = document.createElement("td");
-    function vaildDirectionButtonClick() {
-      // Remove all buttons from slots
-      slotsInLeftTemp.forEach((slot) => {
-        slot.innerHTML = ""; // Clear the content of the slot
-      });
-      // Increment chanceRemaining, l_Uncertainty, and level
-      chanceRemaining += gameMode;
-      enterRight.innerHTML = chanceRemaining;
-      level++;
-      const firstRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
-      const left1Cell = Object.assign(document.createElement("td"), {
-        textContent: `Level`,
-      });
-      firstRow.appendChild(left1Cell);
-      const right1Cell = Object.assign(document.createElement("td"), {
-        textContent: `${level - 1} => ${level}`,
-      });
-      firstRow.appendChild(right1Cell);
-      outputTable.appendChild(firstRow); // Append the new row to the output table
-      const secondRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
-      const left2Cell = Object.assign(document.createElement("td"), {
-        textContent: `Remaining chances`,
-      });
-      secondRow.appendChild(left2Cell);
-      const right2Cell = Object.assign(document.createElement("td"), {
-        textContent: `${chanceRemaining - gameMode} => ${chanceRemaining}`,
-      });
-      secondRow.appendChild(right2Cell);
-      outputTable.appendChild(secondRow); // Append the new row to the output table
-      const thridRow = document.createElement("tr"); // Insert cells in the first column of the output table for level info
-      thridRow.appendChild(difficultyLeftCell);
-      thridRow.appendChild(difficultyRightCell);
-      outputTable.appendChild(thridRow); // Append the new row to the output table
-      mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
-      leftDivision.removeEventListener("click", handleDirectionButtonClick); // Later, if you need to remove the event listener
-      levelStart(); // Call the levelStart() function to set up the next level
-    }
+    let difficultyLeftCell = "";
+    let difficultyRightCell = "";
+    leftDivision.addEventListener("click", handleDirectionButtonClick); // Add the event listener
     // Define the event listener function
     function handleDirectionButtonClick(event) {
       const target = event.target; // Get the clicked element
@@ -656,36 +622,56 @@ function levelWon() {
         if (directionButton.textContent === "v" || gameMode === 3) {
           if (l_Uncertainty < 2) {
             l_Uncertainty++;
-            difficultyLeftCell.textContent = `Level of uncertainty`;
-            difficultyRightCell.textContent = `${
-              l_Uncertainty - 1
-            } => ${l_Uncertainty}`;
+            difficultyLeftCell = `Level of uncertainty`;
+            difficultyRightCell = `${l_Uncertainty - 1} => ${l_Uncertainty}`;
             vaildDirectionButtonClick();
           }
         } else if (directionButton.textContent === "<") {
           if (n_Choices < 10) {
             n_Choices += 2;
-            difficultyLeftCell.textContent = `Number of colours`;
-            difficultyRightCell.textContent = `${
-              n_Choices - 2
-            } => ${n_Choices}`;
+            difficultyLeftCell = `Number of colours`;
+            difficultyRightCell = `${n_Choices - 2} => ${n_Choices}`;
             vaildDirectionButtonClick();
           }
         } else if (directionButton.textContent === ">") {
           if (n_Slots < 6) {
             n_Slots++;
-            difficultyLeftCell.textContent = `Number of slots`;
-            difficultyRightCell.textContent = `${n_Slots - 1} => ${n_Slots}`;
+            difficultyLeftCell = `Number of slots`;
+            difficultyRightCell = `${n_Slots - 1} => ${n_Slots}`;
             vaildDirectionButtonClick();
           }
         }
       }
     }
-    leftDivision.addEventListener("click", handleDirectionButtonClick); // Add the event listener
+    function vaildDirectionButtonClick() {
+      level++; // Increment level
+      chanceRemaining += gameMode; // Increment chanceRemaining
+      enterRight.innerHTML = chanceRemaining;
+      const levelBeginningRows = [
+        ["Level", `${level - 1} => ${level}`],
+        [
+          "Remaining chances",
+          `${chanceRemaining - gameMode} => ${chanceRemaining}`,
+        ],
+        [difficultyLeftCell, difficultyRightCell],
+      ]; // Data for output table rows
+      levelBeginningRows.forEach((rowContent) => {
+        const newRow = document.createElement("tr");
+        rowContent.forEach((cellData) => {
+          const cell = document.createElement("td");
+          cell.textContent = cellData;
+          newRow.appendChild(cell);
+        });
+        outputTable.appendChild(newRow);
+        mainContainer.scrollTop = mainContainer.scrollHeight; //scroll to bottom
+      });
+      leftDivision.removeEventListener("click", handleDirectionButtonClick); // Remove event listener and proceed to the next level
+      levelStart(); // Call the levelStart() function to set up the next level
+    }
   }
 }
 function gameEnd(ifWin) {
-  gameEndRows = null; // Add additional rows
+  gameEndRows = null;
   const spanElements = outputTable.querySelectorAll("tr span"); // Select all <span> elements within the output table rows
   const updateData = { isReal: true }; // Object to store data for Firestore
   if (ifWin) {
@@ -743,9 +729,8 @@ function gameEnd(ifWin) {
     updateData.secondsPerLevel = sumElapsedTime / gameMode;
   } else {
     //losing
-    // Loop through the <span> elements and add the rightHint class
     spanElements.forEach((spanElement) => {
-      spanElement.classList.add("rightHint");
+      spanElement.classList.add("rightHint"); // Loop through the <span> elements and add the rightHint class
     });
     let answerString = ""; // Convert randomAnswer into a string of corresponding elements
     for (let i = 0; i < randomAnswer.length; i++) {
@@ -764,9 +749,13 @@ function gameEnd(ifWin) {
         { content: "correct answer" },
       ],
     ];
-    const slotsInLeftTemp = leftDivision.querySelectorAll(".slot");
+    leftDivision.innerHTML = ""; // In losing case, not went through levelWon
     directionButtons.forEach((button, i) => {
-      slotsInLeftTemp[i].innerHTML = button;
+      const slotElement = document.createElement("div");
+      slotElement.innerHTML = button;
+      slotElement.classList.add("slot");
+      slotElement.id = `slot${i}`;
+      leftDivision.appendChild(slotElement);
     });
     levelMap.guesses = guesses;
     levelMap.wrongs = feedback.map((pair) => pair[0]);
@@ -914,7 +903,9 @@ async function searchBest(isPublic = true, userIP = null) {
       );
       try {
         const querySnapshot = await getDocs(q); // Execute the query
-        if (!querySnapshot.empty) {
+        if (querySnapshot.empty) {
+          results[key].push([null, null]); // No results found for this timeframe
+        } else {
           const { resultScore, secondsPerLevel, dateTime } = querySnapshot.docs
             .map((doc) => doc.data())
             .sort((a, b) =>
@@ -926,8 +917,6 @@ async function searchBest(isPublic = true, userIP = null) {
           gameModes.find((gm) => gm.mode === mode).lastRecordHold =
             now.seconds - dateTime.seconds; // Update record hold
           results[key].push([resultScore, lowestSecondsPerLevel]);
-        } else {
-          results[key].push([null, null]); // No results found for this timeframe
         }
       } catch (error) {
         console.error(
@@ -966,9 +955,8 @@ function checkBest(
       (chanceRemaining === highestScore &&
         aveElapsedTime < lowestSecondsPerLevel)
     ) {
-      // Update all subsequent timeframes since this is the best score
       for (let j = i; j < results.length; j++) {
-        results[j] = [chanceRemaining, aveElapsedTime]; // Update the best result for this timeframe
+        results[j] = [chanceRemaining, aveElapsedTime]; // Update all subsequent timeframes since this is the best score
       }
       const bestType = isPublic ? "public" : "personal";
       return [
