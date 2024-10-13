@@ -161,8 +161,12 @@ async function queryGames() {
     return resultArray; // Return the sorted array with counts
   } catch (error) {
     console.error("Error querying documents: ", error);
-    const errorMessageDiv = document.getElementById("error-message");
-    errorMessageDiv.innerText = error || "An unknown error occurred"; // Display the error message
+    // Clear the canvas before drawing the error message
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas area
+    ctx.font = "20px Arial"; // Set the font size and type
+    ctx.fillStyle = "red"; // Set the text color
+    // Display the error message on the canvas
+    ctx.fillText(error || "An unknown error occurred", 10, 50); // Draw the text at coordinates (10, 50)
   }
 }
 async function drawPictogram(resultArray) {
