@@ -764,6 +764,7 @@ function gameEnd(ifWin) {
     updateData.resultScore = level - gameMode - 1;
   }
   updateData.levels = levelsArray;
+  console.log(updateData);
   gameEndRows.push(
     [{ content: "<" }, { content: "view statistics to see how well you did" }],
     [{ content: "v" }, { content: "share so others know how well you did" }],
