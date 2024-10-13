@@ -166,7 +166,7 @@ async function queryGames() {
     ctx.font = "20px Arial"; // Set the font size and type
     ctx.fillStyle = "red"; // Set the text color
     // Display the error message on the canvas
-    ctx.fillText(error || "An unknown error occurred", 10, 50); // Draw the text at coordinates (10, 50)
+    ctx.fillText(error || "An unknown error occurred", 0, 50); // Draw the text at coordinates (10, 50)
   }
 }
 async function drawPictogram(resultArray) {

@@ -761,9 +761,9 @@ function gameEnd(ifWin) {
     levelMap.wrongs = feedback.map((pair) => pair[0]);
     levelMap.rights = feedback.map((pair) => pair[1]);
     checkLevelsArray(levelMap);
-    updateData.levels = levelsArray;
     updateData.resultScore = level - gameMode - 1;
   }
+  updateData.levels = levelsArray;
   gameEndRows.push(
     [{ content: "<" }, { content: "view statistics to see how well you did" }],
     [{ content: "v" }, { content: "share so others know how well you did" }],
@@ -923,6 +923,7 @@ async function searchBest(isPublic = true, userIP = null) {
           `Error retrieving documents for ${timeframe.label} in game mode ${mode}: `,
           error
         );
+        return null;
       }
     }
   }
