@@ -231,3 +231,7 @@ iframe {
   display: block;
   margin: auto;
 }
+#error-message {
+  vertical-align: middle;
+  text-align: center;
+}

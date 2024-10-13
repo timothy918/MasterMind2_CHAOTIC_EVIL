@@ -161,6 +161,8 @@ async function queryGames() {
     return resultArray; // Return the sorted array with counts
   } catch (error) {
     console.error("Error querying documents: ", error);
+    const errorMessageDiv = document.getElementById("error-message");
+    errorMessageDiv.innerText = error || "An unknown error occurred"; // Display the error message
   }
 }
 async function drawPictogram(resultArray) {

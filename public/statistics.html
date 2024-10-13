@@ -44,15 +44,25 @@
         user queries through a dynamic pictogram chart created with Chart.js.
         Clicking on any columns in pictogram chart will visualize a Scatter Plot
         for more details. You can view the
-        <a href="schema.png" target="_blank">schema</a> of the database, if
-        interested. The game also tracks users' personal best records, provided
-        they accept cookies. Developed under a trial-and-error software
-        development model, this project showcases my dedication to creating
-        engaging and functional gaming experiences. Feel free to check out
+        <a
+          href="https://github.com/timothy918/MasterMind2_CHAOTIC_EVIL/blob/main/public/schema.png"
+          target="_blank"
+          >schema</a
+        >
+        of the database, if interested. The game also tracks users' personal
+        best records, provided they accept cookies. Developed under a
+        trial-and-error software development model, this project showcases my
+        dedication to creating engaging and functional gaming experiences. Feel
+        free to check out
         <a href="https://hiretimothykwok.onrender.com/" target="_blank"
           >my personal website</a
         >
-        for other work of mine. Also, here is a video tour of this web app:-
+        for other work of mine. Also, here is the
+        <a
+          href="https://github.com/timothy918/MasterMind2_CHAOTIC_EVIL"
+          target="_blank"
+          >repository in github</a
+        >, and here is a video tour of this web app:-
       </p>
       <iframe
         width="560"
@@ -77,6 +87,8 @@
     </p>
     <main class="dashboard">
       <canvas id="pictogramChart" width="500" height="400">Loading...</canvas>
+      <div id="error-message" style="color: red"></div>
+      <!-- Error message area -->
       <form class="query">
         <fieldset>
           <legend>Population size</legend>
