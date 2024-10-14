@@ -7,6 +7,7 @@ import {
   where,
   getDocs,
   Timestamp,
+  orderBy,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 import { db, colRef, checkNSetCookie, userIP, timeframes } from "./index.js";
 const outputNumbers = [
@@ -881,51 +882,56 @@ async function searchBest(isPublic = true, userIP = null) {
   const gameModes = [
     { mode: 3, lastRecordHold: null, key: "gameMode3" },
     { mode: 7, lastRecordHold: null, key: "gameMode7" },
-  ]; // Loop through both game modes
+  ];
   for (const { mode, key } of gameModes) {
-    for (const timeframe of timeframes) {
-      const lastRecordHold = gameModes.find(
-        (gm) => gm.mode === mode
-      ).lastRecordHold;
-      // Skip if the record hold is less than the current timeframe duration
-      if (lastRecordHold !== null && lastRecordHold <= timeframe.duration) {
-        results[key].push(results[key][results[key].length - 1]); // Push the last result
-        continue;
-      }
-      const lastDuration =
-        timeframe.duration === Infinity ? 0 : now.seconds - timeframe.duration;
-      const lastTimestamp = new Timestamp(lastDuration, 0);
-      // Build query with common conditions, adding IP filter for personal bests if needed
-      let q = query(
-        colRef,
-        where("gameMode", "==", mode), // Filter by game mode
-        where("dateTime", ">=", lastTimestamp),
-        ...(isPublic || !userIP ? [] : [where("ipAddress", "==", userIP)]) // Conditionally add IP filter
-      );
-      try {
-        const querySnapshot = await getDocs(q); // Execute the query
-        if (querySnapshot.empty) {
-          results[key].push([null, null]); // No results found for this timeframe
-        } else {
-          const { resultScore, secondsPerLevel, dateTime } = querySnapshot.docs
-            .map((doc) => doc.data())
-            .sort((a, b) =>
-              b.resultScore !== a.resultScore
-                ? b.resultScore - a.resultScore
-                : a.secondsPerLevel - b.secondsPerLevel
-            )[0]; // Get best result based on score & time per level
-          const lowestSecondsPerLevel = secondsPerLevel || null;
-          gameModes.find((gm) => gm.mode === mode).lastRecordHold =
-            now.seconds - dateTime.seconds; // Update record hold
-          results[key].push([resultScore, lowestSecondsPerLevel]);
+    // Build a single query for all timeframes for this game mode, sorted by resultScore and secondsPerLevel
+    let q = query(
+      colRef,
+      where("gameMode", "==", mode),
+      ...(isPublic || !userIP ? [] : [where("ipAddress", "==", userIP)]), // Conditionally add IP filter
+      orderBy("resultScore", "desc"), // Sort by resultScore (highest first)
+      orderBy("secondsPerLevel", "asc") // Sort by secondsPerLevel (lowest first)
+    );
+    try {
+      const querySnapshot = await getDocs(q); // Execute the single query
+      if (querySnapshot.empty) {
+        timeframes.forEach(() => results[key].push([null, null])); // No results for this game mode
+      } else {
+        const docs = querySnapshot.docs.map((doc) => doc.data()); // Process the documents
+        for (const timeframe of timeframes) {
+          const lastRecordHold = gameModes.find(
+            (gm) => gm.mode === mode
+          ).lastRecordHold;
+          // Check if the record already holds for this timeframe
+          if (lastRecordHold !== null && lastRecordHold <= timeframe.duration) {
+            results[key].push(results[key][results[key].length - 1]); // Push the last result
+            continue;
+          }
+          const lastDuration =
+            timeframe.duration === Infinity
+              ? 0
+              : now.seconds - timeframe.duration;
+          const validDocs = docs.filter(
+            (doc) => doc.dateTime.seconds >= lastDuration
+          );
+
+          if (validDocs.length === 0) {
+            results[key].push([null, null]); // No valid results for this timeframe
+          } else {
+            const { resultScore, secondsPerLevel, dateTime } = validDocs[0]; // Best result
+            const lowestSecondsPerLevel = secondsPerLevel || null;
+            gameModes.find((gm) => gm.mode === mode).lastRecordHold =
+              now.seconds - dateTime.seconds;
+            results[key].push([resultScore, lowestSecondsPerLevel]);
+          }
         }
-      } catch (error) {
-        console.error(
-          `Error retrieving documents for ${timeframe.label} in game mode ${mode}: `,
-          error
-        );
-        return null;
       }
+    } catch (error) {
+      console.error(
+        `Error retrieving documents for game mode ${mode}: `,
+        error
+      );
+      return null;
     }
   }
   console.log(
