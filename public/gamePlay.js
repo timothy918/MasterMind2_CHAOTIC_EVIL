@@ -914,6 +914,7 @@ async function searchBest(isPublic = true, userIP = null) {
           const validDocs = docs.filter(
             (doc) => doc.dateTime.seconds >= lastDuration
           );
+
           if (validDocs.length === 0) {
             results[key].push([null, null]); // No valid results for this timeframe
           } else {

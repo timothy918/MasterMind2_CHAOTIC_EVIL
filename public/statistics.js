@@ -31,14 +31,8 @@ let currentXPositionArray = []; // Store X positions
 let resultArrayGlobal = []; // Store resultArray globally
 let spacingBtwResultScores; // Spacing between result scores
 
-function triggerAd() {
-  // This script triggers a vignette ad manually
-  (adsbygoogle = window.adsbygoogle || []).push({});
-}
-
 const queryGamesButton = document.getElementById("queryGames");
 queryGamesButton.addEventListener("click", async function () {
-  triggerAd(); // Display the ad when the button is clicked
   const resultArray = await queryGames(); // Await the result of the async function
   if (resultArray) {
     // Check if resultArray is not null
