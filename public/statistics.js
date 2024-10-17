@@ -14,69 +14,66 @@ const gamesIfUserCheckbox = document.getElementById("gamesIfUser"); // Get check
 const levelsIfUserCheckbox = document.getElementById("levelsIfUser"); // Get checkbox elements
 const canvas = document.getElementById("pictogramChart");
 const ctx = canvas.getContext("2d");
-// Disable checkboxes if userIP is null
 if (userIP === "Anonymous") {
-  gamesIfUserCheckbox.disabled = true;
+  gamesIfUserCheckbox.disabled = true; // Disable checkboxes if userIP is null
   levelsIfUserCheckbox.disabled = true;
 }
 // Initialize the queries, counts, and unique IP tracking
-const queries = getPopulationQueries(); // Define an array of queries
-const realTimeCounts = new Array(queries.length).fill(0); // Define an array to store real-time counts
 const uniqueIPs = new Set(); // Use a Set to store unique IP addresses
-attachQueryListeners(queries, realTimeCounts, uniqueIPs); // Attach the onSnapshot listeners for real-time updates
-let querySnapshot;
+const queryGamesButton = document.getElementById("queryGames");
+getPopulationData(); // Define an array of queries
+let querySnapshot,
+  spacingBtwResultScores, // Spacing between result scores
+  publicMode,
+  publicTimeRange,
+  publiceIsUserOnly;
 const symbolImage = new Image(); // Cache the image outside to avoid reloading it each time
 symbolImage.src = "./dot.png"; // Replace with your actual image path
 let currentXPositionArray = []; // Store X positions
 let resultArrayGlobal = []; // Store resultArray globally
-let spacingBtwResultScores; // Spacing between result scores
 
-const queryGamesButton = document.getElementById("queryGames");
-queryGamesButton.addEventListener("click", async function () {
-  const resultArray = await queryGames(); // Await the result of the async function
-  if (resultArray) {
-    // Check if resultArray is not null
-    drawPictogram(resultArray); // Call the pictogram drawing function
-  }
-});
-queryGamesButton.click();
-function getPopulationQueries() {
-  const baseQueries = [
-    query(colRef, where("gameMode", "==", 3)), // GameMode 3
-    query(colRef, where("gameMode", "==", 7)), // GameMode 7
-  ];
-  if (userIP !== "Anonymous") {
-    const personalizedQueries = [
-      query(baseQueries[0], where("ipAddress", "==", userIP)), // Personal Real GameMode 3
-      query(baseQueries[1], where("ipAddress", "==", userIP)), // Personal Real GameMode 7
-    ];
-    return [...baseQueries, ...personalizedQueries]; // Return both base and personalized queries
-  } else {
-    console.log("User's IP address not found");
-    return baseQueries; // Return only base queries if no user IP
-  }
-}
-// Function to attach onSnapshot listeners
-function attachQueryListeners(queries, realTimeCounts, uniqueIPs) {
-  queries.forEach((query, index) => {
-    const unsubscribe = onSnapshot(query, (snapshot) => {
-      realTimeCounts[index] = snapshot.size;
-      // Update unique IPs based on document changes
-      snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        if (data.ipAddress) {
-          if (change.type === "added") {
-            uniqueIPs.add(data.ipAddress);
-          } else if (change.type === "removed") {
-            uniqueIPs.delete(data.ipAddress);
-          }
+async function getPopulationData() {
+  const combinedQuery = query(colRef, where("gameMode", "in", [3, 7])); // Define the combined query for gameMode 3 and 7
+  try {
+    querySnapshot = await getDocs(combinedQuery); // Fetch documents from combinedQuery once
+    // Initialize counts: one for each gameMode 3 and 7, plus personalized counts if userIP exists
+    let realTimeCounts = [0, 0]; // For gameMode 3 and gameMode 7
+    if (userIP !== "Anonymous") {
+      realTimeCounts.push(0, 0); // Extra counts for personalized queries
+    }
+    // Loop through all documents once
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Update general counts for gameMode 3 and 7
+      if (data.gameMode === 3) {
+        realTimeCounts[0]++;
+        if (data.ipAddress === userIP) {
+          realTimeCounts[2]++; // Personal GameMode 3
         }
-      });
-      updatePopulationDisplay(realTimeCounts); // Call both update functions
-      updateUniqueIPDisplay(uniqueIPs);
+      } else if (data.gameMode === 7) {
+        realTimeCounts[1]++;
+        if (data.ipAddress === userIP) {
+          realTimeCounts[3]++; // Personal GameMode 7
+        }
+      }
+      if (data.ipAddress) {
+        uniqueIPs.add(data.ipAddress); // Track unique IPs
+      }
     });
-    // You can store the unsubscribe function if you need it later
-  });
+    updatePopulationDisplay(realTimeCounts); // Update the UI based on the results
+    updateUniqueIPDisplay(uniqueIPs);
+    queryGamesButton.addEventListener("click", async function () {
+      const resultArray = await queryGames(); // Await the result of the async function
+      if (resultArray) {
+        // Check if resultArray is not null
+        drawPictogram(resultArray); // Call the pictogram drawing function
+      }
+    });
+    // queryGamesButton.click();
+  } catch (error) {
+    console.error("Error fetching population data:", error);
+    return; // Return null in case of error
+  }
 }
 // Function to update the display for the unique IP count
 function updateUniqueIPDisplay(uniqueIPs) {
@@ -117,58 +114,55 @@ function updatePopulationDisplay(realTimeCounts) {
     Number(gameMode3Row.cells[3].textContent) +
     Number(gameMode7Row.cells[3].textContent);
 }
-// Function to query Firestore based on the form inputs and return a count by resultScore
-async function queryGames() {
-  // Get form inputs
-  const mode = document.getElementById("mode").value; // Game mode (3 or 7)
-  const timeRange = document.getElementById("time").value; // Time range (e.g., "daily")
-  const isUserOnly = gamesIfUserCheckbox.checked; // Checkbox for user records only
+function queryGames() {
+  publicMode = document.getElementById("mode").value; // Game mode (3 or 7)
+  publicTimeRange = document.getElementById("time").value; // Time range (e.g., "daily")
+  publiceIsUserOnly = gamesIfUserCheckbox.checked; // Checkbox for user records only
   const selectedTimeframe = timeframes.find(
-    (frame) => frame.label === timeRange
+    (frame) => frame.label === publicTimeRange
   );
   const duration = selectedTimeframe.duration; // Get the duration from the selected time range
-  const [baseQuery3, baseQuery7] = queries; // Get the existing queries for gameMode 3 and 7
-  let gameQuery; // Initialize gameQuery based on mode and user input
-  if (mode == 3) {
-    gameQuery = isUserOnly && queries[2] ? queries[2] : baseQuery3; // Use personalizedQuery3 if exists
-  } else {
-    gameQuery = isUserOnly && queries[3] ? queries[3] : baseQuery7; // Use personalizedQuery7 if exists
-  }
-  // Add a time filter if the selected time is not "all time"
-  if (duration !== Infinity) {
-    const now = Timestamp.now(); // Get the current timestamp (Firestore Timestamp)
-    const cutoffTimestamp = new Timestamp(now.seconds - duration, 0); // Calculate the cutoff timestamp
-    gameQuery = query(gameQuery, where("dateTime", ">=", cutoffTimestamp));
-  }
-  try {
-    querySnapshot = await getDocs(gameQuery); // Execute the query
-    const scoreCounts = {}; // Object to hold counts of each resultScore
-    // Iterate through each document
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      // Check if resultScore exists and count it
-      if (data.resultScore !== undefined) {
-        scoreCounts[data.resultScore] =
-          (scoreCounts[data.resultScore] || 0) + 1; // Increment the count for this resultScore
-      }
-    });
-    const resultArray = Object.entries(scoreCounts).map(([score, count]) => ({
-      resultScore: parseInt(score),
-      count: count,
-    })); // Convert the scoreCounts object to an array of resultScore-count pairs
-    resultArray.sort((a, b) => a.resultScore - b.resultScore); // Sort the resultArray by resultScore in ascending order
-    console.log(resultArray); // Return or process the sorted array
-    return resultArray; // Return the sorted array with counts
-  } catch (error) {
-    console.error("Error querying documents: ", error);
+  // Get the documents from the public variable querySnapshot instead of calling getDocs again
+  if (!querySnapshot || querySnapshot.empty) {
+    console.error("No documents available in querySnapshot.");
     // Clear the canvas before drawing the error message
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas area
     ctx.font = "20px Arial"; // Set the font size and type
     ctx.fillStyle = "red"; // Set the text color
     // Display the error message on the canvas
-    ctx.fillText(error || "An unknown error occurred", 0, 50); // Draw the text at coordinates (10, 50)
+    ctx.fillText("No data available to display", 10, 50); // Draw the text at coordinates (10, 50)
+    return; // Ensure querySnapshot is available
   }
+  const now = Timestamp.now(); // Initialize result filtering
+  const cutoffTimestamp =
+    duration !== Infinity ? new Timestamp(now.seconds - duration, 0) : null;
+  const scoreCounts = {}; // Initialize the scoreCounts object
+  // Filter the querySnapshot data
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    // Apply the filters based on the form inputs
+    if (
+      data.gameMode == publicMode && // Filter by selected game mode
+      (!publiceIsUserOnly || data.ipAddress === userIP) && // Filter by user IP if needed
+      (!cutoffTimestamp || data.dateTime >= cutoffTimestamp) // Filter by selected time range
+    ) {
+      // Count the resultScore
+      if (data.resultScore !== undefined) {
+        scoreCounts[data.resultScore] =
+          (scoreCounts[data.resultScore] || 0) + 1; // Increment count
+      }
+    }
+  });
+  // Convert scoreCounts object to an array of resultScore-count pairs
+  const resultArray = Object.entries(scoreCounts).map(([score, count]) => ({
+    resultScore: parseInt(score),
+    count: count,
+  }));
+  resultArray.sort((a, b) => a.resultScore - b.resultScore); // Sort the resultArray by resultScore in ascending order
+  console.log(resultArray); // Return or process the sorted array
+  return resultArray; // Return the sorted array with counts
 }
+
 async function drawPictogram(resultArray) {
   if (scatterChart) scatterChart.destroy(); // Destroy any existing chart instance before creating a new one
   canvas.width = 500; // Set your desired width
@@ -267,7 +261,10 @@ async function drawScatterPlot(resultScoreFilter) {
   // Collect and filter relevant documents based on the resultScoreFilter
   const filteredResults = querySnapshot.docs
     .map((doc) => doc.data())
-    .filter((data) => data.resultScore === resultScoreFilter)
+    .filter(
+      (data) =>
+        data.resultScore === resultScoreFilter && data.gameMode == publicMode
+    ) // Add the filter for gameMode
     .map((data) => ({
       resultScore: data.resultScore,
       secondsPerLevel: data.secondsPerLevel || 1, // Avoid ln(0) by defaulting to 1
