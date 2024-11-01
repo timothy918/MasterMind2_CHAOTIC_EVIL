@@ -303,7 +303,7 @@ function getShareContent(ifWin) {
       16 + level * (level - 1) - chanceRemaining
     } chances.`;
   } else {
-    lastRowInLastLevel.cells[1].textContent = `I ran out of chance at ${level} level, avenge me!`;
+    lastLevelRows += `I ran out of chance at ${level} level, avenge me!`;
   }
   shareContent += lastLevelRows // Build share content from rows
     .map((row) =>

@@ -69,7 +69,7 @@ async function getPopulationData() {
         drawPictogram(resultArray); // Call the pictogram drawing function
       }
     });
-    // queryGamesButton.click();
+    queryGamesButton.click();
   } catch (error) {
     console.error("Error fetching population data:", error);
     return; // Return null in case of error
