@@ -271,16 +271,21 @@ async function drawScatterPlot(resultScoreFilter) {
       ipAddress: data.ipAddress,
       dateTime: data.dateTime ? data.dateTime.toDate() : new Date(), // Convert Firestore timestamp to Date object
     }));
-  // Create data for the scatter plot by applying ln(secondsPerLevel)
-  const scatterData = filteredResults.map((result) => ({
-    x: result.dateTime, // Use dateTime as the x-axis value
-    y: Math.log(result.secondsPerLevel), // Apply ln transformation to secondsPerLevel
+  // Sort results by dateTime
+  filteredResults.sort((a, b) => a.dateTime - b.dateTime);
+
+  // Prepare scatter data with sequential x-axis values
+  const scatterData = filteredResults.map((result, index) => ({
+    x: index + 1, // Sequential index instead of dateTime
+    y: Math.log(result.secondsPerLevel),
     label: result.ipAddress,
     roundedSeconds: Math.round(result.secondsPerLevel * 100) / 100,
+    dateTime: result.dateTime, // Store original dateTime for labels
   }));
-  // Create a new scatter chart
+
+  // Create scatter plot with sequential x-axis but showing dateTime labels
   scatterChart = new Chart(ctx, {
-    type: "scatter", // Scatter chart type
+    type: "scatter",
     data: {
       datasets: [
         {
@@ -289,62 +294,62 @@ async function drawScatterPlot(resultScoreFilter) {
           borderColor: "rgba(54, 162, 235, 1)",
           pointRadius: 5,
           pointHoverRadius: 7,
-          showLine: false, // No line between points
+          showLine: false,
         },
       ],
     },
     options: {
       scales: {
         x: {
-          type: "time",
-          time: {
-            unit: "day", // Group data points by day
-            tooltipFormat: "MMM D, YYYY h:mm a", // Format tooltip as 'Month Day, Year Hour:Minute AM/PM'
-            displayFormats: {
-              day: "MMM D", // Format X-axis ticks as 'Month Day'
+          type: "linear", // Use a linear scale for sequential data
+          title: { display: true, text: "DateTime" },
+          ticks: {
+            stepSize: 1, // Ensure sequential steps
+            callback: function (value, index, values) {
+              const dataPoint = scatterData.find((d) => d.x === value);
+              if (dataPoint) {
+                return dataPoint.dateTime.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                });
+              }
+              return value;
             },
           },
-          title: {
-            display: true,
-            text: "Date",
-          },
-          max: new Date(), // Set the max range of x-axis to today
         },
         y: {
-          position: "right", // Move Y-axis to the right
+          position: "right",
           ticks: {
-            callback: function (value) {
-              return Math.round(Math.exp(value)); // Reverse ln transformation for Y-axis labels
-            },
+            callback: (value) => Math.round(Math.exp(value)), // Reverse ln()
           },
-          title: {
-            display: true,
-            text: "Seconds per level",
-          },
-          reverse: true, // Reverse Y-axis to have lower values at the top
+          title: { display: true, text: "Seconds per level" },
+          reverse: true,
         },
       },
       plugins: {
         tooltip: {
           callbacks: {
-            label: function (context) {
+            label: (context) => {
               const dataPoint = scatterData[context.dataIndex];
-              // Format the date as 'MMM D, YYYY'
-              const formattedDate = dataPoint.x.toLocaleDateString("en-US", {
-                month: "short", // Abbreviated month
-                day: "numeric", // Day without leading zero
-                year: "numeric", // Full year
-              });
-              // Format the time in 24-hour format without seconds
-              const formattedTime = dataPoint.x.toLocaleTimeString("en-US", {
-                hour: "2-digit", // 2-digit hour
-                minute: "2-digit", // 2-digit minute
-                hour12: false, // 24-hour format
-              });
-              // Construct the tooltip text
+              const formattedDate = dataPoint.dateTime.toLocaleDateString(
+                "en-US",
+                {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                }
+              );
+              const formattedTime = dataPoint.dateTime.toLocaleTimeString(
+                "en-US",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                }
+              );
               return resultScoreFilter < 0
                 ? `By ${dataPoint.label} on ${formattedDate} at ${formattedTime}`
-                : `${dataPoint.roundedSeconds} seconds per level by ${dataPoint.label} on ${formattedDate} at ${formattedTime}`;
+                : `${dataPoint.roundedSeconds} sec/level by ${dataPoint.label} on ${formattedDate} at ${formattedTime}`;
             },
           },
         },
