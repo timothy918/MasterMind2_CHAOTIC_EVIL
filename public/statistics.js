@@ -160,6 +160,7 @@ function queryGames() {
   }));
   resultArray.sort((a, b) => a.resultScore - b.resultScore); // Sort the resultArray by resultScore in ascending order
   console.log(resultArray); // Return or process the sorted array
+  resultArrayGlobal = resultArray; // Store resultArray globally
   return resultArray; // Return the sorted array with counts
 }
 
@@ -204,7 +205,7 @@ async function drawPictogram(resultArray) {
   spacingBtwResultScores = (remainingWidth - 10) / (resultArray.length - 1);
   let currentXPosition = baseX;
   currentXPositionArray = []; // Reset X positions
-  resultArrayGlobal = resultArray; // Store resultArray globally
+  // resultArrayGlobal = resultArray; // Store resultArray globally
   resultArray.forEach((item) => {
     const resultScore = item.resultScore;
     const count = item.count;
@@ -271,8 +272,7 @@ async function drawScatterPlot(resultScoreFilter) {
       ipAddress: data.ipAddress,
       dateTime: data.dateTime ? data.dateTime.toDate() : new Date(), // Convert Firestore timestamp to Date object
     }));
-  // Sort results by dateTime
-  filteredResults.sort((a, b) => a.dateTime - b.dateTime);
+  filteredResults.sort((a, b) => a.dateTime - b.dateTime); // Sort results by dateTime
 
   // Prepare scatter data with sequential x-axis values
   const scatterData = filteredResults.map((result, index) => ({
